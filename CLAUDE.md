@@ -11,7 +11,7 @@ Educational web game: students run a hotel in Thailand, from an 8-room hostel to
 
 ## Status
 - P0 (economy prototype) is DONE: `prototype/hotel-sim-p0-v0.3.html` is the playable reference; its split sources are in `prototype/src/`.
-- P1 single-player game: DONE (owner playtest passed 8 Oct 2026). Only open P1 item: the owner's real pixel art (placeholders work meanwhile). Done: city vignettes (9/9), buildings T0/T1/T2, staff sprites. Still to come: staff portraits.
+- P1 single-player game: DONE (owner playtest passed 8 Oct 2026; all pixel art in place 9 Oct 2026: 9 city vignettes, buildings T0/T1/T2, staff sprites, staff portraits).
 - Next: **P2 multiplayer classroom** — hosting (GitHub Pages + Supabase recommended) and login model (instructor login + room code + name recommended) still need the owner's decision.
 - Full design rationale: `docs/spec-summary.md` (read when you need rules or numbers). Full exported doc: `docs/system-design-v0.3.md` (its §7 Tech stack is outdated; see `docs/design-doc.md`).
 
@@ -33,7 +33,7 @@ Educational web game: students run a hotel in Thailand, from an 8-room hostel to
 - `prototype/` — P0 v0.3 single-file game + its source pieces (UI patterns to port).
 - `assets/art-templates/` — palette (`hotel-pixel-32.gpl/.hex`), real-size canvases, layout guides. Owner's finished PNGs go to `assets/sprites/`.
 - `tools/pixelate.py` — photo → palette pixel art (stdlib Python + macOS `sips`, no installs). `python3 tools/pixelate.py PHOTO OUT.png --size 160x96 --preview P.png`; options for crop, focus, gamma, hue-first matching, colour subset, stray-pixel cleanup. Owner photos stay out of git.
-- Building art: ChatGPT does not hit exact positions, so each layout in `src/scene/layout.js` is MEASURED from its PNG (windows, floor beams, desk, stairs) and checked by drawing all lights over the art. T2 = T1 art + FOOD sign and table cut from a ChatGPT image (owner's choice). `tools/spritesheet.py` turns 8 AI images (2×2 poses each) into `staff-sprites.png` (characters ~22 px tall = the AI art's own pixel size). `tools/blockout.py` makes 1024×1024 blockouts for T1/T2 prompts (`docs/art-prompts-chatgpt.md`).
+- Building art: ChatGPT does not hit exact positions, so each layout in `src/scene/layout.js` is MEASURED from its PNG (windows, floor beams, desk, stairs) and checked by drawing all lights over the art. T2 = T1 art + FOOD sign and table cut from a ChatGPT image (owner's choice). `tools/spritesheet.py` turns 8 AI images (2×2 poses each) into `staff-sprites.png` (characters ~22 px tall = the AI art's own pixel size); `tools/portraits.py` makes `staff-portraits.png` (shown at full 48 px). Both snap each source pixel to the palette before voting and skip pink/lamp/gold (magenta fringe, orange skin). `tools/blockout.py` makes 1024×1024 blockouts for T1/T2 prompts (`docs/art-prompts-chatgpt.md`).
 - `docs/` — spec summary, sources, decisions spreadsheet.
 
 ## Locked decisions (details in docs/spec-summary.md)

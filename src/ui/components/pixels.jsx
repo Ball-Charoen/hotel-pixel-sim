@@ -66,7 +66,7 @@ export function ThaiMap({ selected, onSelect }) {
 export function Avatar({ id, look, label }) {
   // Owner's portraits: 8 faces of 48×48 in one strip, same order as the staff sprites (c0..c7).
   const png = id != null && spriteUrl('staff-portraits.png');
-  if (png) return <span class="avatar portrait" role="img" aria-label={label} style={{ backgroundImage: `url(${png})`, backgroundPosition: `${-staffRow(id) * 36}px 0` }} />;
+  if (png) return <span class="avatar portrait" role="img" aria-label={label} style={{ backgroundImage: `url(${png})`, backgroundPosition: `${-staffRow(id) * 48}px 0` }} />;
   const rng = mulberry32(look || 1);
   const skins = ['#F1C9A5', '#E0AC82', '#C68B5E', '#9A6644'];
   const hairs = ['#2B2222', '#4A3426', '#7A4E2D', '#1E2430', '#B6542F'];

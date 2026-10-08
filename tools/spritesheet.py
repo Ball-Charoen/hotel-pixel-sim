@@ -9,7 +9,7 @@ on a plain white or magenta background (docs/art-prompts-chatgpt.md, section 4).
 - background = the colour touching the cell edges, removed by flood fill (an enclosed white eye stays)
 - every character gets the same scale (tallest one = --height px, about the AI image's own pixel size), feet on the bottom row
 - the body is centred using the idle frame, so the character does not jump between frames
-- each 32x32 pixel takes the most common colour of the source block, then snaps to the game palette
+- each source pixel snaps to the game palette first, then each 32x32 pixel takes the most common result
 """
 import argparse, os, subprocess, sys, tempfile
 from collections import Counter
@@ -59,6 +59,14 @@ def cells(img):
     return out
 
 
+def people_palette():
+    """Game palette for people. Left out: pink #c8577a (the magenta background's blurry edge turns into it)
+    and lamp/gold #f2b33d #e8b730 (orange AI skin tones would snap to them and look speckled)."""
+    drop = {'c8577a', 'f2b33d', 'e8b730'}
+    keep = [h for h in open(PALETTE_FILE).read().split() if len(h) == 6 and h.lower() not in drop]
+    return load_palette(PALETTE_FILE, ','.join(keep))
+
+
 def bbox(c):
     ys = [y for y, row in enumerate(c) if any(p is not None for p in row)]
     xs = [x for x in range(len(c[0])) if any(row[x] is not None for row in c)]
@@ -70,9 +78,7 @@ def main():
     ap.add_argument('out'); ap.add_argument('rows', nargs=8)
     ap.add_argument('--height', type=int, default=20); ap.add_argument('--preview')
     a = ap.parse_args()
-    # pink #c8577a is left out: no uniform uses it, and it is what the magenta background's blurry edge turns into
-    keep = [h for h in open(PALETTE_FILE).read().split() if len(h) == 6 and h.lower() != 'c8577a']
-    pal, cache = load_palette(PALETTE_FILE, ','.join(keep)), {}
+    pal, cache = people_palette(), {}
     chars = [cells(load(p)) for p in a.rows]
     tallest = max(bbox(f)[3] - bbox(f)[1] + 1 for ch in chars for f in ch)
     scale = tallest / a.height                                   # source px per game px
@@ -88,9 +94,9 @@ def main():
                     q = scale / 4                                # middle half of the block: ignores blurry edges
                     block = [cell[y][x] for y in range(int(sy0 + q), int(sy0 + scale - q)) for x in range(int(sx0 + q), int(sx0 + scale - q))
                              if 0 <= y < len(cell) and 0 <= x < len(cell)]
-                    solid = [p for p in block if p is not None]
+                    solid = [nearest(p, pal, cache) for p in block if p is not None]
                     if block and len(solid) >= len(block) / 2:
-                        sheet[r * CELL + ty][f * CELL + tx] = nearest(Counter(solid).most_common(1)[0][0], pal, cache)
+                        sheet[r * CELL + ty][f * CELL + tx] = Counter(solid).most_common(1)[0][0]
     # drop lone specks (no solid neighbour) left by blurry edges
     for y in range(len(sheet)):
         for x in range(len(sheet[0])):

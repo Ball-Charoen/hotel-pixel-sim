@@ -49,7 +49,10 @@ def read_png(path):
             elif f == 4:
                 p = a + b - c; pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
                 line[x] = (line[x] + (a if pa <= pb and pa <= pc else b if pb <= pc else c)) & 255
-        rows.append([tuple(line[x * ch:x * ch + 3]) for x in range(w)])
+        if ch == 4:   # see-through pixels count as white (some AI images leave holes transparent)
+            rows.append([tuple(round(line[x * 4 + k] * line[x * 4 + 3] / 255 + 255 - line[x * 4 + 3]) for k in range(3)) for x in range(w)])
+        else:
+            rows.append([tuple(line[x * 3:x * 3 + 3]) for x in range(w)])
         prev = line
     return rows
 
