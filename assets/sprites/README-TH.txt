@@ -9,3 +9,6 @@ city-bkk.png ... city-pnb.png  160x96  ภาพเมือง 9 ภาพ (bkk
 
 ไกด์และผืนผ้าใบอยู่ที่ assets/art-templates/ (ดู README-TH.txt ในโฟลเดอร์นั้น)
 หลังวางไฟล์ใหม่ ถ้าหน้าเกมยังไม่เปลี่ยน ให้กดรีเฟรชหน้าเกมหนึ่งครั้ง
+
+แปลงรูปถ่ายเป็นภาพพิกเซล: python3 tools/pixelate.py รูป.jpg assets/sprites/city-xxx.png --size 160x96 --preview ตัวอย่าง.png
+(รูปถ่ายต้นฉบับไม่ต้องเก็บในโปรเจกต์)

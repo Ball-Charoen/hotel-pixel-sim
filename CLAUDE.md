@@ -11,7 +11,7 @@ Educational web game: students run a hotel in Thailand, from an 8-room hostel to
 
 ## Status
 - P0 (economy prototype) is DONE: `prototype/hotel-sim-p0-v0.3.html` is the playable reference; its split sources are in `prototype/src/`.
-- P1 single-player game: DONE (owner playtest passed 8 Oct 2026). Only open P1 item: the owner's real pixel art (placeholders work meanwhile).
+- P1 single-player game: DONE (owner playtest passed 8 Oct 2026). Only open P1 item: the owner's real pixel art (placeholders work meanwhile). City vignettes: done (9/9). Still to come: buildings, staff sprites, portraits.
 - Next: **P2 multiplayer classroom** — hosting (GitHub Pages + Supabase recommended) and login model (instructor login + room code + name recommended) still need the owner's decision.
 - Full design rationale: `docs/spec-summary.md` (read when you need rules or numbers). Full exported doc: `docs/system-design-v0.3.md` (its §7 Tech stack is outdated; see `docs/design-doc.md`).
 
@@ -32,6 +32,7 @@ Educational web game: students run a hotel in Thailand, from an 8-room hostel to
 - `src/data/` — `thmap.json` (pixel map of Thailand rasterised from Natural Earth, public domain), `landmarks.json` (9 original 20×16 pixel vignettes).
 - `prototype/` — P0 v0.3 single-file game + its source pieces (UI patterns to port).
 - `assets/art-templates/` — palette (`hotel-pixel-32.gpl/.hex`), real-size canvases, layout guides. Owner's finished PNGs go to `assets/sprites/`.
+- `tools/pixelate.py` — photo → palette pixel art (stdlib Python + macOS `sips`, no installs). `python3 tools/pixelate.py PHOTO OUT.png --size 160x96 --preview P.png`; options for crop, focus, gamma, hue-first matching, colour subset, stray-pixel cleanup. Owner photos stay out of git.
 - `docs/` — spec summary, sources, decisions spreadsheet.
 
 ## Locked decisions (details in docs/spec-summary.md)
