@@ -182,3 +182,65 @@ table.compact .focus{font-size:.72rem;color:var(--muted);line-height:1.3;display
 @font-face{font-family:'Hotel Pixel TC';src:url('../../fonts/noto-sans-tc-subset.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap;size-adjust:90%;unicode-range:U+2E80-9FFF,U+3000-303F,U+F900-FAFF,U+FF00-FFEF}
 :root{--font:'IBM Plex Sans Thai','Hotel Pixel TC','Noto Sans Thai','Leelawadee UI','Tahoma',system-ui,sans-serif;--pix:'VT323','IBM Plex Sans Thai','Hotel Pixel TC',ui-monospace,monospace}
 .langbar button[lang="zh-TW"]{font-family:system-ui,sans-serif} /* device font, so the label alone doesn't download the Chinese font */
+
+/* ---------- P1 step 3: phones ---------- */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.savestatus{margin:4px 0 0;text-align:right}
+.rotate-hint{display:none}
+/* Phone held upright: still playable, but suggest turning it. */
+@media (orientation:portrait) and (max-width:600px){
+  .rotate-hint{display:block;margin:0 0 8px;padding:6px 10px;border:2px dashed var(--line);border-radius:3px;font-size:.85rem;text-align:center;background:var(--surface2)}
+}
+/* Phone held sideways (short screen): sidebar on the left, scrolling content on the right. */
+@media (orientation:landscape) and (max-height:560px){
+  .wrap{padding:6px max(8px,env(safe-area-inset-right)) 6px max(8px,env(safe-area-inset-left))}
+  body{font-size:15px}
+  h1{font-size:1.25rem}
+  h2{font-size:1.02rem;margin-bottom:8px}
+  h3{margin:12px 0 6px}
+  .panel{padding:10px 12px;margin-bottom:10px}
+  .thmap{max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);width:auto;max-width:100%}
+
+  .game{display:grid;grid-template-columns:clamp(200px,29vw,250px) minmax(0,1fr);
+    grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"lang main" "top main" "tabs main" "end main";
+    column-gap:10px;height:calc(100vh - 12px);height:calc(100dvh - 12px)}
+  .game>.langbar{grid-area:lang;justify-content:flex-start;flex-wrap:wrap;margin:0 0 4px}
+  .game>.langbar button{padding:1px 6px;font-size:.72rem}
+
+  .game>.topbar{grid-area:top;position:relative;display:grid;grid-template-columns:1fr 1fr;gap:0 8px;margin:0 0 6px}
+  .game>.topbar .where{grid-column:1/-1;order:-1;padding-right:40px;line-height:1.3;margin-bottom:2px}
+  .game>.topbar .stat{line-height:1.15}
+  .game>.topbar .stat .k{font-size:.68rem}
+  .game>.topbar .stat .v{font-size:1.3rem}
+  .game>.topbar .chip{font-size:.7rem;padding:0 5px}
+  .game>.topbar .infobtn{position:absolute;top:0;right:0;width:34px;height:34px;font-size:1.5rem;box-shadow:2px 2px 0 var(--line)}
+
+  .game>.tabs{grid-area:tabs;display:grid;grid-template-columns:1fr 1fr;align-content:start;gap:4px;border:0;margin:0;overflow-y:auto;min-height:0}
+  .game>.tabs button{border:2px solid var(--line);border-radius:3px;margin:0;text-align:center;padding:4px 4px;font-size:.8rem;line-height:1.25;min-height:34px}
+  .game>.tabs button[aria-selected="true"]{background:var(--ink);color:var(--surface);border-bottom:2px solid var(--line)}
+
+  .game>#tabbody{grid-area:main;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;min-height:0;padding:0 2px 8px 0}
+
+  .game>.endbar{grid-area:end;position:static;background:none;padding:6px 0 0}
+  .game>.endbar p.small{font-size:.75rem;line-height:1.35}
+  .game>.endbar .spendnote{display:none}
+  .game>.endbar .btn{padding:8px 10px;font-size:.92rem}
+  .game>.endbar .savestatus{display:none}
+}
+@media (orientation:landscape) and (max-height:560px){
+  .game>.topbar .stat .k{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+/* Very short screens (browser bars visible): keep all tabs and the end button on screen. */
+@media (orientation:landscape) and (max-height:380px){
+  .game>.topbar .where br{display:none}
+  .game>.topbar .where>span:nth-of-type(2){margin-right:4px}
+  .game>.tabs button{min-height:30px;padding:3px 4px}
+  .game>.langbar{margin-bottom:2px}
+}
+@media (orientation:landscape) and (max-height:340px){
+  .game>.endbar p.small{display:none}
+  .game>.topbar .where .chip{display:none} /* season chips are also in the Decisions and Market tabs */
+  .game>.topbar .stat .v{font-size:1.1rem}
+  .game>.tabs button{min-height:28px;padding:2px 4px}
+  .game>.endbar .btn{padding:6px 10px}
+}

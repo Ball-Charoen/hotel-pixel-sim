@@ -73,9 +73,16 @@ export function App() {
   else if (screen === 'final') body = <FinalScreen s={session.current} onRestart={restart} />;
   else {
     body = (
-      <GameScreen s={session.current} update={update} saveOk={saveOk} onFinal={showFinal}
+      <GameScreen s={session.current} update={update} saveOk={saveOk} onFinal={showFinal} langSwitch={<LangSwitch onChange={changeLang} />}
         initialTab={session.current.last ? 'report' : 'market'} />
     );
   }
-  return <><LangSwitch onChange={changeLang} />{body}</>;
+  // In the game the switcher sits inside the layout (sidebar on phones); elsewhere it is on top.
+  return (
+    <>
+      <p class="rotate-hint">{t('app.rotate')}</p>
+      {screen !== 'game' && <LangSwitch onChange={changeLang} />}
+      {body}
+    </>
+  );
 }

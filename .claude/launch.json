@@ -4,7 +4,19 @@
     {
       "name": "game",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "port": 5173
+    },
+    {
+      "name": "game-phone",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:phone"
+      ],
       "port": 5173
     }
   ]

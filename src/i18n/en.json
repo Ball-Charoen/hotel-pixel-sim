@@ -1,7 +1,8 @@
 {
   "app": {
     "title": "Hotel Pixel Simulation",
-    "phase": "P1 in development"
+    "phase": "P1 in development",
+    "rotate": "Turn your phone sideways (landscape) for the best view"
   },
   "unit": {
     "baht": "{amount} ฿",
@@ -587,8 +588,34 @@
     "failed": "The game cannot be saved (the browser may be in private mode). If you close this page, the game will be lost."
   },
   "data": {
-    "month": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-    "monthFull": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    "month": [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ],
+    "monthFull": [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
+    ],
     "season": {
       "high": "High season",
       "shoulder": "Shoulder season",
