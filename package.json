@@ -6,5 +6,12 @@
   "description": "Educational hotel-management web game set in Thailand (pixel art). P0 prototype done; P1 in progress.",
   "scripts": {
     "test": "node --test"
+  },
+  "dependencies": {
+    "preact": "^10.29.8"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
+    "vite": "^8.3.3"
   }
 }
