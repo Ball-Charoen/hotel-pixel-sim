@@ -2,7 +2,7 @@ import { useState, useRef, useReducer } from 'preact/hooks';
 import { startSession } from './session.js';
 import { SetupScreen } from './screens/SetupScreen.jsx';
 import { GameScreen } from './screens/GameScreen.jsx';
-import { t } from '../i18n/index.js';
+import { FinalScreen } from './screens/FinalScreen.jsx';
 
 /* The sim core mutates the game object in place, so the session lives in a ref
    and update(fn) runs the change then forces a re-render. */
@@ -16,13 +16,6 @@ export function App() {
   const restart = () => { session.current = null; setScreen('setup'); window.scrollTo(0, 0); };
 
   if (screen === 'setup') return <SetupScreen onStart={start} />;
-  if (screen === 'final') {
-    return (
-      <div class="panel">
-        <p class="muted">{t('pending.final')}</p>
-        <button class="btn" type="button" onClick={restart}>{t('end.restart')}</button>
-      </div>
-    );
-  }
+  if (screen === 'final') return <FinalScreen s={session.current} onRestart={restart} />;
   return <GameScreen s={session.current} update={update} onFinal={() => { setScreen('final'); window.scrollTo(0, 0); }} />;
 }

@@ -1,12 +1,16 @@
 /* Game session glue between the UI and the sim core: decision log, staff hiring, end of week.
    Pure (no DOM) so it can be tested with node. Logic ported unchanged from prototype/src/ui3b.js + ui3d.js. */
-import { newGame, simulateWeek, weekInfo, seasonMult, seasonLabel, tmdSeason, WEEKS, INFLUENCER, COST } from '../sim/core.js';
+import {
+  newGame, simulateWeek, weekInfo, seasonMult, seasonLabel, tmdSeason, buildTimeline, mulberry32, hashSeed,
+  WEEKS, INFLUENCER, COST, SHOCKS,
+} from '../sim/core.js';
 
 // UI-enforced in P0; moves into the core with the 3 staff positions (P1 step 5).
 export const MAX_STAFF = 4;
 
+/* reveal: instructor option to show upcoming shocks in the calendar. freq: cached event-frequency simulation. */
 export function startSession(opts) {
-  return { G: newGame(opts), log: [], last: null };
+  return { G: newGame(opts), log: [], last: null, reveal: false, freq: null };
 }
 
 export const player = G => G.hotels[0];
@@ -67,3 +71,30 @@ export function endWeek(session) {
 }
 
 export const isOver = G => G.week >= WEEKS;
+
+/* Simulate n event timelines for this city/month/chaos level (events library). */
+export function eventFrequency(G, n = 300) {
+  const cnt = {}, cat = { macro: 0, political: 0, industry: 0 };
+  let tot = 0, neg = 0, pos = 0;
+  for (let i = 0; i < n; i++) {
+    const g = { city: G.city, startMonth: G.startMonth, chaos: G.chaos };
+    const tl = buildTimeline(g, mulberry32(hashSeed('freq' + i)));
+    tl.forEach(t => t.shocks.filter(x => x.k === 0).forEach(x => {
+      cnt[x.ev.id] = (cnt[x.ev.id] || 0) + 1; cat[x.ev.cat]++; tot++;
+      if (x.ev.positive) pos++; else neg++;
+    }));
+  }
+  const top = Object.entries(cnt).sort((a, b) => b[1] - a[1]).map(([id, c]) => ({ s: SHOCKS.find(x => x.id === id), c }));
+  return { n, tot, cat, pos, neg, top };
+}
+
+/* Decision log as CSV for debriefing in Excel / Google Sheets. */
+export function decisionCsv(log) {
+  const head = 'week,date,price_wd,price_we,staff,bonus,billboard,online,influencer,ota,fake,occ,adr,revpar,mpi,ari,rgi,rating,profit';
+  const rows = log.map(r => [
+    r.week, '"' + r.date + '"', r.pwd, r.pwe, r.staff, r.bonus, r.bill, r.online, r.inf, r.ota ? 1 : 0, r.fake ? 1 : 0,
+    (r.occ * 100).toFixed(1), Math.round(r.adr), Math.round(r.revpar), Math.round(r.mpi), Math.round(r.ari), Math.round(r.rgi),
+    r.rating.toFixed(2), Math.round(r.profit),
+  ].join(','));
+  return [head].concat(rows).join('\n');
+}

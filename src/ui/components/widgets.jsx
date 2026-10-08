@@ -1,9 +1,13 @@
 /* Shared building blocks: source link, season chips, bars, slider with −/+ steppers, line chart. */
+import { Fragment } from 'preact';
 import { useState } from 'preact/hooks';
 import { clamp, SEASON_NAME, TMD_NAME } from '../../sim/core.js';
 import { SRC } from '../sources.js';
 import { fmt, baht } from '../format.js';
 import { t } from '../../i18n/index.js';
+
+/* Join a list of nodes with <br/> between them. */
+export const lines = items => items.map((x, i) => <Fragment key={i}>{i > 0 && <br />}{x}</Fragment>);
 
 export const Src = ({ k, children }) => <a href={SRC[k]} target="_blank" rel="noopener">{children}</a>;
 

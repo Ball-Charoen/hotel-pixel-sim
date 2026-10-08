@@ -2,7 +2,12 @@ import { useState, useEffect, useRef } from 'preact/hooks';
 import { CITIES, WEEKS } from '../../sim/core.js';
 import { player, weekCtx, plannedSpend, endWeek, isOver } from '../session.js';
 import { SeasonChip, TmdChip } from '../components/widgets.jsx';
+import { MarketTab } from '../tabs/MarketTab.jsx';
+import { DecideTab } from '../tabs/DecideTab.jsx';
 import { StaffTab } from '../tabs/StaffTab.jsx';
+import { CustomerTab } from '../tabs/CustomerTab.jsx';
+import { ReportTab } from '../tabs/ReportTab.jsx';
+import { EventsLibrary } from './EventsLibrary.jsx';
 import { fmt, baht } from '../format.js';
 import { t, tx } from '../../i18n/index.js';
 
@@ -44,7 +49,7 @@ function EndBar({ G, onEndWeek, onFinal }) {
   );
 }
 
-function InfoModal({ onClose }) {
+function InfoModal({ onClose, children }) {
   const closeBtn = useRef(null);
   useEffect(() => {
     closeBtn.current?.focus();
@@ -60,25 +65,8 @@ function InfoModal({ onClose }) {
           <h2 id="infotitle">{t('info.title')}</h2>
           <button ref={closeBtn} type="button" class="btn ghost" aria-label={t('info.closeAria')} onClick={onClose}>{t('info.close')}</button>
         </div>
-        <div class="modal-body"><div class="panel"><p class="muted">{t('pending.info')}</p></div></div>
+        <div class="modal-body">{children}</div>
       </div>
-    </div>
-  );
-}
-
-/* Tabs not yet ported from the prototype (P1 step 1b). */
-function PendingTab({ tab, last }) {
-  const i = last && last.idx;
-  return (
-    <div class="panel">
-      <h2>{t(`tabs.${tab}`)}</h2>
-      {tab === 'report' && last && (
-        <p class="headline">{t('report.headline', {
-          week: last.week, date: last.info.label, rgi: Math.round(i.rgi),
-          dir: i.rgi >= 100 ? t('report.more') : t('report.less'), diff: Math.abs(Math.round(i.rgi - 100)),
-        })}</p>
-      )}
-      <p class="muted">{t('pending.tab')}</p>
     </div>
   );
 }
@@ -104,10 +92,18 @@ export function GameScreen({ s, update, onFinal }) {
         ))}
       </div>
       <div id="tabbody">
-        {tab === 'staff' ? <StaffTab s={s} update={update} /> : <PendingTab tab={tab} last={s.last} />}
+        {tab === 'market' && <MarketTab s={s} />}
+        {tab === 'decide' && <DecideTab s={s} update={update} onGoStaff={() => setTab('staff')} />}
+        {tab === 'staff' && <StaffTab s={s} update={update} />}
+        {tab === 'customer' && <CustomerTab s={s} />}
+        {tab === 'report' && <ReportTab s={s} />}
       </div>
       <EndBar G={s.G} onEndWeek={doEndWeek} onFinal={onFinal} />
-      {info && <InfoModal onClose={() => { setInfo(false); infoBtnFocus(); }} />}
+      {info && (
+        <InfoModal onClose={() => { setInfo(false); infoBtnFocus(); }}>
+          <EventsLibrary s={s} update={update} />
+        </InfoModal>
+      )}
     </>
   );
 }
