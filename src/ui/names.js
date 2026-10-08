@@ -24,8 +24,8 @@ export const N = {
   shockText: id => t(`data.shock.${id}.text`),
   internal: id => t(`data.internal.${id}.name`),
   staff: name => (name ? t(`data.staff.${name}`) : t('data.staffFallback')),
-  // The player's hotel keeps the name they typed; bots are looked up by id.
-  hotel: h => (h.isPlayer ? h.name || t('setup.defaultHotelName') : t(`data.bot.${h.id}`)),
+  // Players' hotels (you or classmates) keep the name they typed; bots are looked up by id.
+  hotel: h => (h.arch ? t(`data.bot.${h.id}`) : h.name || t('setup.defaultHotelName')),
   // Optional owner line under a hotel's name (empty when the player left it blank; bots have none).
   owner: h => (h.owner ? t('unit.owner', { name: h.owner }) : ''),
 };

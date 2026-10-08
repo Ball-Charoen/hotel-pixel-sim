@@ -36,7 +36,7 @@ export function FinalScreen({ s, onRestart }) {
                     <td>{Math.round(f.rep)}</td>
                     <td>{Math.round(f.staff)}</td>
                     <td class={f.profit > 0 ? 'up' : 'down'}>{fmt(f.profit)}</td>
-                    <td>{h.isPlayer ? '–' : t('final.botReveal', { arch: N.arch(h.arch), skill: N.skill(h.skill) })}</td>
+                    <td>{h.arch ? t('final.botReveal', { arch: N.arch(h.arch), skill: N.skill(h.skill) }) : '–'}</td>
                   </tr>
                 );
               })}

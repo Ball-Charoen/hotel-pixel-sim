@@ -158,14 +158,22 @@ function buildTimeline(g,rng){
 }
 function newHotel(id,name,isPlayer){return {id,name,isPlayer,price:{wd:0,we:0},staff:[],bonus:0,mk:{billboard:0,online:0},inf:'none',ota:true,fake:false,
   rooms:8,tier:0,proj:{},restaurant:false,invest:0,stock:{billboard:0,online:0,influencer:0},R:3.5,N:8,cash:START_CASH,otaBan:0,profitCum:0,history:[],fakeCaught:0,closed:0,closedWeeks:0,crises:[]};}
+/* Single player: opts.hotelName/ownerName -> player 'you' + 3 bots (unchanged since P1).
+   Classroom (P2): opts.players=[{id,hotelName,ownerName}] + opts.bots (0-3) -> one market. Each player gets their own
+   8 applicants from an RNG seeded by game seed + player id, so pools don't depend on join order or the main RNG. */
 function newGame(opts){
-  const rng=mulberry32(hashSeed(String(opts.seed)));
+  const rng=mulberry32(hashSeed(String(opts.seed)));const multi=Array.isArray(opts.players);
   const g={hotelName:opts.hotelName,seed:opts.seed,city:opts.city,startMonth:opts.startMonth,chaos:opts.chaos,allowFake:!!opts.allowFake,week:0,rng,news:[]};
-  g.refP=refPrice(opts.city);g.candidates=makeCandidates(rng);g.timeline=buildTimeline(g,rng);
+  if(multi)g.multi=true;
+  g.refP=refPrice(opts.city);g.candidates=multi?[]:makeCandidates(rng);g.timeline=buildTimeline(g,rng);
   const archKeys=Object.keys(ARCH);for(let i=archKeys.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[archKeys[i],archKeys[j]]=[archKeys[j],archKeys[i]];}
   const skills=['low','mid','high'];for(let i=2;i>0;i--){const j=Math.floor(rng()*(i+1));[skills[i],skills[j]]=[skills[j],skills[i]];}
-  const p=newHotel('you',opts.hotelName||'',true);p.owner=String(opts.ownerName||'').trim();p.price.wd=r10(g.refP);p.price.we=r10(g.refP*1.15);p.mk.online=1000;g.hotels=[p];
-  for(let i=0;i<3;i++){const a=ARCH[archKeys[i]];const b=newHotel('bot'+i,'',false);b.arch=archKeys[i];b.skill=skills[i];
+  const startPlayer=(id,name,owner)=>{const p=newHotel(id,name||'',true);p.owner=String(owner||'').trim();p.price.wd=r10(g.refP);p.price.we=r10(g.refP*1.15);p.mk.online=1000;return p;};
+  if(multi){g.hotels=opts.players.map(pl=>{const p=startPlayer(pl.id,pl.hotelName,pl.ownerName);p.candidates=makeCandidates(mulberry32(hashSeed(String(opts.seed)+'|'+pl.id)));return p;});}
+  else g.hotels=[startPlayer('you',opts.hotelName,opts.ownerName)];
+  const nBots=multi?clamp(Math.round(opts.bots||0),0,3):3;
+  if(g.hotels.length+nBots<2)throw new Error('a market needs at least 2 hotels');
+  for(let i=0;i<nBots;i++){const a=ARCH[archKeys[i]];const b=newHotel('bot'+i,'',false);b.arch=archKeys[i];b.skill=skills[i];
     const nz=1+(rng()-.5)*.1;b.price.wd=r10(g.refP*a.pf*nz);b.price.we=r10(b.price.wd*a.wef);
     b.staff=a.staff.map((s,k)=>Object.assign({id:b.id+'s'+k,name:'',sat:70},s,{salary:salaryOf(s)}));b.bonus=a.bonus;b.mk=Object.assign({},a.mk);b.ota=a.ota;g.hotels.push(b);}
   return g;}
@@ -252,7 +260,10 @@ function simulateWeek(g){
     g.hotels.forEach(h=>{const scale=want[h.id]>0?filled[h.id]/want[h.id]:0;const sold=Math.round(filled[h.id]);res[h.id].sold[p]=sold;res[h.id].rev[p]=sold*h.price[p];
       SEGMENTS.forEach(s=>{const sb=segBook[h.id+s.id];const n=sb.b*scale;res[h.id].seg[s.id]=(res[h.id].seg[s.id]||0)+n;res[h.id].otaRev+=n*h.price[p]*sb.ota;});});});
   const out={week:w+1,info:weekInfo(g,w),season,tl:g.timeline[w],E,hotels:{},news:[]};
-  const others=g.hotels.filter(h=>!h.isPlayer);const compAvgPrice=others.reduce((a,h)=>a+(h.price.wd*5+h.price.we*2)/7,0)/others.length;
+  const avgPrice=h=>(h.price.wd*5+h.price.we*2)/7;
+  const others=g.hotels.filter(h=>!h.isPlayer);const compAvgPrice=others.reduce((a,h)=>a+avgPrice(h),0)/others.length;
+  // Classroom: each hotel is compared with every other hotel in the market (single player keeps the bots' average).
+  const compAvgFor=g.multi?(h=>{const o=g.hotels.filter(x=>x!==h);return o.reduce((a,x)=>a+avgPrice(x),0)/o.length;}):(()=>compAvgPrice);
   const eventWeek=g.timeline[w].scheduled.some(e=>!e.cancelled);
   g.hotels.forEach(h=>{
     const r=res[h.id];const sold=r.sold.wd+r.sold.we;const occRooms=sold/7;const avgP=(r.rev.wd+r.rev.we)/(sold||1);
@@ -269,7 +280,7 @@ function simulateWeek(g){
     if(h.closedWeeks>0){h.closedWeeks--;if(h.closedWeeks===0)h.closed=0;}
     else if(rng()<.03){crises.push({id:'repair'});extra+=COST.repair;h.closed=2;h.closedWeeks=2;}
     const myP=(h.price.wd*5+h.price.we*2)/7;
-    if(eventWeek&&myP>compAvgPrice*1.6&&rng()<.3){crises.push({id:'gouging'});h.R=Math.max(1,h.R-.25);}
+    if(eventWeek&&myP>compAvgFor(h)*1.6&&rng()<.3){crises.push({id:'gouging'});h.R=Math.max(1,h.R-.25);}
     const newRev=Math.round(sold*.15);if(newRev>0){h.R=(h.R*h.N+rating*newRev)/(h.N+newRev);h.N+=newRev;}
     if(h.infCred!==null&&rating&&rating<3){h.R=Math.max(1,h.R-.25);notes.push('infBad');}
     let fine=0,fakeCost=0,caught=false;
@@ -299,11 +310,13 @@ function simulateWeek(g){
     h.history.push(rec);out.hotels[h.id]=rec;h.inf='none';advanceProjects(h);
     if(!h.isPlayer)crises.forEach(cr=>out.news.push(Object.assign({hotel:h.id},cr)));
   });
-  const bots=g.hotels.filter(h=>!h.isPlayer).map(h=>out.hotels[h.id]);
-  const cSold=bots.reduce((a,b)=>a+b.sold,0),cRev=bots.reduce((a,b)=>a+b.revenue,0),cAvail=bots.reduce((a,b)=>a+b.rooms*7,0);
-  out.comp={occ:cSold/cAvail,adr:cSold?cRev/cSold:0,revpar:cRev/cAvail,aw:{},R:bots.reduce((a,b)=>a+b.R,0)/bots.length,Q:bots.reduce((a,b)=>a+b.Q,0)/bots.length};
-  SEGMENTS.forEach(s=>out.comp.aw[s.id]=bots.reduce((a,b)=>a+b.aw[s.id],0)/bots.length);
-  const y=out.hotels.you;out.idx={mpi:out.comp.occ?y.occ/out.comp.occ*100:0,ari:out.comp.adr&&y.adr?y.adr/out.comp.adr*100:0,rgi:out.comp.revpar?y.revpar/out.comp.revpar*100:0};
+  // Competitive set and indices (STR style). Single player: the 3 bots vs 'you'. Classroom: every other hotel, per player.
+  const compOf=list=>{const cSold=list.reduce((a,b)=>a+b.sold,0),cRev=list.reduce((a,b)=>a+b.revenue,0),cAvail=list.reduce((a,b)=>a+b.rooms*7,0);
+    const comp={occ:cSold/cAvail,adr:cSold?cRev/cSold:0,revpar:cRev/cAvail,aw:{},R:list.reduce((a,b)=>a+b.R,0)/list.length,Q:list.reduce((a,b)=>a+b.Q,0)/list.length};
+    SEGMENTS.forEach(s=>comp.aw[s.id]=list.reduce((a,b)=>a+b.aw[s.id],0)/list.length);return comp;};
+  const idxOf=(y,c)=>({mpi:c.occ?y.occ/c.occ*100:0,ari:c.adr&&y.adr?y.adr/c.adr*100:0,rgi:c.revpar?y.revpar/c.revpar*100:0});
+  if(g.multi){out.compBy={};out.idxBy={};g.hotels.filter(h=>h.isPlayer).forEach(h=>{const c=compOf(g.hotels.filter(x=>x!==h).map(x=>out.hotels[x.id]));out.compBy[h.id]=c;out.idxBy[h.id]=idxOf(out.hotels[h.id],c);});}
+  else{out.comp=compOf(g.hotels.filter(h=>!h.isPlayer).map(h=>out.hotels[h.id]));out.idx=idxOf(out.hotels.you,out.comp);}
   out.marketOcc=g.hotels.reduce((a,h)=>a+out.hotels[h.id].sold,0)/g.hotels.reduce((a,h)=>a+h.rooms*7,0);
   g.news.push(...out.news.map(n=>Object.assign({week:w+1},n)));
   g.week++;return out;}
