@@ -11,7 +11,8 @@ Educational web game: students run a hotel in Thailand, from an 8-room hostel to
 
 ## Status
 - P0 (economy prototype) is DONE: `prototype/hotel-sim-p0-v0.3.html` is the playable reference; its split sources are in `prototype/src/`.
-- Current phase: **P1 single-player game** (see scope below). Gate to P2: the owner playtests 12 weeks on desktop and on a phone in landscape with no blockers, and `npm test` passes.
+- P1 single-player game: DONE (owner playtest passed 8 Oct 2026). Only open P1 item: the owner's real pixel art (placeholders work meanwhile).
+- Next: **P2 multiplayer classroom** — hosting (GitHub Pages + Supabase recommended) and login model (instructor login + room code + name recommended) still need the owner's decision.
 - Full design rationale: `docs/spec-summary.md` (read when you need rules or numbers). Full exported doc: `docs/system-design-v0.3.md` (its §7 Tech stack is outdated; see `docs/design-doc.md`).
 
 ## Commands
