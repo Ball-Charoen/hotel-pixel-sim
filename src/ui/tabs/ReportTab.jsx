@@ -1,14 +1,14 @@
 import { Fragment } from 'preact';
 import {
-  CITIES, SEGMENTS, WEEKS, ROOMS, COST, CATS, SEASON_NAME, TMD_NAME, tmdSeason, seasonLabel,
+  CITIES, SEGMENTS, WEEKS, ROOMS, COST, CATS, CANCEL_P, SEASON_NAME, TMD_NAME, tmdSeason, seasonLabel,
 } from '../../sim/core.js';
 import { Building } from '../components/Building.jsx';
 import { Quadrant, QuadLegend } from '../components/Quadrant.jsx';
-import { LineChart, Src } from '../components/widgets.jsx';
+import { LineChart, Src, Chg } from '../components/widgets.jsx';
 import { SEG_COLOR } from '../theme.js';
-import { effText, schedText, phaseName } from '../eventText.js';
+import { effRich, schedRich, phaseName } from '../eventText.jsx';
 import { fmt, pct, weekShort } from '../format.js';
-import { t, tx } from '../../i18n/index.js';
+import { t, tx, fill } from '../../i18n/index.js';
 
 const Arrow = ({ v, base }) => (base ? (v >= base ? <span class="up">▲</span> : <span class="down">▼</span>) : null);
 const Calc = ({ children }) => <span class="calc">{children}</span>;
@@ -68,23 +68,26 @@ function KpiCards({ o }) {
   );
 }
 
-/* Automatic reading of the week's result. Rules ported unchanged from the prototype. */
+/* Automatic reading of the week's result. Rules ported unchanged from the prototype.
+   Numbers are coloured: green = good for the player's hotel, red = bad (see Chg). */
 function diagnose(G, o) {
   const y = o.hotels.you, i = o.idx, out = [];
-  const mpi = Math.round(i.mpi), ari = Math.round(i.ari);
+  const idx = v => <Chg good={v >= 100}>{Math.round(v)}</Chg>;
+  const mpi = idx(i.mpi), ari = idx(i.ari);
+  const bad = v => <Chg good={false}>{v}</Chg>;
   const src = k => <Src k={k}>{t('diag.src')}</Src>;
-  if (i.mpi >= 100 && i.ari >= 100) out.push(t('diag.both', { mpi, ari }));
+  if (i.mpi >= 100 && i.ari >= 100) out.push(tx('diag.both', { mpi, ari }));
   else if (i.mpi >= 100) out.push(tx('diag.volume', { mpi, ari, src: src('chekin') }));
   else if (i.ari >= 100) out.push(tx('diag.rate', { mpi, ari, src: src('rpgRev') }));
-  else out.push(t('diag.behind', { mpi, ari }));
-  if (y.occ > 0.9) out.push(tx('diag.full', { occ: pct(y.occ), src: src('rpgRev') }));
-  if (y.occP.we > 0.93 && y.occP.wd < 0.6) out.push(t('diag.weekendGap', { we: pct(y.occP.we), wd: pct(y.occP.wd) }));
+  else out.push(tx('diag.behind', { mpi, ari }));
+  if (y.occ > 0.9) out.push(tx('diag.full', { occ: <Chg good>{pct(y.occ)}</Chg>, src: src('rpgRev') }));
+  if (y.occP.we > 0.93 && y.occP.wd < 0.6) out.push(tx('diag.weekendGap', { we: <Chg good>{pct(y.occP.we)}</Chg>, wd: bad(pct(y.occP.wd)) }));
   const nx = G.week < WEEKS ? G.timeline[G.week].scheduled : [];
   if (nx.length) out.push(t('diag.nextEvent', { names: nx.map(e => e.name).join(', ') }));
   if (y.adequacy < 0.8 && y.sold > 0) out.push(t('diag.understaffed'));
-  if (y.lang < 45 && CITIES[G.city].foreign > 0.3) out.push(t('diag.language', { lang: Math.round(y.lang) }));
-  if (y.revenue > 0 && y.commission / y.revenue > 0.08) out.push(t('diag.commission', { p: pct(y.commission / y.revenue) }));
-  if (y.teamSat < 50 && y.staffN) out.push(t('diag.lowSat', { sat: Math.round(y.teamSat) }));
+  if (y.lang < 45 && CITIES[G.city].foreign > 0.3) out.push(tx('diag.language', { lang: bad(Math.round(y.lang)) }));
+  if (y.revenue > 0 && y.commission / y.revenue > 0.08) out.push(tx('diag.commission', { p: bad(pct(y.commission / y.revenue)) }));
+  if (y.teamSat < 50 && y.staffN) out.push(tx('diag.lowSat', { sat: bad(Math.round(y.teamSat)) }));
   if (y.cash < 0) out.push(t('diag.negCash'));
   return out;
 }
@@ -93,28 +96,43 @@ function causeEffect(G, o) {
   const y = o.hotels.you, out = [];
   const bots = G.hotels.filter(h => !h.isPlayer).map(h => o.hotels[h.id]);
   const tmd = tmdSeason(o.info.month, o.info.day), lab = seasonLabel(o.season);
-  out.push(t('cause.season', { tmd: TMD_NAME[tmd], season: SEASON_NAME[lab], city: CITIES[G.city].name, s: o.season.toFixed(2) }));
+  const s = o.season.toFixed(2);
+  out.push(tx('cause.season', {
+    tmd: TMD_NAME[tmd], season: SEASON_NAME[lab], city: CITIES[G.city].name,
+    s: <Chg good={s === '1.00' ? null : o.season > 1}>{s}</Chg>,
+  }));
   o.tl.scheduled.forEach(e => out.push(e.cancelled
     ? t('cause.cancelled', { name: e.name })
-    : t('cause.scheduled', { name: e.name, eff: schedText(e) })));
-  o.tl.shocks.forEach(s => out.push(t('cause.shock', {
-    arrow: s.ev.positive ? '▲' : '▼', name: s.ev.name, cat: CATS[s.ev.cat], phase: phaseName(s.k, s.d, s.perm),
-    week: s.perm ? '' : t('cause.shockWeek', { k: s.k + 1, d: s.d }), text: s.ev.text, eff: effText(s.ev.eff),
+    : tx('cause.scheduled', { name: e.name, eff: schedRich(e) })));
+  o.tl.shocks.forEach(sh => out.push(tx('cause.shock', {
+    arrow: <Chg good={!!sh.ev.positive}>{sh.ev.positive ? '▲' : '▼'}</Chg>, name: sh.ev.name, cat: CATS[sh.ev.cat],
+    phase: phaseName(sh.k, sh.d, sh.perm), week: sh.perm ? '' : t('cause.shockWeek', { k: sh.k + 1, d: sh.d }),
+    text: sh.ev.text, eff: effRich(sh.ev.eff),
   })));
   if (!o.tl.shocks.length && !o.tl.scheduled.length) out.push(t('cause.quiet'));
   y.crises.forEach(c => out.push(t('cause.crisis', { name: c.name, detail: c.detail })));
   const cP = bots.reduce((a, b) => a + (b.price.wd * 5 + b.price.we * 2) / 7, 0) / bots.length;
   const yP = (y.price.wd * 5 + y.price.we * 2) / 7;
+  // Price vs competitors is a strategy choice, not good or bad, so it stays uncoloured.
   out.push(t('cause.price', {
     y: fmt(yP), c: fmt(cP), dir: yP >= cP ? t('cause.higher') : t('cause.lower'), d: Math.abs(Math.round((yP / cP - 1) * 100)),
   }));
   const cAw = bots.reduce((a, b) => a + b.awAvg, 0) / bots.length;
-  out.push(t('cause.awareness', { y: Math.round(y.awAvg * 100), c: Math.round(cAw * 100) }));
-  if (y.sold > 0) out.push(t('cause.service', { q: Math.round(y.Q), e: Math.round(y.E), r: y.rating.toFixed(1), R: y.R.toFixed(2) }));
-  if (y.inf !== 'none') out.push(t('cause.influencer', { c: y.infCred.toFixed(2) }) + (y.notes.includes('infBad') ? t('cause.infBad') : ''));
-  if (y.fake) out.push(y.caught ? t('cause.fakeCaught', { fine: fmt(COST.fine) }) : t('cause.fakeSafe'));
-  out.push(t('cause.staff', { n: y.staffN, load: y.staffN ? Math.round(y.load) : 0, sat: Math.round(y.teamSat) })
-    + (y.quits.length ? t('cause.quits', { names: y.quits.join(', ') }) : ''));
+  const yAw = Math.round(y.awAvg * 100), cAwR = Math.round(cAw * 100);
+  out.push(tx('cause.awareness', { y: <Chg good={yAw >= cAwR}>{yAw}</Chg>, c: cAwR }));
+  if (y.sold > 0) {
+    out.push(tx('cause.service', {
+      q: <Chg good={y.Q >= y.E}>{Math.round(y.Q)}</Chg>, e: Math.round(y.E), r: y.rating.toFixed(1), R: y.R.toFixed(2),
+    }));
+  }
+  if (y.inf !== 'none') {
+    out.push(<>{tx('cause.influencer', { c: <Chg good={y.infCred >= 1}>{y.infCred.toFixed(2)}</Chg> })}{y.notes.includes('infBad') ? t('cause.infBad') : ''}</>);
+  }
+  if (y.fake) out.push(y.caught ? tx('cause.fakeCaught', { fine: <Chg good={false}>{fmt(COST.fine)}</Chg> }) : t('cause.fakeSafe'));
+  out.push(<>{tx('cause.staff', {
+    n: y.staffN, load: <Chg good={y.load > 15 ? false : null}>{y.staffN ? Math.round(y.load) : 0}</Chg>,
+    sat: <Chg good={y.teamSat < 50 ? false : null}>{Math.round(y.teamSat)}</Chg>,
+  })}{y.quits.length ? t('cause.quits', { names: y.quits.join(', ') }) : ''}</>);
   o.news.forEach(n => out.push(t('cause.news', { text: n })));
   return out;
 }
@@ -162,7 +180,25 @@ function SegMix({ y }) {
   );
 }
 
-const COST_ROWS = ['fixed', 'variable', 'salaries', 'bonus', 'severance', 'marketing', 'commission', 'fake', 'fine', 'crisis', 'interest'];
+/* Weekly reflection question with guidance hidden until the player clicks (keyed by week so it starts closed). */
+function PromptGuide({ prompt }) {
+  const vars = { cancel: Math.round(CANCEL_P * 100) };
+  return (
+    <>
+      <p>{prompt.q}</p>
+      <details>
+        <summary>{t('report.guideSummary')}</summary>
+        <p><b>{t('report.guideWhy')}</b></p>
+        <ul>{prompt.why.map((x, i) => <li key={i}>{fill(x, vars)}</li>)}</ul>
+        <p><b>{t('report.guideTodo')}</b></p>
+        <ul>{prompt.todo.map((x, i) => <li key={i}>{fill(x, vars)}</li>)}</ul>
+        <p class="small muted">{t('report.guideNote')}</p>
+      </details>
+    </>
+  );
+}
+
+const COST_ROWS =['fixed', 'variable', 'salaries', 'bonus', 'severance', 'marketing', 'commission', 'fake', 'fine', 'crisis', 'interest'];
 
 export function ReportTab({ s }) {
   const { G, last: o, log } = s;
@@ -227,7 +263,7 @@ export function ReportTab({ s }) {
           </div>
           <p class="note">{t('report.finNote')}</p>
           <h2 style="margin-top:14px">{t('report.promptTitle')}</h2>
-          <p>{prompts[(o.week - 1) % prompts.length]}</p>
+          <PromptGuide key={o.week} prompt={prompts[(o.week - 1) % prompts.length]} />
           <p class="note">{tx('report.debriefNote', { src: <Src k="crookall">Crookall, 2010</Src> })}</p>
         </div>
       </div>

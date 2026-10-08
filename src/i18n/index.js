@@ -15,10 +15,13 @@ function lookup(key) {
   return v != null ? v : (get(DICTS.th) ?? key);
 }
 
+/* Fill {name} placeholders in an already-looked-up string (e.g. an item of a list from t()). */
+export const fill = (s, vars) => s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m));
+
 export function t(key, vars) {
   const s = lookup(key);
   if (!vars || typeof s !== 'string') return s;
-  return s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m));
+  return fill(s, vars);
 }
 
 export function tx(key, vars = {}) {

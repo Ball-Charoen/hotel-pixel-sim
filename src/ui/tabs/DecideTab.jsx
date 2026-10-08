@@ -2,7 +2,7 @@ import { CITIES, SEGMENTS, WEEKS, INFLUENCER, OTA_COMMISSION, COST, clamp } from
 import { player, weekCtx, plannedSpend } from '../session.js';
 import { RangeCtl, SeasonChip, TmdChip, Src } from '../components/widgets.jsx';
 import { SEG_COLOR } from '../theme.js';
-import { schedText } from '../eventText.js';
+import { schedText } from '../eventText.jsx';
 import { fmt } from '../format.js';
 import { t, tx } from '../../i18n/index.js';
 

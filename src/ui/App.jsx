@@ -1,4 +1,4 @@
-import { useState, useRef, useReducer } from 'preact/hooks';
+import { useState, useRef, useReducer, useEffect } from 'preact/hooks';
 import { startSession } from './session.js';
 import { SetupScreen } from './screens/SetupScreen.jsx';
 import { GameScreen } from './screens/GameScreen.jsx';
@@ -14,6 +14,14 @@ export function App() {
 
   const start = opts => { session.current = startSession(opts); setScreen('game'); window.scrollTo(0, 0); };
   const restart = () => { session.current = null; setScreen('setup'); window.scrollTo(0, 0); };
+
+  // While a game is open, ask before the page is left or reloaded (the game is not saved yet).
+  useEffect(() => {
+    if (screen === 'setup') return undefined;
+    const warn = e => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [screen]);
 
   if (screen === 'setup') return <SetupScreen onStart={start} />;
   if (screen === 'final') return <FinalScreen s={session.current} onRestart={restart} />;

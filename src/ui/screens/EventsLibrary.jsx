@@ -2,7 +2,7 @@
 import { CITIES, CHAOS, CATS, SEV, SHOCKS, NATIONAL, SEEDED, INTERNAL, CANCEL_P, COST, TH_MONTH, TH_MONTH_FULL } from '../../sim/core.js';
 import { eventFrequency } from '../session.js';
 import { HBar, Src } from '../components/widgets.jsx';
-import { effText, schedText } from '../eventText.js';
+import { effText, schedText } from '../eventText.jsx';
 import { fmt } from '../format.js';
 import { t, tx } from '../../i18n/index.js';
 

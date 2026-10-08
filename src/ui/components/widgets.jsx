@@ -9,7 +9,10 @@ import { t } from '../../i18n/index.js';
 /* Join a list of nodes with <br/> between them. */
 export const lines = items => items.map((x, i) => <Fragment key={i}>{i > 0 && <br />}{x}</Fragment>);
 
-export const Src = ({ k, children }) => <a href={SRC[k]} target="_blank" rel="noopener">{children}</a>;
+export const Src = ({ k, children }) => <a href={SRC[k]} target="_blank" rel="noopener noreferrer">{children}</a>;
+
+/* A changed value: green when good for the player's hotel, red when bad, plain when neutral (good == null). */
+export const Chg = ({ good, children }) => (good == null ? <>{children}</> : <b class={good ? 'up' : 'down'}>{children}</b>);
 
 export const SeasonChip = ({ lab }) => <span class={`chip ${lab}`}>{SEASON_NAME[lab]}</span>;
 export const TmdChip = ({ tmd }) => <span class={`chip ${tmd}`}>{TMD_NAME[tmd]}</span>;

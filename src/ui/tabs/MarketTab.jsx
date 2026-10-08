@@ -2,7 +2,7 @@ import { WEEKS, CANCEL_P, SEASON_NAME, TMD_NAME } from '../../sim/core.js';
 import { weekCtx } from '../session.js';
 import { CityCard } from '../components/CityCard.jsx';
 import { SeasonChip, TmdChip, lines } from '../components/widgets.jsx';
-import { schedText, phaseName } from '../eventText.js';
+import { schedText, phaseName } from '../eventText.jsx';
 import { weekShort } from '../format.js';
 import { t } from '../../i18n/index.js';
 
