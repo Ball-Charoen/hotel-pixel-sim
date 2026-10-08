@@ -36,7 +36,7 @@ function ResumeCard({ resume, onContinue, onDelete }) {
 export function SetupScreen({ onStart, resume, onContinue, onDeleteSave }) {
   const [s, setS] = useState(() => ({
     map: 'town', city: 'pbi', chaos: 'mid', allowFake: true, startMonth: 10,
-    hotelName: null, seed: 'class-' + Math.floor(Math.random() * 9000 + 1000),
+    hotelName: null, ownerName: '', seed: 'class-' + Math.floor(Math.random() * 9000 + 1000),
   }));
   const set = patch => setS(prev => ({ ...prev, ...patch }));
   // Until the player types a name, show the default name in the current language.
@@ -46,6 +46,7 @@ export function SetupScreen({ onStart, resume, onContinue, onDeleteSave }) {
   const start = () => onStart({
     seed: s.seed || 'class', city: s.city, startMonth: s.startMonth, chaos: s.chaos, allowFake: s.allowFake,
     hotelName: (hotelName || t('setup.defaultHotelName')).trim(),
+    ownerName: s.ownerName.trim(),
   });
 
   return (
@@ -73,6 +74,11 @@ export function SetupScreen({ onStart, resume, onContinue, onDeleteSave }) {
           <fieldset style="margin-top:12px">
             <legend>{t('setup.hotelName')}</legend>
             <input type="text" maxLength={30} value={hotelName} onInput={e => set({ hotelName: e.currentTarget.value })} />
+          </fieldset>
+          <fieldset>
+            <legend>{t('setup.ownerName')}</legend>
+            <input type="text" maxLength={30} value={s.ownerName} placeholder={t('setup.ownerHint')}
+              onInput={e => set({ ownerName: e.currentTarget.value })} />
           </fieldset>
           <h3>{t('setup.classroom')}</h3>
           <fieldset>

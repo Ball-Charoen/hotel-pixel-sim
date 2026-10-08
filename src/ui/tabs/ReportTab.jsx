@@ -156,7 +156,7 @@ function CompTable({ G, o }) {
             const r = o.hotels[h.id];
             return (
               <tr key={h.id} class={h.isPlayer ? 'you' : ''}>
-                <td>{N.hotel(h)}{h.isPlayer && t('unit.you')}</td>
+                <td>{N.hotel(h)}{h.isPlayer && t('unit.you')}{h.owner && <div class="small muted">{N.owner(h)}</div>}</td>
                 <td>{fmt(r.price.wd)} / {fmt(r.price.we)}</td>
                 <td>{pct(r.occ)}</td>
                 <td>{r.sold ? fmt(r.adr) : '–'}</td>

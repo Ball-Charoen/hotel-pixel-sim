@@ -160,7 +160,7 @@ function newGame(opts){
   g.refP=refPrice(opts.city);g.candidates=makeCandidates(rng);g.timeline=buildTimeline(g,rng);
   const archKeys=Object.keys(ARCH);for(let i=archKeys.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[archKeys[i],archKeys[j]]=[archKeys[j],archKeys[i]];}
   const skills=['low','mid','high'];for(let i=2;i>0;i--){const j=Math.floor(rng()*(i+1));[skills[i],skills[j]]=[skills[j],skills[i]];}
-  const p=newHotel('you',opts.hotelName||'',true);p.price.wd=r10(g.refP);p.price.we=r10(g.refP*1.15);p.mk.online=1000;g.hotels=[p];
+  const p=newHotel('you',opts.hotelName||'',true);p.owner=String(opts.ownerName||'').trim();p.price.wd=r10(g.refP);p.price.we=r10(g.refP*1.15);p.mk.online=1000;g.hotels=[p];
   for(let i=0;i<3;i++){const a=ARCH[archKeys[i]];const b=newHotel('bot'+i,'',false);b.arch=archKeys[i];b.skill=skills[i];
     const nz=1+(rng()-.5)*.1;b.price.wd=r10(g.refP*a.pf*nz);b.price.we=r10(b.price.wd*a.wef);
     b.staff=a.staff.map((s,k)=>Object.assign({id:b.id+'s'+k,name:'',sat:70},s,{salary:salaryOf(s)}));b.bonus=a.bonus;b.mk=Object.assign({},a.mk);b.ota=a.ota;g.hotels.push(b);}

@@ -16,9 +16,10 @@ function StaffCard({ c, hired, canHire, locked, onToggle, playing }) {
     <div class={`card${hired ? ' hired' : ''}`}>
       <div class="head">
         <Avatar id={c.id} look={c.look} label={N.staff(c.name)} />
-        <div class="nm" style="flex:1">
-          <span>{N.staff(c.name)}<br /><span class={`chip role ${c.role}`}>{t(`role.${c.role}`)}</span></span>
-          <span class="small">{t('unit.perWeek', { amount: fmt(c.salary) })}</span>
+        <div class="nm">
+          <span>{N.staff(c.name)}</span>
+          <span class={`chip role ${c.role}`}>{t(`role.${c.role}`)}</span>
+          <span class="small wage">{t('unit.perWeek', { amount: fmt(c.salary) })}</span>
         </div>
       </div>
       {STATS.map(k => (
@@ -122,7 +123,6 @@ export function StaffTab({ s, update }) {
             </div>
           );
         })}
-        <p class="note">{t('staff.artNote')}</p>
       </div>
     </div>
   );

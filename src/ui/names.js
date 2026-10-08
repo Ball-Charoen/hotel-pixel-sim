@@ -26,6 +26,8 @@ export const N = {
   staff: name => (name ? t(`data.staff.${name}`) : t('data.staffFallback')),
   // The player's hotel keeps the name they typed; bots are looked up by id.
   hotel: h => (h.isPlayer ? h.name || t('setup.defaultHotelName') : t(`data.bot.${h.id}`)),
+  // Optional owner line under a hotel's name (empty when the player left it blank; bots have none).
+  owner: h => (h.owner ? t('unit.owner', { name: h.owner }) : ''),
 };
 
 /* Detail line of an internal crisis: the reputation crisis has 4 variants, the others one text. */

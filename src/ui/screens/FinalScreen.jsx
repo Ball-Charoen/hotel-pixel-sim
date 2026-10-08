@@ -30,7 +30,7 @@ export function FinalScreen({ s, onRestart }) {
                 const h = G.hotels.find(x => x.id === f.id);
                 return (
                   <tr key={f.id} class={f.id === 'you' ? 'you' : ''}>
-                    <td>{k + 1}. {N.hotel(h)}{f.id === 'you' && t('unit.you')}</td>
+                    <td>{k + 1}. {N.hotel(h)}{f.id === 'you' && t('unit.you')}{h.owner && <div class="small muted">{N.owner(h)}</div>}</td>
                     <td>{Math.round(f.score)}</td>
                     <td>{Math.round(f.fin)}</td>
                     <td>{Math.round(f.rep)}</td>

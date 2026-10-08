@@ -58,3 +58,10 @@ test('shock events come back with their functions', () => {
   const back = roundTrip(s);
   back.G.timeline.forEach(tl => tl.shocks.forEach(sh => assert.equal(typeof sh.ev.where, 'function')));
 });
+
+test('optional owner name is kept on the player hotel and survives a save; blank stays blank', () => {
+  const s = startSession({ ...opts, ownerName: '  Charoen ' });
+  assert.equal(player(s.G).owner, 'Charoen');
+  assert.equal(player(roundTrip(s).G).owner, 'Charoen');
+  assert.equal(player(startSession(opts).G).owner, '');
+});
