@@ -15,11 +15,14 @@ Educational web game: students run a hotel in Thailand, from an 8-room hostel to
 - Full design rationale: `docs/spec-summary.md` (read when you need rules or numbers). Original living doc: link in `docs/design-doc.md`.
 
 ## Commands
-- `npm test` — runs `tests/*.test.mjs` (node:test) against `src/sim/core.js`. Must stay green.
-- P1 will add `npm run dev` / `npm run build` (Vite). Not set up yet: propose the setup to the owner first.
+- `npm test` — runs `tests/*.test.mjs` (node:test) against `src/sim/core.js` and `src/ui/session.js`. Must stay green.
+- `npm run dev` — Vite dev server on port 5173 (Preview config "game" in `.claude/launch.json`). `npm run build` → `dist/`.
+- Stack (owner-approved 8 Oct 2026): Vite 8 + Preact 10 (not 11, too new) + `@preact/preset-vite`. Node 24 LTS.
 
 ## Layout
 - `src/sim/core.js` — economy core, ES module, pure and deterministic (seeded RNG). No DOM. All balance constants live here.
+- `src/ui/` — Preact UI: `App.jsx`, `screens/`, `tabs/`, `components/`, `styles/game.css` (ported from prototype). `session.js` = pure glue (decision log, hire/fire, end week).
+- `src/i18n/` — `t(key, vars)` / `tx(key, {name: <jsx/>})`; every UI string goes in `th.json` (EN added in P1 step 2).
 - `src/data/` — `thmap.json` (pixel map of Thailand rasterised from Natural Earth, public domain), `landmarks.json` (9 original 20×16 pixel vignettes).
 - `prototype/` — P0 v0.3 single-file game + its source pieces (UI patterns to port).
 - `assets/art-templates/` — palette (`hotel-pixel-32.gpl/.hex`), real-size canvases, layout guides. Owner's finished PNGs go to `assets/sprites/`.
