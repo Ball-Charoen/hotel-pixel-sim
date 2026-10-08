@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'preact/hooks';
 import { WEEKS } from '../../sim/core.js';
 import { N, weekLabel } from '../names.js';
-import { player, weekCtx, plannedSpend, endWeek, isOver } from '../session.js';
+import { player, weekCtx, plannedSpend, endWeek, isOver, hasFrontOffice } from '../session.js';
 import { SeasonChip, TmdChip } from '../components/widgets.jsx';
 import { MarketTab } from '../tabs/MarketTab.jsx';
 import { DecideTab } from '../tabs/DecideTab.jsx';
@@ -51,7 +51,7 @@ function EndBar({ G, saveOk, onEndWeek, onFinal }) {
   if (isOver(G)) {
     return <div class="endbar"><button class="btn" type="button" onClick={onFinal}>{t('end.final')}</button></div>;
   }
-  const hasStaff = player(G).staff.length > 0;
+  const hasStaff = hasFrontOffice(G);
   return (
     <div class="endbar">
       <p class="small" style="margin:0 0 6px">

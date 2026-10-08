@@ -8,7 +8,9 @@ function play(city, month, chaos, seed, staffN = 3, priceF = 1) {
   const g = newGame({ seed, city, startMonth: month, chaos, allowFake: true });
   const p = g.hotels[0];
   const best = g.candidates.slice().sort((a, b) => ((b.app + b.serv + b.exp + b.prof) / b.salary) - ((a.app + a.serv + a.exp + a.prof) / a.salary));
-  p.staff = best.slice(0, staffN); p.bonus = 600;
+  // A sensible team: front office first, then housekeeping (F&B has no work before a restaurant exists).
+  const fo = best.filter(c => c.role === 'fo'), hk = best.filter(c => c.role === 'hk');
+  p.staff = [fo[0], hk[0], fo[1], hk[1]].slice(0, staffN); p.bonus = 600;
   p.price.wd = Math.round(g.refP * priceF); p.price.we = Math.round(g.refP * priceF * 1.15);
   const weeks = []; for (let w = 0; w < WEEKS; w++) weeks.push(simulateWeek(g));
   return { g, weeks };

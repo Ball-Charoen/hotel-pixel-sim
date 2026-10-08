@@ -255,3 +255,10 @@ img.lm{object-fit:cover}
   #tabbody>.scene{display:flex;justify-content:center;margin-bottom:10px}
   #tabbody>.scene canvas{width:auto;height:min(180px,48vh)}
 }
+
+/* ---------- P1 step 5: staff positions ---------- */
+.chip.role{font-size:.72rem;padding:0 6px;margin:2px 0 0;color:#fff}
+.chip.role.fo{background:var(--jade)}.chip.role.hk{background:#4f6fb0}.chip.role.fb{background:#b5643c}
+.bar.key span:first-child{color:var(--ink);font-weight:600}
+.rolegroup h3{margin:12px 0 2px}
+.rolegroup>p{margin:0 0 6px}

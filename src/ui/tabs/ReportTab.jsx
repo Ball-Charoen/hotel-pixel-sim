@@ -1,6 +1,6 @@
 import { Fragment } from 'preact';
 import {
-  CITIES, SEGMENTS, WEEKS, ROOMS, COST, CANCEL_P, tmdSeason, seasonLabel,
+  CITIES, SEGMENTS, WEEKS, ROOMS, COST, CANCEL_P, ROLES, tmdSeason, seasonLabel,
 } from '../../sim/core.js';
 import { Quadrant, QuadLegend } from '../components/Quadrant.jsx';
 import { LineChart, Src, Chg } from '../components/widgets.jsx';
@@ -85,6 +85,7 @@ function diagnose(G, o) {
   const nx = G.week < WEEKS ? G.timeline[G.week].scheduled : [];
   if (nx.length) out.push(t('diag.nextEvent', { names: nx.map(e => N.event(e.id)).join(', ') }));
   if (y.adequacy < 0.8 && y.sold > 0) out.push(t('diag.understaffed'));
+  if (y.staffN && y.roles && y.roles.hk === 0) out.push(t('diag.noHK'));
   if (y.lang < 45 && CITIES[G.city].foreign > 0.3) out.push(tx('diag.language', { lang: bad(Math.round(y.lang)) }));
   if (y.revenue > 0 && y.commission / y.revenue > 0.08) out.push(tx('diag.commission', { p: bad(pct(y.commission / y.revenue)) }));
   if (y.teamSat < 50 && y.staffN) out.push(tx('diag.lowSat', { sat: bad(Math.round(y.teamSat)) }));
@@ -129,8 +130,11 @@ function causeEffect(G, o) {
     out.push(<>{tx('cause.influencer', { c: <Chg good={y.infCred >= 1}>{y.infCred.toFixed(2)}</Chg> })}{y.notes.includes('infBad') ? t('cause.infBad') : ''}</>);
   }
   if (y.fake) out.push(y.caught ? tx('cause.fakeCaught', { fine: <Chg good={false}>{fmt(COST.fine)}</Chg> }) : t('cause.fakeSafe'));
+  const me = G.hotels.find(h => h.isPlayer);
+  const nRole = r => (y.roles ? y.roles[r] : me.staff.filter(s => s.role === r).length);
+  const loadChg = v => <Chg good={v > ROLES.fo.cap ? false : null}>{Math.round(v || 0)}</Chg>;
   out.push(<>{tx('cause.staff', {
-    n: y.staffN, load: <Chg good={y.load > 15 ? false : null}>{y.staffN ? Math.round(y.load) : 0}</Chg>,
+    nFO: nRole('fo'), lFO: loadChg(y.loadFO), nHK: nRole('hk'), lHK: loadChg(y.loadHK),
     sat: <Chg good={y.teamSat < 50 ? false : null}>{Math.round(y.teamSat)}</Chg>,
   })}{y.quits.length ? t('cause.quits', { names: y.quits.map(N.staff).join(', ') }) : ''}</>);
   o.news.forEach(n => out.push(t('cause.news', { text: newsText(G, n) })));

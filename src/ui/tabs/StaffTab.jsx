@@ -1,5 +1,5 @@
-import { WEEKS } from '../../sim/core.js';
-import { player, toggleStaff, openCandidates, MAX_STAFF } from '../session.js';
+import { WEEKS, ROLES } from '../../sim/core.js';
+import { player, toggleStaff, openCandidates, roleOpen, MAX_STAFF } from '../session.js';
 import { Avatar } from '../components/pixels.jsx';
 import { N } from '../names.js';
 import { HBar, RangeCtl, LineChart, Src } from '../components/widgets.jsx';
@@ -7,15 +7,24 @@ import { STATS } from '../theme.js';
 import { fmt, pct, weekShort } from '../format.js';
 import { t, tx } from '../../i18n/index.js';
 
-function StaffCard({ c, hired, canHire, onToggle, playing }) {
+const POSITIONS = ['fo', 'hk', 'fb'];
+/* Skills each position actually uses in the quality formula (core.js teamQuality); shown in bold. */
+const KEY_SKILLS = { fo: ['app', 'serv', 'prof', 'lang'], hk: ['exp', 'serv'], fb: [] };
+
+function StaffCard({ c, hired, canHire, locked, onToggle, playing }) {
   return (
     <div class={`card${hired ? ' hired' : ''}`}>
       <div class="head">
         <Avatar id={c.id} look={c.look} label={N.staff(c.name)} />
-        <div class="nm" style="flex:1"><span>{N.staff(c.name)}</span><span class="small">{t('unit.perWeek', { amount: fmt(c.salary) })}</span></div>
+        <div class="nm" style="flex:1">
+          <span>{N.staff(c.name)}<br /><span class={`chip role ${c.role}`}>{t(`role.${c.role}`)}</span></span>
+          <span class="small">{t('unit.perWeek', { amount: fmt(c.salary) })}</span>
+        </div>
       </div>
       {STATS.map(k => (
-        <div key={k} class="bar"><span>{t(`stat.${k}`)}</span><i><b style={{ width: `${c[k]}%` }} /></i><span>{c[k]}</span></div>
+        <div key={k} class={`bar${KEY_SKILLS[c.role].includes(k) ? ' key' : ''}`}>
+          <span>{t(`stat.${k}`)}</span><i><b style={{ width: `${c[k]}%` }} /></i><span>{c[k]}</span>
+        </div>
       ))}
       {hired && (
         <>
@@ -24,8 +33,8 @@ function StaffCard({ c, hired, canHire, onToggle, playing }) {
         </>
       )}
       {playing && (
-        <button type="button" class={`btn${hired ? ' ghost' : ''}`} disabled={!hired && !canHire} onClick={onToggle}>
-          {hired ? t('staff.fire') : t('staff.hire')}
+        <button type="button" class={`btn${hired ? ' ghost' : ''}`} disabled={!hired && (!canHire || locked)} onClick={onToggle}>
+          {hired ? t('staff.fire') : locked ? t('staff.fbLocked') : t('staff.hire')}
         </button>
       )}
     </div>
@@ -47,6 +56,9 @@ export function StaffTab({ s, update }) {
   });
   const toggle = id => update(() => toggleStaff(G, id));
   const canHire = h.staff.length < MAX_STAFF;
+  const count = role => h.staff.filter(x => x.role === role).length;
+  const open = openCandidates(G);
+  const cap = ROLES.fo.cap;
 
   return (
     <div class="two">
@@ -62,7 +74,8 @@ export function StaffTab({ s, update }) {
             <HBar label={t('staff.delivered')} v={last.Q} mark={last.E} right={`${Math.round(last.Q)}`} />
             <p class="note">{t('staff.expectNote', { e: Math.round(last.E) })}</p>
             <HBar label={t('staff.adequacy')} v={last.adequacy * 100} right={pct(last.adequacy)} />
-            <HBar label={t('staff.load')} v={last.load} mark={15} max={30} right={Math.round(last.load)} />
+            <HBar label={t('staff.loadFO')} v={last.loadFO || 0} mark={cap} max={cap * 2} right={Math.round(last.loadFO || 0)} />
+            <HBar label={t('staff.loadHK')} v={last.loadHK || 0} mark={cap} max={cap * 2} right={Math.round(last.loadHK || 0)} />
             <p class="note">{t('staff.loadNote')}</p>
           </>
         )}
@@ -83,15 +96,30 @@ export function StaffTab({ s, update }) {
       </div>
       <div class="panel">
         <h2>{t('staff.team', { n: h.staff.length, max: MAX_STAFF })}</h2>
+        <p class="small">{t('staff.teamRoles', { fo: count('fo'), hk: count('hk') })}</p>
+        {count('fo') > 0 && count('hk') === 0 && <div class="warn">{t('staff.noHK')}</div>}
         <div class="staff">
           {h.staff.length
             ? h.staff.map(c => <StaffCard key={c.id} c={c} hired playing={playing} onToggle={() => toggle(c.id)} />)
             : <p class="muted">{t('staff.none')}</p>}
         </div>
         <h3>{t('staff.candidates')}</h3>
-        <div class="staff">
-          {openCandidates(G).map(c => <StaffCard key={c.id} c={c} canHire={canHire} playing={playing} onToggle={() => toggle(c.id)} />)}
-        </div>
+        <p class="note">{t('staff.rolesIntro')}</p>
+        {POSITIONS.map(role => {
+          const list = open.filter(c => c.role === role);
+          const locked = !roleOpen(G, role);
+          return (
+            <div key={role} class="rolegroup">
+              <h3><span class={`chip role ${role}`}>{t(`role.${role}`)}</span></h3>
+              <p class="small muted">{t(`staff.help_${role}`)}</p>
+              <div class="staff">
+                {list.map(c => (
+                  <StaffCard key={c.id} c={c} canHire={canHire} locked={locked} playing={playing} onToggle={() => toggle(c.id)} />
+                ))}
+              </div>
+            </div>
+          );
+        })}
         <p class="note">{t('staff.artNote')}</p>
       </div>
     </div>

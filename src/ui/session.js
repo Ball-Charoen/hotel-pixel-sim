@@ -2,11 +2,10 @@
    Pure (no DOM) so it can be tested with node. Logic ported unchanged from prototype/src/ui3b.js + ui3d.js. */
 import {
   newGame, simulateWeek, weekInfo, seasonMult, seasonLabel, tmdSeason, buildTimeline, mulberry32, hashSeed,
-  WEEKS, INFLUENCER, COST, SHOCKS,
+  WEEKS, INFLUENCER, COST, SHOCKS, MAX_STAFF,
 } from '../sim/core.js';
 
-// UI-enforced in P0; moves into the core with the 3 staff positions (P1 step 5).
-export const MAX_STAFF = 4;
+export { MAX_STAFF };
 
 /* reveal: instructor option to show upcoming shocks in the calendar. freq: cached event-frequency simulation. */
 export function startSession(opts) {
@@ -30,6 +29,10 @@ export function plannedSpend(G) {
   return { sal, total };
 }
 
+/* F&B staff only have work once the hotel has a restaurant (Type 2, P1 step 6). */
+export const roleOpen = (G, role) => role !== 'fb';
+export const hasFrontOffice = G => player(G).staff.some(s => s.role === 'fo');
+
 /* Hire a candidate, or fire them if already on the team (pays 1 week severance). */
 export function toggleStaff(G, id) {
   const h = player(G);
@@ -39,6 +42,7 @@ export function toggleStaff(G, id) {
     h.staff.splice(idx, 1);
   } else if (h.staff.length < MAX_STAFF) {
     const c = G.candidates.find(z => z.id === id);
+    if (!roleOpen(G, c.role)) return;
     c.sat = 70;
     h.staff.push(c);
   }

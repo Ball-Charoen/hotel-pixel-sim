@@ -18,11 +18,12 @@ export function Scene({ G }) {
   const lit = Math.round(clamp(last ? last.occ : 0, 0, 1) * ROOM_COUNT);
   const closed = h.closed || 0;
   const staffIds = h.staff.map(s => s.id);
+  const roleOf = id => h.staff.find(s => s.id === id).role;
 
   // Keep one walker per hired staff member; new hires start in the lobby.
   const st = state.current;
   st.lit = lit; st.closed = closed;
-  st.walkers = staffIds.map(id => st.walkers.find(w => w.id === id) || makeWalker(id, staffRow(id), Math.random, 0));
+  st.walkers = staffIds.map(id => st.walkers.find(w => w.id === id) || makeWalker(id, staffRow(id), Math.random, roleOf(id)));
 
   useEffect(() => {
     let alive = true;

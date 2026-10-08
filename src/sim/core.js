@@ -99,18 +99,27 @@ const BASE_AW=.12,AW_K=.25,A0_BASE=.9;
 const COST={fixed:12000,perRoomNight:200,fake:1500,fine:5000,interest:.01,repair:8000,overbook:3000};
 const START_CASH=60000;
 const SCORE_W={fin:.5,rep:.35,staff:.15};
+/* Staff positions (P1 step 5) [design values]. Each position serves every guest, so a person can
+   handle `cap` room-nights a week before satisfaction drops; a team split evenly between front office
+   and housekeeping behaves exactly like the old single team. `q` = share of service quality. */
+const MAX_STAFF=4;
+const ROLES={fo:{q:.6,cap:30},hk:{q:.4,cap:30},fb:{q:0,cap:30}};
+const HK_COVER=.7; // front office cleaning rooms when nobody is in housekeeping: 70% as good (owner approved 8 Oct 2026; tested .5 = too harsh)
+const LOAD_HIT=.6; // satisfaction lost per room-night above cap (old rule: 1.2 per room-night above 15 per person)
+const CAND_ROLES=['fo','fo','fo','hk','hk','hk','fb','fb'];
+const LANG_RANGE={fo:[5,95],hk:[5,60],fb:[5,80]};
 const NAMES=['ton','fon','bank','mind','nat','pla','jay','aom','beam','praew']; // display names: i18n data.staff
 const ARCH={
- budget:{pf:.65,wef:1.1,staff:[{app:45,serv:55,exp:50,prof:40,lang:50},{app:40,serv:50,exp:45,prof:40,lang:45}],bonus:300,mk:{billboard:0,online:800},ota:true,inf:()=>'none'},
- luxury:{pf:1.45,wef:1.2,staff:[{app:88,serv:72,exp:70,prof:82,lang:80},{app:85,serv:70,exp:68,prof:80,lang:75},{app:80,serv:68,exp:72,prof:78,lang:70}],bonus:1500,mk:{billboard:1500,online:600},ota:true,inf:w=>w%4===0?'macro':'none'},
- marketing:{pf:1.0,wef:1.15,staff:[{app:68,serv:60,exp:56,prof:56,lang:65},{app:62,serv:58,exp:54,prof:54,lang:60}],bonus:300,mk:{billboard:300,online:2500},ota:true,inf:w=>w%2===0?'micro':'none'},
- service:{pf:1.15,wef:1.15,staff:[{app:62,serv:88,exp:78,prof:66,lang:62},{app:60,serv:85,exp:75,prof:64,lang:58},{app:58,serv:84,exp:72,prof:62,lang:55}],bonus:1500,mk:{billboard:600,online:400},ota:false,inf:()=>'none'}
+ budget:{pf:.65,wef:1.1,staff:[{role:'fo',app:45,serv:55,exp:50,prof:40,lang:50},{role:'hk',app:40,serv:50,exp:45,prof:40,lang:45}],bonus:300,mk:{billboard:0,online:800},ota:true,inf:()=>'none'},
+ luxury:{pf:1.45,wef:1.2,staff:[{role:'fo',app:88,serv:72,exp:70,prof:82,lang:80},{role:'fo',app:85,serv:70,exp:68,prof:80,lang:75},{role:'hk',app:80,serv:68,exp:72,prof:78,lang:70}],bonus:1500,mk:{billboard:1500,online:600},ota:true,inf:w=>w%4===0?'macro':'none'},
+ marketing:{pf:1.0,wef:1.15,staff:[{role:'fo',app:68,serv:60,exp:56,prof:56,lang:65},{role:'hk',app:62,serv:58,exp:54,prof:54,lang:60}],bonus:300,mk:{billboard:300,online:2500},ota:true,inf:w=>w%2===0?'micro':'none'},
+ service:{pf:1.15,wef:1.15,staff:[{role:'fo',app:62,serv:88,exp:78,prof:66,lang:62},{role:'hk',app:60,serv:85,exp:75,prof:64,lang:58},{role:'hk',app:58,serv:84,exp:72,prof:62,lang:55}],bonus:1500,mk:{billboard:600,online:400},ota:false,inf:()=>'none'}
 };
 const SKILL={low:{step:.04,noise:.08,wrong:.3,look:0,event:0},mid:{step:.06,noise:.04,wrong:.1,look:.5,event:.5},high:{step:.08,noise:.01,wrong:0,look:1,event:1}};
 function salaryOf(s){return r100(1500+22*(s.app+s.serv+s.exp+s.prof)/4+6*s.lang);}
 function makeCandidates(rng){const out=[];const names=NAMES.slice();
   for(let i=0;i<8;i++){const nm=names.splice(Math.floor(rng()*names.length),1)[0];const st=()=>Math.round(30+rng()*65);
-    const s={id:'c'+i,name:nm,app:st(),serv:st(),exp:st(),prof:st(),lang:Math.round(5+rng()*90),sat:70,look:Math.floor(rng()*1e9)};s.salary=salaryOf(s);out.push(s);}
+    const role=CAND_ROLES[i],[lo,hi]=LANG_RANGE[role];const s={id:'c'+i,name:nm,role,app:st(),serv:st(),exp:st(),prof:st(),lang:Math.round(lo+rng()*(hi-lo)),sat:70,look:Math.floor(rng()*1e9)};s.salary=salaryOf(s);out.push(s);}
   return out;}
 function refPrice(city){const c=CITIES[city];let n=0,d=0;SEGMENTS.forEach(s=>{n+=s.wtp*c.demand[s.id];d+=c.demand[s.id];});return n/d;}
 function pickWeighted(rng,items,wf){let t=0;const ws=items.map(i=>{const w=Math.max(0,wf(i));t+=w;return w;});if(t<=0)return null;let r=rng()*t;for(let k=0;k<items.length;k++){r-=ws[k];if(r<=0)return items[k];}return items[items.length-1];}
@@ -162,13 +171,23 @@ function botDecide(g,b){
 function awareness(h,seg){let x=0;Object.keys(CHANNELS).forEach(c=>{x+=CHANNELS[c].eff[seg.id]*h.stock[c];});
   let aw=BASE_AW+(1-BASE_AW)*(1-Math.exp(-AW_K*x));let otaPart=0;
   if(h.ota&&h.otaBan===0){const tot=1-(1-aw)*(1-OTA_BOOST[seg.id]);otaPart=tot-aw;aw=tot;}return {aw,otaShare:aw>0?otaPart/aw:0};}
-function teamQuality(h,seg,fs,occRooms){
-  if(h.staff.length===0)return {q:0,adequacy:0,lang:0,base:0};
-  let base=0,lang=0,sat=0;h.staff.forEach(s=>{base+=seg.w.app*s.app+seg.w.serv*s.serv+seg.w.exp*s.exp+seg.w.prof*s.prof;lang+=s.lang;sat+=s.sat;});
-  base/=h.staff.length;lang/=h.staff.length;sat/=h.staff.length;
-  const adequacy=Math.min(1,h.staff.length/(1+occRooms/3));
-  let q=base*(0.55+0.45*adequacy)*(0.85+0.15*sat/100);const qF=q-Math.max(0,60-lang)*0.4;q=q*(1-fs)+qF*fs;
-  return {q,adequacy,lang,base};}
+const avgOf=(a,f)=>a.reduce((x,s)=>x+f(s),0)/a.length;
+const hkSkill=s=>.8*s.exp+.2*s.serv; // rooms ready and clean as promised (Reliability) + care
+/* Service quality for one segment: 60% front office (guest contact, language) + 40% housekeeping. */
+function teamQuality(h,seg,fs,sold){
+  const fo=h.staff.filter(s=>s.role==='fo'),hk=h.staff.filter(s=>s.role==='hk');
+  if(!fo.length)return {q:0,adequacy:0,lang:0,base:0,qFO:0,qHK:0,adFO:0,adHK:0};
+  const wF=seg.w.app+seg.w.serv+seg.w.prof;
+  const foBase=avgOf(fo,s=>(seg.w.app*s.app+seg.w.serv*s.serv+seg.w.prof*s.prof)/wF);
+  const hkBase=hk.length?avgOf(hk,hkSkill):HK_COVER*avgOf(fo,hkSkill);
+  const need=.5+sold/42; // people needed per position; both together = 1 + room-nights/21 as before
+  const adFO=hk.length?Math.min(1,fo.length/need):Math.min(1,fo.length/(2*need));
+  const adHK=hk.length?Math.min(1,hk.length/need):adFO;
+  const satFO=avgOf(fo,s=>s.sat),satHK=hk.length?avgOf(hk,s=>s.sat):satFO;
+  const qFO=foBase*(0.55+0.45*adFO)*(0.85+0.15*satFO/100),qHK=hkBase*(0.55+0.45*adHK)*(0.85+0.15*satHK/100);
+  const lang=avgOf(fo,s=>s.lang);
+  let q=ROLES.fo.q*qFO+ROLES.hk.q*qHK;const qF=q-Math.max(0,60-lang)*0.4;q=q*(1-fs)+qF*fs;
+  return {q,adequacy:Math.min(adFO,adHK),lang,base:ROLES.fo.q*foBase+ROLES.hk.q*hkBase,qFO,qHK,adFO,adHK};}
 function weekEffects(g,w){
   const tl=g.timeline[w],ch=CHAOS[g.chaos];const E={seg:{},foreign:1,domestic:1,cost:1,A0:1,staffHit:0,wtp:1,list:[]};
   SEGMENTS.forEach(s=>E.seg[s.id]=1);
@@ -202,7 +221,7 @@ function simulateWeek(g){
   g.hotels.forEach(h=>{
     const r=res[h.id];const sold=r.sold.wd+r.sold.we;const occRooms=sold/7;const avgP=(r.rev.wd+r.rev.we)/(sold||1);
     const segQ={};let qS=0,eS=0,rS=0,nS=0,adequacy=0,lang=0;
-    SEGMENTS.forEach(s=>{const t=teamQuality(h,s,segDemand[s.id].fs,occRooms);adequacy=t.adequacy;lang=t.lang;const Ex=30+30*Math.min(avgP/s.wtp,1.6);const rating=clamp(3.4+(t.q-Ex)/12,1,5);
+    SEGMENTS.forEach(s=>{const t=teamQuality(h,s,segDemand[s.id].fs,sold);adequacy=t.adequacy;lang=t.lang;const Ex=30+30*Math.min(avgP/s.wtp,1.6);const rating=clamp(3.4+(t.q-Ex)/12,1,5);
       segQ[s.id]={q:t.q,e:Ex,rating,n:r.seg[s.id]||0};const n=r.seg[s.id]||0;if(n>0){qS+=t.q*n;eS+=Ex*n;rS+=rating*n;nS+=n;}});
     const Q=nS?qS/nS:0,Ex=nS?eS/nS:0;let rating=nS?rS/nS:0;const notes=[];const crises=[];
     // internal crises (Faulkner: self-inflicted crisis)
@@ -220,8 +239,11 @@ function simulateWeek(g){
     let fine=0,fakeCost=0,caught=false;
     if(h.fake){fakeCost=COST.fake;h.R=(h.R*h.N+5*6)/(h.N+6);h.N+=6;if(rng()<.25){caught=true;h.R=Math.max(1,h.R-.7);fine=COST.fine;h.otaBan=3;h.fakeCaught++;notes.push('caught');}}
     else if(h.otaBan>0)h.otaBan--;
+    const nFO=h.staff.filter(s=>s.role==='fo').length,nHK=h.staff.filter(s=>s.role==='hk').length;
+    // Room-nights each person handled: front office also cleans when there is no housekeeper.
+    const loadFO=nFO?(nHK?sold:2*sold)/nFO:0,loadHK=nHK?sold/nHK:0;const loadOf=s=>s.role==='fo'?loadFO:s.role==='hk'?loadHK:0;
     const load=h.staff.length?sold/h.staff.length:0;const bonusPer=h.staff.length?h.bonus/h.staff.length:0;
-    h.staff.forEach(s=>{s.sat=clamp(s.sat+2-Math.max(0,load-15)*1.2+bonusPer/100-E.staffHit,0,100);});
+    h.staff.forEach(s=>{s.sat=clamp(s.sat+2-Math.max(0,loadOf(s)-ROLES[s.role].cap)*LOAD_HIT+bonusPer/100-E.staffHit,0,100);});
     const teamSat=h.staff.length?h.staff.reduce((a,s)=>a+s.sat,0)/h.staff.length:0;const quits=[];
     if(h.staff.length&&teamSat<40){h.staff=h.staff.filter(s=>{if(rng()<.15){quits.push(s.name||s.id);return false;}return true;});}
     const team={};['app','serv','exp','prof','lang'].forEach(k=>team[k]=h.staff.length?h.staff.reduce((a,s)=>a+s[k],0)/h.staff.length:0);
@@ -232,7 +254,7 @@ function simulateWeek(g){
     const dist=[0,0,0,0,0];for(let i=0;i<newRev;i++){const v=clamp(Math.round(rating+(rng()+rng()+rng()-1.5)*1.1),1,5);dist[v-1]++;}
     let awAvg=0;SEGMENTS.forEach(s=>awAvg+=r.aw[s.id]/4);
     const rec={sold,soldP:r.sold,occ:sold/(ROOMS*7),occP:{wd:r.sold.wd/(ROOMS*5),we:r.sold.we/(ROOMS*2)},revenue,adr:sold?revenue/sold:0,revpar:revenue/(ROOMS*7),
-      price:Object.assign({},h.price),Q,E:Ex,rating,R:h.R,N:h.N,teamSat,team,load,adequacy,lang,quits,costs,costTotal,profit,cash:h.cash,awAvg,aw:r.aw,segQ,dist,newRev,
+      price:Object.assign({},h.price),Q,E:Ex,rating,R:h.R,N:h.N,teamSat,team,load,loadFO,loadHK,roles:{fo:nFO,hk:nHK},adequacy,lang,quits,costs,costTotal,profit,cash:h.cash,awAvg,aw:r.aw,segQ,dist,newRev,
       commission,otaRev:r.otaRev,caught,notes,crises,inf:h.inf,infCred:h.infCred,fake:h.fake,otaBan:h.otaBan,seg:r.seg,staffN:h.staff.length,closed:h.closed};
     h.history.push(rec);out.hotels[h.id]=rec;h.inf='none';
     if(!h.isPlayer)crises.forEach(cr=>out.news.push(Object.assign({hotel:h.id},cr)));
@@ -251,4 +273,4 @@ function finalScores(g){
     const sats=h.history.map(x=>x.teamSat);const staff=sats.length?sats.reduce((a,b)=>a+b,0)/sats.length:0;
     return {id:h.id,name:h.name,fin,rep,staff,score:SCORE_W.fin*fin+SCORE_W.rep*rep+SCORE_W.staff*staff,profit:h.profitCum,cash:h.cash,R:h.R};}).sort((a,b)=>((b.profit>0)-(a.profit>0))||(b.score-a.score));}
 
-export {newGame, simulateWeek, finalScores, seasonMult, seasonLabel, weekInfo, tmdSeason, buildTimeline, weekEffects, refPrice, salaryOf, mulberry32, hashSeed, clamp, ROOMS, NIGHTS, WEEKS, SEGMENTS, MAPS, CITIES, NATIONAL, SEEDED, CANCEL_P, SHOCKS, INTERNAL, CHAOS, CHANNELS, INFLUENCER, OTA_BOOST, OTA_COMMISSION, COST, START_CASH, SCORE_W, ARCH, SKILL};
+export {MAX_STAFF, ROLES, HK_COVER, LOAD_HIT, CAND_ROLES, LANG_RANGE, teamQuality, newGame, simulateWeek, finalScores, seasonMult, seasonLabel, weekInfo, tmdSeason, buildTimeline, weekEffects, refPrice, salaryOf, mulberry32, hashSeed, clamp, ROOMS, NIGHTS, WEEKS, SEGMENTS, MAPS, CITIES, NATIONAL, SEEDED, CANCEL_P, SHOCKS, INTERNAL, CHAOS, CHANNELS, INFLUENCER, OTA_BOOST, OTA_COMMISSION, COST, START_CASH, SCORE_W, ARCH, SKILL};
