@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "node --test",
     "font:zh": "node scripts/build-zh-font.mjs",
-    "dev:phone": "vite --host"
+    "dev:phone": "vite --host",
+    "sync:server": "node scripts/sync-server.mjs"
   },
   "dependencies": {
     "@fontsource/ibm-plex-sans-thai": "^5.3.0",
