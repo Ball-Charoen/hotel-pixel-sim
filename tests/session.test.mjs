@@ -49,7 +49,7 @@ test('decision CSV has a header plus one row per week', () => {
   const s = startSession(opts);
   toggleStaff(s.G, s.G.candidates[0].id);
   endWeek(s); endWeek(s);
-  const lines = decisionCsv(s.log).split('\n');
+  const lines = decisionCsv(s.log, w => `week ${w}`).split('\n');
   assert.equal(lines.length, 3);
   assert.equal(lines[0].split(',').length, lines[1].split(',').length);
   assert.ok(lines[1].startsWith('1,"'));

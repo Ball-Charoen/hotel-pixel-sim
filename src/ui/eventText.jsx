@@ -3,6 +3,7 @@ import { Fragment } from 'preact';
 import { SEGMENTS } from '../sim/core.js';
 import { Chg } from './components/widgets.jsx';
 import { t, tx } from '../i18n/index.js';
+import { N } from './names.js';
 
 const pc = m => (m > 1 ? '+' : '−') + Math.round(Math.abs(m - 1) * 100) + '%';
 
@@ -12,7 +13,7 @@ function effItems(f) {
   const out = [];
   const add = (key, m, opts = {}) => out.push({ key, name: opts.name, v: pc(m), good: opts.invert ? m < 1 : m > 1 });
   if (f.all) add('eff.all', f.all);
-  SEGMENTS.forEach(s => { if (f[s.id]) add(null, f[s.id], { name: s.name }); });
+  SEGMENTS.forEach(s => { if (f[s.id]) add(null, f[s.id], { name: N.seg(s.id) }); });
   if (f.foreign) add('eff.foreign', f.foreign);
   if (f.domestic) add('eff.domestic', f.domestic);
   if (f.cost) add('eff.cost', f.cost, { invert: true });

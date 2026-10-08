@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'preact/hooks';
-import { CITIES, WEEKS } from '../../sim/core.js';
+import { WEEKS } from '../../sim/core.js';
+import { N, weekLabel } from '../names.js';
 import { player, weekCtx, plannedSpend, endWeek, isOver } from '../session.js';
 import { SeasonChip, TmdChip } from '../components/widgets.jsx';
 import { MarketTab } from '../tabs/MarketTab.jsx';
@@ -21,7 +22,7 @@ function TopBar({ G, onInfo }) {
     <div class="topbar">
       <div class="stat"><span class="k">{t('top.week')}</span><span class="v">{Math.min(G.week + 1, WEEKS)}/{WEEKS}</span></div>
       <div class="stat">
-        <span class="k">{CITIES[G.city].name}</span><span style="font-size:.95rem">{x.wi.label}</span><br />
+        <span class="k">{N.city(G.city)}</span><span style="font-size:.95rem">{weekLabel(x.wi)}</span><br />
         <TmdChip tmd={x.tmd} /><SeasonChip lab={x.lab} />
       </div>
       <div class="stat"><span class="k">{t('top.cash')}</span><span class={`v${h.cash < 0 ? ' down' : ''}`}>{fmt(h.cash)}</span></div>

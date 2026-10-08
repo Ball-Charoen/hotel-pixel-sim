@@ -172,3 +172,13 @@ table.compact .focus{font-size:.72rem;color:var(--muted);line-height:1.3;display
 .bandlegend{display:flex;flex-wrap:wrap;gap:6px 4px;margin-top:10px}
 /* P1: resume-saved-game card */
 .panel.resume{border-color:var(--jade);box-shadow:3px 3px 0 var(--jade)}
+/* P1: language switcher (top right of every screen) */
+.langbar{display:flex;justify-content:flex-end;gap:4px;margin:0 0 8px}
+.langbar button{font:inherit;font-size:.8rem;padding:2px 10px;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:3px;cursor:pointer}
+.langbar button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+/* P1: Traditional Chinese font, subset to the characters in zh-TW.json (npm run font:zh).
+   unicode-range means Thai/English players never download it. size-adjust 90%: Chinese glyphs are
+   drawn slightly larger than English capitals instead of much larger (owner request, 8 Oct 2026). Licence: src/fonts/OFL-NotoSansTC.txt */
+@font-face{font-family:'Hotel Pixel TC';src:url('../../fonts/noto-sans-tc-subset.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap;size-adjust:90%;unicode-range:U+2E80-9FFF,U+3000-303F,U+F900-FAFF,U+FF00-FFEF}
+:root{--font:'IBM Plex Sans Thai','Hotel Pixel TC','Noto Sans Thai','Leelawadee UI','Tahoma',system-ui,sans-serif;--pix:'VT323','IBM Plex Sans Thai','Hotel Pixel TC',ui-monospace,monospace}
+.langbar button[lang="zh-TW"]{font-family:system-ui,sans-serif} /* device font, so the label alone doesn't download the Chinese font */

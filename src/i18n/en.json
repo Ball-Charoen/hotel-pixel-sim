@@ -1,0 +1,864 @@
+{
+  "app": {
+    "title": "Hotel Pixel Simulation",
+    "phase": "P1 in development"
+  },
+  "unit": {
+    "baht": "{amount} ฿",
+    "perWeek": "{amount} ฿/week",
+    "weekShort": "W{n}",
+    "you": " (you)",
+    "dayMonth": "{d} {m}",
+    "dayRange": "{a}–{b} {m}",
+    "dateRange": "{a} – {b}",
+    "news": "{hotel}: {crisis} ({detail})"
+  },
+  "setup": {
+    "intro": "Run an 8-room hostel for 12 weeks against 3 bot hotels in the same city. Pick a city on the map or with the buttons on the right.",
+    "mapCredit": "Pixel map traced from real borders ({src})",
+    "mapAria": "Pixel map of Thailand",
+    "mapType": "Map type",
+    "city": "City",
+    "hotelName": "Your hotel's name",
+    "defaultHotelName": "My Hostel",
+    "classroom": "Classroom settings (for instructors)",
+    "startMonth": "Start month",
+    "startMonthHint": "12 weeks ≈ 3 months. The month decides whether the game falls in this city's high or low season.",
+    "chaos": "Random event level",
+    "allowFake": "Allow the fake-review strategy (risk of being caught)",
+    "seed": "Game code (seed)",
+    "seedHint": "Use the same code for the whole class: everyone gets the same bots, event calendar and random events.",
+    "start": "Start week 1"
+  },
+  "city": {
+    "subtitle": "{map} · Illustration: {lm}",
+    "mix": "About {foreign}% foreign guests · Main customers: {top}",
+    "seasonTitle": "Monthly tourism seasons in {city}",
+    "monthlyAria": "Monthly demand"
+  },
+  "top": {
+    "week": "Week",
+    "cash": "Cash (baht)",
+    "rating": "Star rating",
+    "staffSat": "Staff satisfaction",
+    "info": "Events and how they are drawn"
+  },
+  "tabs": {
+    "market": "Market & calendar",
+    "decide": "Decisions",
+    "staff": "Staff",
+    "customer": "Customers",
+    "report": "Report"
+  },
+  "info": {
+    "title": "Info: event library and how events are drawn",
+    "close": "Close ✕",
+    "closeAria": "Close the info window"
+  },
+  "end": {
+    "spend": "Fixed spending this week ≈ {amount}",
+    "spendNote": "(not counting per-room-night costs and commission)",
+    "endWeek": "End week {n}",
+    "needStaff": "Hire at least 1 staff member first (Staff tab)",
+    "final": "See the 12-week summary",
+    "restart": "Start a new game"
+  },
+  "ctl": {
+    "dec": "Decrease by {n} baht",
+    "inc": "Increase by {n} baht"
+  },
+  "stat": {
+    "app": "Appearance",
+    "serv": "Service mind",
+    "exp": "Experience",
+    "prof": "Professionalism",
+    "lang": "Foreign languages"
+  },
+  "servqual": {
+    "app": "Tangibles",
+    "serv": "Empathy + Responsiveness",
+    "exp": "Reliability",
+    "prof": "Assurance",
+    "lang": "Communicating with foreign guests"
+  },
+  "segFocus": {
+    "bp": "Service mind",
+    "fam": "Service mind",
+    "cpl": "Appearance + service mind",
+    "biz": "Professionalism"
+  },
+  "eff": {
+    "all": "Demand from all groups {v}",
+    "foreign": "Foreign guests {v}",
+    "domestic": "Thai guests {v}",
+    "cost": "Fixed costs {v}",
+    "A0": "Options outside the game {v}",
+    "wtp": "Guests' nightly budget {v}",
+    "staffHit": "Staff satisfaction {v}"
+  },
+  "phase": {
+    "perm": "permanent",
+    "emergency": "emergency",
+    "middle": "middle",
+    "recovery": "recovery"
+  },
+  "market": {
+    "news": "Market news",
+    "newsItem": "{week}: {text}",
+    "noNews": "No news yet. Problems at competing hotels will appear here.",
+    "seasonsTitle": "The 12 weeks of this game",
+    "bandWeek": "Week",
+    "bandTour": "Tourism season",
+    "bandTmd": "Thai season",
+    "bandEvent": "Events",
+    "calTitle": "Event calendar",
+    "calIntro": "Scheduled events (festivals, concerts, conferences) are announced in advance, so you can plan prices for them. Emergencies (weather, disasters, politics) are only known after they happen. An announced event has a {p}% chance of being cancelled.",
+    "colWeek": "Week",
+    "colSeason": "Season",
+    "colScheduled": "Announced events",
+    "colShocks": "Emergencies",
+    "national": " (annual festival)",
+    "announced": " (announced)",
+    "cancelled": "Cancelled",
+    "none": "None"
+  },
+  "decide": {
+    "overTitle": "All 12 weeks are done",
+    "overText": "Read the final week's report, then open the summary below.",
+    "title": "Decisions for week {n}",
+    "thisWeek": "This week ({label})",
+    "seasonDemand": "Seasonal demand ×{s}",
+    "nextWeek": "Next week: {name}",
+    "noEvents": "No announced events. Emergencies are only revealed after the week ends.",
+    "knowCustomers": "Know your customers in {city}",
+    "segCol": "Customer group",
+    "wtpCol": "Nightly budget (baht)",
+    "shareCol": "Share of demand",
+    "foreignCol": "Foreign guests in group",
+    "daysCol": "Usually stays",
+    "focus": "Values most: {f}",
+    "about": "≈ {v}",
+    "weekday": "Weekdays",
+    "weekend": "Weekends",
+    "both": "Both",
+    "wtpNote": "The nightly budget is what this group is willing to pay on average. Price far above it and they go elsewhere; the higher the price, the more service they expect.",
+    "priceTitle": "Room price per night",
+    "priceWd": "Weekdays (Sun–Thu, 5 nights)",
+    "priceWe": "Fri–Sat (2 nights)",
+    "priceNote": "The − / + buttons change the price by 50 baht, or click the slider and use the arrow keys for 10-baht steps. Average price for this city's demand ≈ {ref} baht.",
+    "team": "Current team: {n} people · total salaries {sal} ฿/week",
+    "goStaff": "Go to Staff tab",
+    "closed": "{n} rooms closed for repair for {w} more weeks",
+    "mkTitle": "Marketing",
+    "billboard": "Billboards",
+    "billboardSub": "Builds up slowly, lasts long",
+    "online": "Online ads",
+    "onlineSub": "Works fast, fades fast when you stop",
+    "influencer": "Influencer (this week)",
+    "infOption": "{name} – {cost} ฿",
+    "infNote": "Influencer results are uncertain. If your real service is poor, your reputation drops.",
+    "ota": "Sell through OTAs (more people see you; {p}% commission on OTA bookings)",
+    "otaBan": "Banned from OTAs for {n} more weeks for fake reviews",
+    "fake": "Buy fake reviews ({cost} ฿/week)",
+    "fakeNote": "Stars rise fast, but you can be caught every week: {fine} ฿ fine, stars drop and a 3-week OTA ban. In the real world, {src} bans buying and selling fake reviews.",
+    "ftc": "the US FTC rule (2024)"
+  },
+  "staff": {
+    "qualityTitle": "Your team's service quality",
+    "qualityIntro": "Your team's average (coloured bar) vs the competitors' average (black line). Each stat maps to a {src} dimension.",
+    "lastWeek": "Last week",
+    "delivered": "Service delivered",
+    "expectNote": "Black line = guests' average expectation ({e}). If the bar is shorter than the line, reviews fall below 3.4 stars.",
+    "adequacy": "Staffing adequacy",
+    "load": "Workload (room-nights/person)",
+    "loadNote": "Above 15 room-nights per person per week, staff satisfaction drops.",
+    "weeklyTitle": "Weekly service quality",
+    "chartEmpty": "The chart appears after the first week.",
+    "seriesDelivered": "Delivered (your team)",
+    "seriesExpect": "Guest expectation",
+    "seriesComp": "Competitor average (delivered)",
+    "bonus": "Total staff bonus per week",
+    "team": "Your team ({n}/{max})",
+    "none": "No staff yet",
+    "candidates": "Applicants",
+    "artNote": "Character pictures are placeholders generated by code, to be replaced by the real designs.",
+    "sat": "Satisfaction",
+    "hire": "Hire",
+    "fire": "Dismiss (1 week severance)"
+  },
+  "customer": {
+    "emptyTitle": "Customer data appears after the first week",
+    "emptyText": "This page shows each customer group's awareness, expectations, satisfaction and online reviews (eWOM).",
+    "awTitle": "Customer awareness",
+    "awIntro": "Share of each group that knows your hotel (coloured bar) vs the competitors' average (black line), built from accumulated marketing and OTAs.",
+    "gapTitle": "Expectation vs what guests got",
+    "gapIntro": "Coloured bar = service delivered to each group; black line = expectation. The gap between them is the core idea of {src}. The higher the price, the higher the expectation.",
+    "roomNights": "{n} room-nights",
+    "satTitle": "Satisfaction and reviews",
+    "satLine": "New reviews this week: {newRev} · average this week: {rating} · overall stars {R} from {N} reviews",
+    "pos": "Positive {p}%",
+    "neu": "Neutral {p}%",
+    "neg": "Negative {p}%",
+    "seriesRating": "Weekly review score",
+    "seriesR": "Overall stars",
+    "ratingAria": "Review scores",
+    "ewomTitle": "Online reviews (eWOM)",
+    "ewomIntro": "eWOM is word of mouth on the internet. It matters a lot for hotels because guests cannot test the service before staying ({src}). The sample reviews below come from real causes in the game.",
+    "social": "Social media",
+    "viral": "Viral post: {detail}",
+    "noReviews": "No reviews yet",
+    "fakeWarn": "Fake reviews are mixed in, so the overall stars are higher than real satisfaction."
+  },
+  "reviews": {
+    "pos": {
+      "serv": "Caring staff, great tips on where to go.",
+      "value": "Good value for money, I'll stay again.",
+      "app": "Neatly dressed staff, the lobby looks nice.",
+      "lang": "Staff speak good English, very helpful!",
+      "prof": "Quick, professional check-in. Good for work trips.",
+      "exp": "Room was ready as booked, no problems at all."
+    },
+    "neg": {
+      "adequacy": "Waited ages to check in, not enough staff.",
+      "price": "Too expensive for the service.",
+      "lang": "Hard to communicate, staff barely speak English.",
+      "serv": "Staff hardly smile and don't seem to want to help.",
+      "prof": "Not suitable for work trips, my booking details were wrong.",
+      "exp": "Room wasn't ready at check-in, had to wait for cleaning."
+    },
+    "neu": "Okay overall, fair for the price."
+  },
+  "report": {
+    "emptyTitle": "Your report will appear here",
+    "emptyText": "Set prices, hire at least 1 staff member, choose marketing, then press \"End week\". The game calculates bookings for every hotel at once and explains the result with 4 indicators.",
+    "headline": "Week {week} ({date}): RGI {rgi}, you earned {diff}% {dir} revenue per room than the competitor average",
+    "more": "more",
+    "less": "less",
+    "bldNote": "Lit windows follow this week's occupancy; red = room closed for repair.",
+    "bldAria": "Hostel cross-section, {lit} of {rooms} rooms lit",
+    "quadTitle": "Your position: volume × price vs competitors",
+    "diagTitle": "Analysis",
+    "causeTitle": "Cause → effect this week",
+    "compTitle": "Compared with competitors",
+    "revparTitle": "Weekly RevPAR",
+    "rgiTitle": "Weekly RGI",
+    "seriesYou": "You",
+    "seriesComp": "Competitor average",
+    "seriesRgi": "Your RGI",
+    "rgiRef": "100 = fair share",
+    "finTitle": "This week's finances",
+    "revenue": "Room revenue",
+    "profit": "Profit this week",
+    "cash": "Cash left",
+    "finNote": "RevPAR measures room revenue, not profit. A hotel with high RevPAR can still lose money if its costs are high.",
+    "promptTitle": "Question to think about before next week",
+    "debriefNote": "Much of the learning from simulation games happens in the debrief after playing ({src}).",
+    "guideSummary": "Show thinking guide (try answering first, then open)",
+    "guideWhy": "How this situation happens",
+    "guideTodo": "What you could try",
+    "guideNote": "This guide is based on the game's rules; it is not the only correct answer."
+  },
+  "cost": {
+    "fixed": "Fixed costs (rent, utilities)",
+    "variable": "Cost per room-night",
+    "salaries": "Salaries",
+    "bonus": "Bonus",
+    "severance": "Severance",
+    "marketing": "Marketing",
+    "commission": "OTA commission",
+    "fake": "Fake reviews",
+    "fine": "Fine",
+    "crisis": "Repairs / guest compensation",
+    "interest": "Interest"
+  },
+  "comp": {
+    "hotel": "Hotel",
+    "price": "Price weekday/weekend",
+    "occ": "Occ",
+    "adr": "ADR",
+    "revpar": "RevPAR",
+    "stars": "Stars",
+    "avg": "Competitor average"
+  },
+  "kpi": {
+    "howToRead": "How to read this",
+    "meaning": "Meaning:",
+    "calc": "This week's calculation:",
+    "breakdown": "Break it down:",
+    "why": "Why it matters:",
+    "caution": "Watch out:",
+    "sources": "Sources:",
+    "or": "or",
+    "occ": {
+      "name": "Occupancy",
+      "vs": "competitor average {c} · weekdays {wd} / weekends {we}",
+      "meaning": "The share of room-nights sold out of all room-nights available.",
+      "why": "Shows how much demand reaches your hotel, and drives staff workload and per-room costs.",
+      "caution": "It ignores price completely: you can cut prices until you are full and still score high. If market demand is low but your rooms are full, your price may be too low.",
+      "closed": " This week {n} rooms were closed for repair but still count as available.",
+      "srcChekin": "Chekin (formula)"
+    },
+    "adr": {
+      "name": "ADR (average daily rate)",
+      "vs": "competitor average {c} ฿ · your prices {wd} / {we} ฿",
+      "meaning": "The average price actually achieved per room sold, not the price you set. In this game ADR falls between your weekday and weekend prices, depending on which you sold more of.",
+      "why": "Measures pricing power. Always read it together with occupancy.",
+      "caution": "It only counts rooms sold, so a week with few sales at high prices looks better than it is.",
+      "srcRpg": "RoomPriceGenie (formula)"
+    },
+    "revpar": {
+      "name": "RevPAR (revenue per available room)",
+      "vs": "competitor average {c} ฿",
+      "meaning": "Room revenue averaged over all rooms available, including empty ones.",
+      "why": "It combines price and volume in one number, so it tells you whether cutting prices to fill rooms paid off.",
+      "caution": "It is not a profit measure and only counts room revenue. See profit in the finance section below.",
+      "srcRpg": "RoomPriceGenie (formula)"
+    },
+    "rgi": {
+      "name": "RGI (RevPAR index vs competitors)",
+      "vs": "MPI {mpi} · ARI {ari} · 100 = fair share",
+      "meaning": "Your RevPAR divided by the competitor set's average RevPAR × 100. 100 means you got your fair share of revenue; above 100 is more than expected, below 100 is less.",
+      "breakdown": "MPI = occupancy vs competitors, ARI = ADR vs competitors, and RGI = MPI × ARI ÷ 100 {calc}",
+      "why": "Every hotel in the city faces the same seasons and events, so RGI measures management skill, not luck.",
+      "caution": "What counts as good depends on which competitors you compare with. In this game it is the 3 bot hotels.",
+      "srcEhl2": "EHL: RevPAR"
+    }
+  },
+  "quad": {
+    "aria": "Your MPI and ARI position",
+    "topRight": "Winning on price and volume",
+    "bottomRight": "High volume, low price",
+    "topLeft": "High price, low volume",
+    "bottomLeft": "Behind on both",
+    "xAxis": "X axis: MPI occupancy index →",
+    "xSub": "Your occupancy ÷ competitors × 100",
+    "yAxis": "Y axis: ARI average rate index →",
+    "ySub": "Your ADR ÷ competitors × 100",
+    "mpi": " (Market Penetration Index): your occupancy vs competitors × 100. Above 100 = you sold more than your fair share of rooms.",
+    "ari": " (Average Rate Index): your ADR vs competitors × 100. Above 100 = you sold at a higher average price than competitors.",
+    "dots": "Big yellow dot = this week; dashed line = your path in earlier weeks; centre lines = 100",
+    "src": "(sources: {a}, {b})"
+  },
+  "diag": {
+    "src": "source",
+    "both": "You beat competitors on volume (MPI {mpi}) and price (ARI {ari}). Keep this balance and check that your staff can handle the load.",
+    "volume": "You sold more rooms than competitors (MPI {mpi}) but at a lower average price (ARI {ari}), so you are buying volume with price. Try raising prices a little and see whether RGI improves ({src}).",
+    "rate": "Your average price is above competitors (ARI {ari}) but you sold less (MPI {mpi}). Check whether your price is above your main customers' budget, or whether awareness and stars are still too low ({src}).",
+    "behind": "You are behind competitors on volume (MPI {mpi}) and price (ARI {ari}). The problem is usually customer awareness or reputation rather than price.",
+    "full": "Almost full all week ({occ}), which usually means you can still raise prices ({src}).",
+    "weekendGap": "Weekends are full ({we}) but weekdays are empty ({wd}). Try a higher weekend price and look for weekday guests such as business travellers.",
+    "nextEvent": "Next week has {names}, already announced. Try adjusting prices before competitors do, but watch out for cancellations.",
+    "understaffed": "Not enough staff for the number of guests, so service quality dropped.",
+    "language": "Your team speaks few foreign languages (average {lang}) in a city with many foreign guests.",
+    "commission": "OTA commission takes {p} of your room revenue.",
+    "lowSat": "Staff satisfaction is low ({sat}). Below 40, people start to quit.",
+    "negCash": "Your cash is negative: you pay 1% interest per week, and hotels with a cumulative loss always rank below profitable hotels."
+  },
+  "cause": {
+    "season": "Season: {tmd} / {season} in {city}, demand ×{s}",
+    "cancelled": "The event \"{name}\" was suddenly cancelled, so the expected demand never came (hotels that raised prices for it lost out).",
+    "scheduled": "Announced event \"{name}\": {eff}",
+    "shock": "{arrow} Event \"{name}\" ({cat}, {phase}{week}): {text} Full effect: {eff} (hits every hotel in the city)",
+    "shockWeek": " week {k}/{d}",
+    "quiet": "No events or emergencies this week",
+    "crisis": "▼ Internal crisis at your hotel: {name} ({detail})",
+    "price": "Your average price {y} ฿ vs competitors {c} ฿ ({d}% {dir})",
+    "higher": "higher",
+    "lower": "lower",
+    "awareness": "Customer awareness {y}% vs competitors {c}%",
+    "service": "Service delivered {q} vs expectation {e} → this week's reviews {r} stars, overall {R}",
+    "influencer": "Influencer: actual credibility {c}×",
+    "infBad": ", but guest reviews were below 3 stars so your stars dropped 0.25",
+    "fakeCaught": "Fake reviews were detected: {fine} ฿ fine, stars −0.7 and a 3-week OTA ban",
+    "fakeSafe": "Fake reviews were not detected, but the risk is there every week",
+    "staff": "{n} staff, each handling {load} room-nights on average, satisfaction {sat}",
+    "quits": ". Quit: {names}",
+    "news": "Competitor news: {text}"
+  },
+  "prompts": [
+    {
+      "q": "What drove your sales most this week: price, reputation or customer awareness?",
+      "why": [
+        "Customers first have to \"know\" your hotel (awareness from accumulated marketing and OTAs); only then do they compare your price with their budget and look at your stars.",
+        "If awareness is low, cutting prices won't sell much, because most customers never see your hotel.",
+        "If your price is far above your main group's budget, or your stars are below competitors', the customers who do see you choose someone else."
+      ],
+      "todo": [
+        "Open the Customers tab and compare the \"awareness\" bars with the competitor line. If you are far behind, add marketing or turn on OTAs before cutting prices.",
+        "Compare your prices with the \"nightly budget\" of your main customer group in the Decisions tab.",
+        "If your stars are low, fix service first (number of staff, workload); overall stars move slowly and take several weeks."
+      ]
+    },
+    {
+      "q": "What do your MPI and ARI say about your pricing strategy?",
+      "why": [
+        "High MPI but low ARI: you sell a lot because you are cheaper than competitors, i.e. buying volume with price.",
+        "Low MPI but high ARI: your price is higher than customers will pay for your hotel, or not enough customers know you yet.",
+        "Both low: the problem is rarely price alone; it is usually awareness or reputation."
+      ],
+      "todo": [
+        "The goal is RGI (≈ MPI × ARI ÷ 100), not making either one as high as possible.",
+        "Change prices in small steps, e.g. 50–100 baht, and watch which way your dot moves on the 2×2 chart.",
+        "If a price rise lowers MPI less than it raises ARI, RGI improves, which means you can still go higher."
+      ]
+    },
+    {
+      "q": "This week's event hit every hotel equally. Why did some hotels still get a better RGI?",
+      "why": [
+        "Events reduce demand for the whole city, but each hotel's share still depends on its own price, awareness and stars.",
+        "Many events hit some groups harder, such as foreign or business guests; hotels that rely less on those groups suffer less.",
+        "Some events raise fixed costs, which hurts profit but not RGI."
+      ],
+      "todo": [
+        "Read \"Cause → effect\" to see which groups the event hit, then check your customer mix in the coloured bar under the building.",
+        "When demand drops, set prices that suit the groups still travelling, and cut spending you don't need yet.",
+        "Multi-week events are strongest in the first week and then recover; plan to raise prices again in the recovery phase."
+      ]
+    },
+    {
+      "q": "Can your staff handle the workload, and how does it affect your reviews?",
+      "why": [
+        "Each person can handle about 15 room-nights per week; above that, staff satisfaction falls every week.",
+        "With too few staff for the number of guests, service quality drops; when it falls below guests' expectations, reviews get worse.",
+        "Below 40 satisfaction, people start to quit and the rest carry an even heavier load."
+      ],
+      "todo": [
+        "In the Staff tab, check last week's \"Workload\" and \"Staffing adequacy\" bars.",
+        "Hire before busy periods you expect, such as high season or event weeks.",
+        "Bonuses lift satisfaction but cost money; weigh them against the better reviews."
+      ]
+    },
+    {
+      "q": "Which segment stayed with you most? Does it match the strategy you planned?",
+      "why": [
+        "Your price selects your customers: each group has a different nightly budget, low prices attract backpackers, high prices leave only the higher-budget groups.",
+        "Marketing channels reach groups differently: online ads and influencers reach backpackers and couples well, billboards reach few backpackers but last long.",
+        "Groups stay at different times: some mostly on weekdays, others mostly at weekends."
+      ],
+      "todo": [
+        "Compare the coloured bar under the building with the customer table in the Decisions tab.",
+        "To win a group, price close to its budget and pick marketing channels that reach it.",
+        "The higher your price against the budget, the more service guests expect; your team needs the skills that group values."
+      ]
+    },
+    {
+      "q": "If you could go back to the start of the week, which decision would you change, and which indicator would you expect to move?",
+      "why": [
+        "Each week's result comes from several decisions at once; working out which one caused what is where you learn the most.",
+        "Some decisions show results immediately (price, online ads), others slowly (billboards, star rating)."
+      ],
+      "todo": [
+        "Change only 1–2 things per week so you can tell what moved the numbers.",
+        "Make a prediction before ending the week, e.g. \"raise price by 100 baht: Occ should fall but ADR and RGI should rise\", then compare with the result.",
+        "Check the \"Compared with competitors\" table to see how competitors changed their prices in the same week."
+      ]
+    },
+    {
+      "q": "Have you used the event calendar to set prices in advance? How did it go?",
+      "why": [
+        "Announced events raise demand from some groups; hotels that priced for them in advance earn more per room.",
+        "But city events can be cancelled ({cancel}%), and pricing far above competitors in an event week can get you criticised for price gouging."
+      ],
+      "todo": [
+        "Look 1–2 weeks ahead in the Market & calendar tab to see which groups an event attracts and whether they match your customers.",
+        "Raise prices moderately when demand rises, and make sure you have enough staff.",
+        "Don't price more than about 60% above the competitor average in an event week; you risk criticism and lower stars."
+      ]
+    },
+    {
+      "q": "Was this week's marketing budget worth it, judging by awareness and RevPAR gains?",
+      "why": [
+        "Marketing builds \"awareness\", which accumulates and slowly fades: billboards fade slowly, online ads fade fast.",
+        "Awareness has diminishing returns: once it is high, the same extra money buys less and less.",
+        "A rise in RevPAR may come from the season or an event, not only from marketing."
+      ],
+      "todo": [
+        "Compare the extra room revenue with the money spent on marketing in the finance section of the Report tab.",
+        "Check awareness in the Customers tab before and after raising the budget.",
+        "If your awareness is already above competitors', try cutting the budget and see how fast awareness falls."
+      ]
+    }
+  ],
+  "lib": {
+    "title": "Event library and how events are drawn",
+    "intro": "Events follow Faulkner's (2001) tourism crisis management framework: a {disaster} is a sudden change the business cannot control, while a {crisis} is partly caused by the business's own management ({src1}). Multi-week events in the game are strongest in the first week (emergency) and then gradually recover, following the idea of disaster phases ({src2}).",
+    "disaster": "disaster",
+    "crisis": "crisis",
+    "src": "source",
+    "howTitle": "How events are drawn ({chaos} level)",
+    "how1": "The whole game's event timeline is drawn once at the start from the game code; every hotel in the city gets the same one.",
+    "how2": "Each week has a {p}% chance of a new event (at most {max} per week).",
+    "how3": "Events are picked from the library by weight, filtered by city and month, with severity weights at this level: minor ×{minor}, major ×{major}, catastrophic ×{cat}.",
+    "how4": "Major and catastrophic events happen at most once per game. Some minor events can repeat but need a 4-week gap, and are not drawn again while still active.",
+    "how5": "Effects are multiplied by this level's severity factor (×{scale}) and fade as the event recovers.",
+    "how6": "Internal problems are drawn separately for each hotel every week; their chance rises with that hotel's own management.",
+    "freqBtn": "Simulate frequency over 300 games",
+    "freqSummary": "Simulated {n} games in {city} starting in {month} at the {chaos} level: on average {avg} new events per game (bad {neg} · good {pos})",
+    "freqCats": "By category: {cats} per game · internal problems are calculated separately during play",
+    "freqNote": "Bar = approximate chance that the event happens at least once in a game",
+    "revealSummary": "Answer key: this game's event timeline (for instructors)",
+    "revealLabel": "Show upcoming emergencies in the calendar (players will see the answers in advance)",
+    "seasonSrcTitle": "Where the game's seasons come from",
+    "seasonSrc": "Thai seasons follow {tmd}. Each city's high, shoulder and low seasons are design values based on travel-weather information, e.g. {phuket}, {ranong}; other cities are estimates and should be updated with monthly statistics later.",
+    "srcTmd": "NSO / Thai Meteorological Department",
+    "srcPhuket": "Phuket",
+    "srcRanong": "Ranong",
+    "schedTitle": "Events known in advance",
+    "nationalTitle": "Annual festivals (real dates)",
+    "colEvent": "Event",
+    "colDate": "Date",
+    "colEffect": "Effect on demand",
+    "approx": " (approx.)",
+    "festivalNote": "Festival dates follow {src}. Loy Krathong and Chinese New Year move every year; the game uses approximate dates.",
+    "srcFestival": "a Phuket festival calendar",
+    "seededTitle": "City events (random week, 2–3 announced at the start of the game, {p}% chance of cancellation)",
+    "shockTitle": "Emergencies: {cat}",
+    "colShock": "Event",
+    "colSev": "Severity",
+    "colWhere": "Where",
+    "colDur": "Duration",
+    "colFull": "Full effect",
+    "colWeight": "Weight in {city}",
+    "allCities": "All cities",
+    "onlyMonths": "only {months}",
+    "perm": "permanent",
+    "weeks": "{n} weeks",
+    "weeksRange": "{a}–{b} weeks",
+    "repeat": "can repeat after 4 weeks",
+    "internalTitle": "Internal problems (crises caused by management)",
+    "colChance": "Chance per week",
+    "colResult": "Result",
+    "pr": {
+      "chance": "2% + 8% if last week's reviews were below 3 stars + 4% if understaffed",
+      "result": "Stars drop 0.45 immediately"
+    },
+    "overbook": {
+      "chance": "15% if last week's occupancy was above 92%",
+      "result": "Guest compensation {c} ฿, stars drop 0.2"
+    },
+    "repair": {
+      "chance": "3%",
+      "result": "Repair cost {c} ฿, only 6 rooms for sale for 2 weeks"
+    },
+    "gouging": {
+      "chance": "30% if your average price is 60% above competitors in an event week",
+      "result": "Stars drop 0.25"
+    },
+    "internalNote": "Low season is not drawn at random; it follows each city's real seasons in the Market & calendar tab. All effect sizes are design values for learning, not estimates from real data."
+  },
+  "final": {
+    "title": "12 weeks in {city} are over: you placed {rank} of {n}",
+    "averages": "Game averages: Occupancy {occ} · ADR {adr} ฿ · RevPAR {revpar} ฿ · RGI {rgi}",
+    "colRank": "Rank",
+    "colScore": "Total score",
+    "colFin": "Finance ({w}%)",
+    "colRep": "Reputation ({w}%)",
+    "colStaff": "Staff ({w}%)",
+    "colProfit": "Cumulative profit",
+    "colBot": "Bot revealed",
+    "botReveal": "{arch} · {skill} skill",
+    "rules": "Rules: (1) hotels with a cumulative loss always rank below profitable hotels (2) finance score = cumulative profit ÷ best profit in the city × 100, 0 if you lost money (3) reputation comes from stars (4) staff from average satisfaction",
+    "pathTitle": "Your path",
+    "debriefTitle": "Debrief questions",
+    "debrief": [
+      "In which weeks was your RGI highest and lowest? Was it driven by MPI or ARI?",
+      "How well did you use the event calendar and seasons to price ahead? Did a cancelled event ever hurt you?",
+      "Which emergency hit you hardest, and how did you respond in the emergency and recovery phases?",
+      "Which bot strategy did best in this city, and which customer groups explain why?",
+      "If you only looked at occupancy, where would you misjudge your own performance?"
+    ],
+    "debriefNote": "Much of the learning from simulation games happens in the debrief ({src}).",
+    "rgiAria": "RGI over the game",
+    "csvTitle": "Decision log (CSV)",
+    "csvNote": "Copy into Excel or Google Sheets for the debrief.",
+    "csvAria": "Decision log CSV"
+  },
+  "save": {
+    "resumeTitle": "You have a game in progress",
+    "resumeLine": "{hotel} · {city} · week {week}/{weeks}",
+    "resumeFinal": "{hotel} · {city} · all 12 weeks played (summary available)",
+    "savedAt": "Last saved {time}",
+    "continue": "Continue",
+    "delete": "Delete saved game",
+    "deleteConfirm": "Delete the saved game? This cannot be undone.",
+    "overwriteConfirm": "Starting a new game deletes the game in progress. Start a new game?",
+    "note": "The game saves automatically in this browser only. Other devices or browsers will not see it.",
+    "status": "✓ Saved automatically",
+    "failed": "The game cannot be saved (the browser may be in private mode). If you close this page, the game will be lost."
+  },
+  "data": {
+    "month": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "monthFull": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    "season": {
+      "high": "High season",
+      "shoulder": "Shoulder season",
+      "low": "Low season"
+    },
+    "tmd": {
+      "summer": "Hot season",
+      "rainy": "Rainy season",
+      "winter": "Cool season"
+    },
+    "cat": {
+      "macro": "Macro & natural disasters",
+      "political": "Politics & safety",
+      "industry": "Industry & competition",
+      "internal": "Internal problems"
+    },
+    "sev": {
+      "minor": "minor",
+      "major": "major",
+      "cat": "catastrophic"
+    },
+    "map": {
+      "city": "Big cities",
+      "sea": "Beaches & islands",
+      "town": "Secondary towns",
+      "mountain": "Mountain towns"
+    },
+    "city": {
+      "bkk": {
+        "name": "Bangkok",
+        "lm": "Temple on the Chao Phraya River",
+        "story": "The capital that never sleeps. Business travellers and foreign backpackers come all year, but new places open on every street, so competition is tight."
+      },
+      "kkn": {
+        "name": "Khon Kaen",
+        "lm": "Phra Mahathat Kaen Nakhon pagoda",
+        "story": "The hub of the northeast (Isan). Conferences and business travellers are the main customers; few foreigners, but busy weekdays."
+      },
+      "hkt": {
+        "name": "Phuket",
+        "lm": "Beach and long-tail boats",
+        "story": "Pearl of the Andaman with a very high share of foreign guests. Nov–Apr is peak season; the southwest monsoon makes May–Oct clearly quieter."
+      },
+      "pty": {
+        "name": "Pattaya",
+        "lm": "Pattaya Bay",
+        "story": "A beach city close to Bangkok. Thai visitors come at weekends, foreigners all year, with frequent events and sports."
+      },
+      "pbi": {
+        "name": "Phetchaburi",
+        "lm": "Phra Nakhon Khiri (Khao Wang)",
+        "story": "An old town below Khao Wang. Thai families stop by at weekends on the way to Cha-am beach; few foreigners, so prices must stay affordable."
+      },
+      "rbr": {
+        "name": "Ratchaburi",
+        "lm": "Floating market",
+        "story": "A town of floating markets and pottery. Thai families and couples often come as day-trippers, so hotels must give them a reason to stay the night."
+      },
+      "rng": {
+        "name": "Ranong",
+        "lm": "Raksawarin hot springs",
+        "story": "\"Eight months of rain, four of sun.\" Hot springs and Koh Phayam attract wellness travellers and backpackers, but the May–Oct monsoon is long."
+      },
+      "cnx": {
+        "name": "Chiang Mai",
+        "lm": "Tha Phae Gate",
+        "story": "The old Lanna city. The cool season is the busiest for Thai and foreign visitors; out of season, nearly half the demand disappears."
+      },
+      "pnb": {
+        "name": "Phetchabun",
+        "lm": "Sea of mist and cabbage fields",
+        "story": "The misty hills of Khao Kho and Phu Thap Boek. Rooms fill very fast in the cool season and the rainy season is quiet: the most seasonal city in the game."
+      }
+    },
+    "seg": {
+      "bp": "Backpackers",
+      "fam": "Families",
+      "cpl": "Couples",
+      "biz": "Business travellers"
+    },
+    "chaos": {
+      "low": "Low",
+      "mid": "Medium",
+      "high": "High (chaos)"
+    },
+    "skill": {
+      "low": "low",
+      "mid": "medium",
+      "high": "high"
+    },
+    "arch": {
+      "budget": "Budget",
+      "luxury": "Luxury",
+      "marketing": "Marketing-led",
+      "service": "Service-led"
+    },
+    "inf": {
+      "none": "None",
+      "micro": "Micro (tens of thousands of followers)",
+      "macro": "Macro (hundreds of thousands of followers)"
+    },
+    "event": {
+      "songkran": {
+        "name": "Songkran Festival",
+        "text": "13–15 April: Thais travel and go home at the same time"
+      },
+      "loykrathong": {
+        "name": "Loy Krathong",
+        "text": "Full moon of the 12th lunar month, around mid-November (date changes every year)"
+      },
+      "newyear": {
+        "name": "New Year",
+        "text": "Long year-end holiday"
+      },
+      "cny": {
+        "name": "Chinese New Year",
+        "text": "Late Jan–Feb (date changes every year); hotel demand rises"
+      },
+      "vegfest": {
+        "name": "Phuket Vegetarian Festival",
+        "text": "Late Sep–early Oct, about 9 days"
+      },
+      "concert": {
+        "name": "Big concert",
+        "text": "Young fans and couples book rooms near the venue"
+      },
+      "conference": {
+        "name": "International conference",
+        "text": "Companies send staff to attend; business demand jumps"
+      },
+      "marathon": {
+        "name": "Marathon",
+        "text": "Runners and their families stay the night before the race"
+      },
+      "tradefair": {
+        "name": "Trade fair",
+        "text": "Exhibitors and buyers attend for several days"
+      },
+      "sport": {
+        "name": "International sports event",
+        "text": "Foreign sports fans travel to watch"
+      }
+    },
+    "shock": {
+      "quake": {
+        "name": "Strong earthquake",
+        "text": "Buildings need safety checks; many tourists cancel."
+      },
+      "tsunami": {
+        "name": "Tsunami",
+        "text": "The coast is damaged and unsafe; tourism stops."
+      },
+      "flood": {
+        "name": "Major flood",
+        "text": "Roads are cut off, travel stops and building upkeep costs rise."
+      },
+      "storm": {
+        "name": "Storm",
+        "text": "Heavy rain and strong wind; tourists postpone trips."
+      },
+      "pandemic": {
+        "name": "Severe pandemic",
+        "text": "Travel restrictions and local lockdowns; foreign visitors almost disappear."
+      },
+      "haze": {
+        "name": "Heavy haze",
+        "text": "Poor air quality; some tourists avoid the area."
+      },
+      "recession": {
+        "name": "Economic downturn",
+        "text": "People cut travel budgets and become more price-sensitive."
+      },
+      "fxstrong": {
+        "name": "Strong baht",
+        "text": "Thailand looks more expensive to foreigners."
+      },
+      "fxweak": {
+        "name": "Weak baht",
+        "text": "Thailand looks better value to foreigners."
+      },
+      "energy": {
+        "name": "Energy prices soar",
+        "text": "Fixed costs rise for every hotel."
+      },
+      "protest": {
+        "name": "Violent protests",
+        "text": "Prolonged rallies; foreigners and business travellers avoid the area."
+      },
+      "politics": {
+        "name": "National political crisis",
+        "text": "A sudden political change (e.g. a coup) hurts travellers' confidence."
+      },
+      "terror": {
+        "name": "Local terror attack",
+        "text": "Safety concerns; tourists cancel trips."
+      },
+      "advisory": {
+        "name": "Travel advisory",
+        "text": "Key source countries tell their citizens to delay travel to this area."
+      },
+      "newcomp": {
+        "name": "New competitor hotel opens",
+        "text": "A new hotel (outside the game) opens nearby; customers have more choice permanently."
+      },
+      "airbnb": {
+        "name": "More Airbnb-style rentals",
+        "text": "More houses and condos rented by the night take some customers permanently."
+      },
+      "labour": {
+        "name": "Service labour shortage",
+        "text": "Staff at every hotel expect higher pay; satisfaction drops."
+      },
+      "viral": {
+        "name": "Viral travel clip about this city",
+        "text": "Foreign interest in the area rises."
+      },
+      "flight": {
+        "name": "New direct flight route",
+        "text": "Easier travel brings more foreign visitors."
+      },
+      "stimulus": {
+        "name": "Domestic tourism stimulus",
+        "text": "The government pays part of hotel costs; more Thais travel."
+      },
+      "film": {
+        "name": "Hit series filmed in the city",
+        "text": "Couples and young people visit the filming locations."
+      }
+    },
+    "internal": {
+      "pr": {
+        "name": "Reputation crisis",
+        "text": "Star rating drops immediately",
+        "variants": [
+          "Negative review goes viral on social media",
+          "Photos of a dirty room are shared",
+          "News of guests falling ill after breakfast",
+          "Guest data leak"
+        ]
+      },
+      "overbook": {
+        "name": "Booking system failure, overbooking",
+        "text": "Guests must be moved elsewhere and compensated"
+      },
+      "repair": {
+        "name": "2 rooms closed for repair",
+        "text": "Burst pipe or leaking roof: fewer rooms to sell and repair costs"
+      },
+      "gouging": {
+        "name": "Criticised for price gouging",
+        "text": "Prices far above competitors during an event; guests post complaints"
+      }
+    },
+    "staff": {
+      "ton": "Ton",
+      "fon": "Fon",
+      "bank": "Bank",
+      "mind": "Mind",
+      "nat": "Nat",
+      "pla": "Pla",
+      "jay": "Jay",
+      "aom": "Aom",
+      "beam": "Beam",
+      "praew": "Praew"
+    },
+    "bot": {
+      "bot0": "Roadside House",
+      "bot1": "Star Court Hostel",
+      "bot2": "Viewpoint House"
+    },
+    "staffFallback": "Staff member"
+  }
+}

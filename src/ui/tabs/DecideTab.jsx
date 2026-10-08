@@ -2,6 +2,7 @@ import { CITIES, SEGMENTS, WEEKS, INFLUENCER, OTA_COMMISSION, COST, clamp } from
 import { player, weekCtx, plannedSpend } from '../session.js';
 import { RangeCtl, SeasonChip, TmdChip, Src } from '../components/widgets.jsx';
 import { SEG_COLOR } from '../theme.js';
+import { N, weekLabel } from '../names.js';
 import { schedText } from '../eventText.jsx';
 import { fmt } from '../format.js';
 import { t, tx } from '../../i18n/index.js';
@@ -12,13 +13,13 @@ function WeekBox({ G }) {
   const next = G.week + 1 < WEEKS ? G.timeline[G.week + 1].scheduled : [];
   return (
     <div class="weekbox">
-      <b>{t('decide.thisWeek', { label: x.wi.label })}</b> <TmdChip tmd={x.tmd} /><SeasonChip lab={x.lab} />
+      <b>{t('decide.thisWeek', { label: weekLabel(x.wi) })}</b> <TmdChip tmd={x.tmd} /><SeasonChip lab={x.lab} />
       {' '}{t('decide.seasonDemand', { s: x.s.toFixed(2) })}
       {ev.length || next.length
         ? (
           <ul class="list" style="margin-top:6px">
-            {ev.map(e => <li key={e.name}><b>{e.name}</b>: {schedText(e)}</li>)}
-            {next.map(e => <li key={'n' + e.name}>{t('decide.nextWeek', { name: e.name })}</li>)}
+            {ev.map(e => <li key={e.id}><b>{N.event(e.id)}</b>: {schedText(e)}</li>)}
+            {next.map(e => <li key={'n' + e.id}>{t('decide.nextWeek', { name: N.event(e.id) })}</li>)}
           </ul>
         )
         : <p class="small muted" style="margin:4px 0 0">{t('decide.noEvents')}</p>}
@@ -42,7 +43,7 @@ function SegmentTable({ G }) {
             {SEGMENTS.map(s => (
               <tr key={s.id}>
                 <td>
-                  <span style={{ color: SEG_COLOR[s.id] }}>■</span> <b>{s.name}</b>
+                  <span style={{ color: SEG_COLOR[s.id] }}>■</span> <b>{N.seg(s.id)}</b>
                   <span class="focus">{t('decide.focus', { f: t(`segFocus.${s.id}`) })}</span>
                 </td>
                 <td>{t('decide.about', { v: fmt(s.wtp) })}</td>
@@ -71,7 +72,7 @@ export function DecideTab({ s, update, onGoStaff }) {
       <div class="panel">
         <h2>{t('decide.title', { n: G.week + 1 })}</h2>
         <WeekBox G={G} />
-        <h3>{t('decide.knowCustomers', { city: CITIES[G.city].name })}</h3>
+        <h3>{t('decide.knowCustomers', { city: N.city(G.city) })}</h3>
         <SegmentTable G={G} />
       </div>
       <div class="two">
@@ -98,7 +99,7 @@ export function DecideTab({ s, update, onGoStaff }) {
             <span>{t('decide.influencer')}</span>
             <select value={h.inf} onChange={e => { const v = e.currentTarget.value; update(() => { h.inf = v; }); }}>
               {Object.entries(INFLUENCER).map(([k, v]) => (
-                <option key={k} value={k}>{v.cost ? t('decide.infOption', { name: v.name, cost: fmt(v.cost) }) : v.name}</option>
+                <option key={k} value={k}>{v.cost ? t('decide.infOption', { name: N.inf(k), cost: fmt(v.cost) }) : N.inf(k)}</option>
               ))}
             </select>
           </label>

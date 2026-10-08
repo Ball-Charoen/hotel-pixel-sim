@@ -1,6 +1,7 @@
 import { WEEKS } from '../../sim/core.js';
 import { player, toggleStaff, openCandidates, MAX_STAFF } from '../session.js';
 import { Avatar } from '../components/pixels.jsx';
+import { N } from '../names.js';
 import { HBar, RangeCtl, LineChart, Src } from '../components/widgets.jsx';
 import { STATS } from '../theme.js';
 import { fmt, pct, weekShort } from '../format.js';
@@ -10,8 +11,8 @@ function StaffCard({ c, hired, canHire, onToggle, playing }) {
   return (
     <div class={`card${hired ? ' hired' : ''}`}>
       <div class="head">
-        <Avatar look={c.look} label={c.name} />
-        <div class="nm" style="flex:1"><span>{c.name}</span><span class="small">{t('unit.perWeek', { amount: fmt(c.salary) })}</span></div>
+        <Avatar look={c.look} label={N.staff(c.name)} />
+        <div class="nm" style="flex:1"><span>{N.staff(c.name)}</span><span class="small">{t('unit.perWeek', { amount: fmt(c.salary) })}</span></div>
       </div>
       {STATS.map(k => (
         <div key={k} class="bar"><span>{t(`stat.${k}`)}</span><i><b style={{ width: `${c[k]}%` }} /></i><span>{c[k]}</span></div>

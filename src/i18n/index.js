@@ -2,12 +2,27 @@
    t('a.b', {n: 3}) -> string with {n} filled in.
    tx('a.b', {src: <a/>}) -> array of strings and JSX nodes, for text that contains links or markup. */
 import th from './th.json';
+import en from './en.json';
+import zhTW from './zh-TW.json';
 
-const DICTS = { th };
+const DICTS = { th, en, 'zh-TW': zhTW };
+/* Shown in the switcher in each language's own name. */
+export const LANGS = [['th', 'ไทย'], ['en', 'English'], ['zh-TW', '繁體中文']];
+const LOCALE = { th: 'th-TH', en: 'en-GB', 'zh-TW': 'zh-TW' };
+const KEY = 'hotel-pixel-sim:lang';
+
 let lang = 'th';
+try { const saved = localStorage.getItem(KEY); if (DICTS[saved]) lang = saved; } catch { /* storage unavailable */ }
 
-export function setLang(l) { if (DICTS[l]) lang = l; }
-export function getLang() { return lang; }
+export function setLang(l) {
+  if (!DICTS[l]) return;
+  lang = l;
+  try { localStorage.setItem(KEY, l); } catch { /* storage unavailable */ }
+  if (typeof document !== 'undefined') document.documentElement.lang = l;
+}
+export const getLang = () => lang;
+/* BCP-47 locale for dates. */
+export const getLocale = () => LOCALE[lang];
 
 function lookup(key) {
   const get = d => key.split('.').reduce((o, k) => (o == null ? o : o[k]), d);

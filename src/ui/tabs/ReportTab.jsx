@@ -1,11 +1,12 @@
 import { Fragment } from 'preact';
 import {
-  CITIES, SEGMENTS, WEEKS, ROOMS, COST, CATS, CANCEL_P, SEASON_NAME, TMD_NAME, tmdSeason, seasonLabel,
+  CITIES, SEGMENTS, WEEKS, ROOMS, COST, CANCEL_P, tmdSeason, seasonLabel,
 } from '../../sim/core.js';
 import { Building } from '../components/Building.jsx';
 import { Quadrant, QuadLegend } from '../components/Quadrant.jsx';
 import { LineChart, Src, Chg } from '../components/widgets.jsx';
 import { SEG_COLOR } from '../theme.js';
+import { N, weekLabel, newsText, crisisDetail } from '../names.js';
 import { effRich, schedRich, phaseName } from '../eventText.jsx';
 import { fmt, pct, weekShort } from '../format.js';
 import { t, tx, fill } from '../../i18n/index.js';
@@ -83,7 +84,7 @@ function diagnose(G, o) {
   if (y.occ > 0.9) out.push(tx('diag.full', { occ: <Chg good>{pct(y.occ)}</Chg>, src: src('rpgRev') }));
   if (y.occP.we > 0.93 && y.occP.wd < 0.6) out.push(tx('diag.weekendGap', { we: <Chg good>{pct(y.occP.we)}</Chg>, wd: bad(pct(y.occP.wd)) }));
   const nx = G.week < WEEKS ? G.timeline[G.week].scheduled : [];
-  if (nx.length) out.push(t('diag.nextEvent', { names: nx.map(e => e.name).join(', ') }));
+  if (nx.length) out.push(t('diag.nextEvent', { names: nx.map(e => N.event(e.id)).join(', ') }));
   if (y.adequacy < 0.8 && y.sold > 0) out.push(t('diag.understaffed'));
   if (y.lang < 45 && CITIES[G.city].foreign > 0.3) out.push(tx('diag.language', { lang: bad(Math.round(y.lang)) }));
   if (y.revenue > 0 && y.commission / y.revenue > 0.08) out.push(tx('diag.commission', { p: bad(pct(y.commission / y.revenue)) }));
@@ -98,19 +99,19 @@ function causeEffect(G, o) {
   const tmd = tmdSeason(o.info.month, o.info.day), lab = seasonLabel(o.season);
   const s = o.season.toFixed(2);
   out.push(tx('cause.season', {
-    tmd: TMD_NAME[tmd], season: SEASON_NAME[lab], city: CITIES[G.city].name,
+    tmd: N.tmd(tmd), season: N.season(lab), city: N.city(G.city),
     s: <Chg good={s === '1.00' ? null : o.season > 1}>{s}</Chg>,
   }));
   o.tl.scheduled.forEach(e => out.push(e.cancelled
-    ? t('cause.cancelled', { name: e.name })
-    : tx('cause.scheduled', { name: e.name, eff: schedRich(e) })));
+    ? t('cause.cancelled', { name: N.event(e.id) })
+    : tx('cause.scheduled', { name: N.event(e.id), eff: schedRich(e) })));
   o.tl.shocks.forEach(sh => out.push(tx('cause.shock', {
-    arrow: <Chg good={!!sh.ev.positive}>{sh.ev.positive ? '▲' : '▼'}</Chg>, name: sh.ev.name, cat: CATS[sh.ev.cat],
+    arrow: <Chg good={!!sh.ev.positive}>{sh.ev.positive ? '▲' : '▼'}</Chg>, name: N.shock(sh.ev.id), cat: N.cat(sh.ev.cat),
     phase: phaseName(sh.k, sh.d, sh.perm), week: sh.perm ? '' : t('cause.shockWeek', { k: sh.k + 1, d: sh.d }),
-    text: sh.ev.text, eff: effRich(sh.ev.eff),
+    text: N.shockText(sh.ev.id), eff: effRich(sh.ev.eff),
   })));
   if (!o.tl.shocks.length && !o.tl.scheduled.length) out.push(t('cause.quiet'));
-  y.crises.forEach(c => out.push(t('cause.crisis', { name: c.name, detail: c.detail })));
+  y.crises.forEach(c => out.push(t('cause.crisis', { name: N.internal(c.id), detail: crisisDetail(c) })));
   const cP = bots.reduce((a, b) => a + (b.price.wd * 5 + b.price.we * 2) / 7, 0) / bots.length;
   const yP = (y.price.wd * 5 + y.price.we * 2) / 7;
   // Price vs competitors is a strategy choice, not good or bad, so it stays uncoloured.
@@ -132,8 +133,8 @@ function causeEffect(G, o) {
   out.push(<>{tx('cause.staff', {
     n: y.staffN, load: <Chg good={y.load > 15 ? false : null}>{y.staffN ? Math.round(y.load) : 0}</Chg>,
     sat: <Chg good={y.teamSat < 50 ? false : null}>{Math.round(y.teamSat)}</Chg>,
-  })}{y.quits.length ? t('cause.quits', { names: y.quits.join(', ') }) : ''}</>);
-  o.news.forEach(n => out.push(t('cause.news', { text: n })));
+  })}{y.quits.length ? t('cause.quits', { names: y.quits.map(N.staff).join(', ') }) : ''}</>);
+  o.news.forEach(n => out.push(t('cause.news', { text: newsText(G, n) })));
   return out;
 }
 
@@ -150,7 +151,7 @@ function CompTable({ G, o }) {
             const r = o.hotels[h.id];
             return (
               <tr key={h.id} class={h.isPlayer ? 'you' : ''}>
-                <td>{h.name}{h.isPlayer && t('unit.you')}</td>
+                <td>{N.hotel(h)}{h.isPlayer && t('unit.you')}</td>
                 <td>{fmt(r.price.wd)} / {fmt(r.price.we)}</td>
                 <td>{pct(r.occ)}</td>
                 <td>{r.sold ? fmt(r.adr) : '–'}</td>
@@ -175,7 +176,7 @@ function SegMix({ y }) {
   return (
     <>
       <div class="segbar">{SEGMENTS.map(s => <span key={s.id} style={{ width: `${share(s)}%`, background: SEG_COLOR[s.id] }} />)}</div>
-      <div class="legend">{SEGMENTS.map(s => <span key={s.id} style={{ '--c': SEG_COLOR[s.id] }}>{s.name} {Math.round(share(s))}%</span>)}</div>
+      <div class="legend">{SEGMENTS.map(s => <span key={s.id} style={{ '--c': SEG_COLOR[s.id] }}>{N.seg(s.id)} {Math.round(share(s))}%</span>)}</div>
     </>
   );
 }
@@ -212,7 +213,7 @@ export function ReportTab({ s }) {
     <>
       <div class="panel">
         <div class="headline">{t('report.headline', {
-          week: o.week, date: o.info.label, rgi: Math.round(i.rgi),
+          week: o.week, date: weekLabel(o.info), rgi: Math.round(i.rgi),
           dir: i.rgi >= 100 ? t('report.more') : t('report.less'), diff: Math.abs(Math.round(i.rgi - 100)),
         })}</div>
         <div style="display:grid;grid-template-columns:minmax(120px,200px) 1fr;gap:14px;align-items:center;margin-bottom:10px">

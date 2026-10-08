@@ -1,4 +1,5 @@
-import { CITIES, ARCH, SKILL, SCORE_W, finalScores } from '../../sim/core.js';
+import { SCORE_W, finalScores, weekInfo } from '../../sim/core.js';
+import { N, weekLabel } from '../names.js';
 import { decisionCsv } from '../session.js';
 import { Quadrant, QuadLegend } from '../components/Quadrant.jsx';
 import { LineChart, Src } from '../components/widgets.jsx';
@@ -13,7 +14,7 @@ export function FinalScreen({ s, onRestart }) {
   return (
     <>
       <div class="panel">
-        <h1>{t('final.title', { city: CITIES[G.city].name, rank, n: fs.length })}</h1>
+        <h1>{t('final.title', { city: N.city(G.city), rank, n: fs.length })}</h1>
         <p>{t('final.averages', { occ: pct(avg('occ')), adr: fmt(avg('adr')), revpar: fmt(avg('revpar')), rgi: Math.round(avg('rgi')) })}</p>
         <div class="tablewrap">
           <table>
@@ -29,13 +30,13 @@ export function FinalScreen({ s, onRestart }) {
                 const h = G.hotels.find(x => x.id === f.id);
                 return (
                   <tr key={f.id} class={f.id === 'you' ? 'you' : ''}>
-                    <td>{k + 1}. {f.name}{f.id === 'you' && t('unit.you')}</td>
+                    <td>{k + 1}. {N.hotel(h)}{f.id === 'you' && t('unit.you')}</td>
                     <td>{Math.round(f.score)}</td>
                     <td>{Math.round(f.fin)}</td>
                     <td>{Math.round(f.rep)}</td>
                     <td>{Math.round(f.staff)}</td>
                     <td class={f.profit > 0 ? 'up' : 'down'}>{fmt(f.profit)}</td>
-                    <td>{h.isPlayer ? '–' : t('final.botReveal', { arch: ARCH[h.arch].name, skill: SKILL[h.skill].name })}</td>
+                    <td>{h.isPlayer ? '–' : t('final.botReveal', { arch: N.arch(h.arch), skill: N.skill(h.skill) })}</td>
                   </tr>
                 );
               })}
@@ -63,7 +64,7 @@ export function FinalScreen({ s, onRestart }) {
       <div class="panel">
         <h2>{t('final.csvTitle')}</h2>
         <p class="note">{t('final.csvNote')}</p>
-        <textarea readonly aria-label={t('final.csvAria')} value={decisionCsv(log)} />
+        <textarea readonly aria-label={t('final.csvAria')} value={decisionCsv(log, w => weekLabel(weekInfo(G, w - 1)))} />
         <p style="margin-top:12px"><button class="btn" type="button" onClick={onRestart}>{t('end.restart')}</button></p>
       </div>
     </>

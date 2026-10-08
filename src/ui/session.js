@@ -53,13 +53,12 @@ export function openCandidates(G) {
 export function endWeek(session) {
   const { G } = session;
   const h = player(G);
-  const x = weekCtx(G, G.week);
   const dec = {
-    week: G.week + 1, date: x.wi.label, pwd: h.price.wd, pwe: h.price.we, staff: h.staff.length, bonus: h.bonus,
+    week: G.week + 1, pwd: h.price.wd, pwe: h.price.we, staff: h.staff.length, bonus: h.bonus,
     bill: h.mk.billboard, online: h.mk.online, inf: h.inf, ota: h.ota && h.otaBan === 0, fake: h.fake,
   };
   const o = simulateWeek(G);
-  // Staff who quit leave the candidate pool for good.
+  // Staff who quit leave the candidate pool for good (quits holds staff name ids).
   o.hotels.you.quits.forEach(n => { const c = G.candidates.find(z => z.name === n); if (c) c.gone = true; });
   const y = o.hotels.you;
   session.log.push(Object.assign(dec, {
@@ -88,11 +87,11 @@ export function eventFrequency(G, n = 300) {
   return { n, tot, cat, pos, neg, top };
 }
 
-/* Decision log as CSV for debriefing in Excel / Google Sheets. */
-export function decisionCsv(log) {
+/* Decision log as CSV for debriefing in Excel / Google Sheets. dateOf(week) gives the date label. */
+export function decisionCsv(log, dateOf) {
   const head = 'week,date,price_wd,price_we,staff,bonus,billboard,online,influencer,ota,fake,occ,adr,revpar,mpi,ari,rgi,rating,profit';
   const rows = log.map(r => [
-    r.week, '"' + r.date + '"', r.pwd, r.pwe, r.staff, r.bonus, r.bill, r.online, r.inf, r.ota ? 1 : 0, r.fake ? 1 : 0,
+    r.week, '"' + dateOf(r.week) + '"', r.pwd, r.pwe, r.staff, r.bonus, r.bill, r.online, r.inf, r.ota ? 1 : 0, r.fake ? 1 : 0,
     (r.occ * 100).toFixed(1), Math.round(r.adr), Math.round(r.revpar), Math.round(r.mpi), Math.round(r.ari), Math.round(r.rgi),
     r.rating.toFixed(2), Math.round(r.profit),
   ].join(','));

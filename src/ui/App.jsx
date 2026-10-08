@@ -4,13 +4,16 @@ import { writeSave, readSave, clearSave } from './saveStore.js';
 import { SetupScreen } from './screens/SetupScreen.jsx';
 import { GameScreen } from './screens/GameScreen.jsx';
 import { FinalScreen } from './screens/FinalScreen.jsx';
-import { t } from '../i18n/index.js';
+import { t, getLang, setLang } from '../i18n/index.js';
+import { LangSwitch } from './components/widgets.jsx';
 
 /* The sim core mutates the game object in place, so the session lives in a ref
    and update(fn) runs the change then forces a re-render.
    Every change is autosaved to this browser (one slot); see saveStore.js. */
 export function App() {
   const [screen, setScreen] = useState('setup');
+  const [, setLangState] = useState(getLang()); // re-render everything when the language changes
+  const changeLang = l => { setLang(l); setLangState(l); };
   const [resume, setResume] = useState(() => readSave());
   const [saveOk, setSaveOk] = useState(true);
   const session = useRef(null);
@@ -65,10 +68,14 @@ export function App() {
     return () => window.removeEventListener('beforeunload', warn);
   }, [screen, saveOk]);
 
-  if (screen === 'setup') return <SetupScreen onStart={start} resume={resume} onContinue={continueGame} onDeleteSave={deleteSave} />;
-  if (screen === 'final') return <FinalScreen s={session.current} onRestart={restart} />;
-  return (
-    <GameScreen s={session.current} update={update} saveOk={saveOk} onFinal={showFinal}
-      initialTab={session.current.last ? 'report' : 'market'} />
-  );
+  let body;
+  if (screen === 'setup') body = <SetupScreen onStart={start} resume={resume} onContinue={continueGame} onDeleteSave={deleteSave} />;
+  else if (screen === 'final') body = <FinalScreen s={session.current} onRestart={restart} />;
+  else {
+    body = (
+      <GameScreen s={session.current} update={update} saveOk={saveOk} onFinal={showFinal}
+        initialTab={session.current.last ? 'report' : 'market'} />
+    );
+  }
+  return <><LangSwitch onChange={changeLang} />{body}</>;
 }

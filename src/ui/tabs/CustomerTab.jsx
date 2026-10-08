@@ -2,6 +2,7 @@ import { CITIES, SEGMENTS, mulberry32, clamp } from '../../sim/core.js';
 import { HBar, LineChart, Src } from '../components/widgets.jsx';
 import { fmt, weekShort } from '../format.js';
 import { t, tx } from '../../i18n/index.js';
+import { N, crisisDetail } from '../names.js';
 
 /* Up to 5 sample reviews, each picked from the real cause in this week's result (seeded by week). */
 function reviewsFor(G, r, week) {
@@ -40,7 +41,7 @@ function reviewsFor(G, r, week) {
     }
     out.push({ seg: s, stars: Math.round(sq.rating), text, kind });
   });
-  (r.crises || []).filter(c => c.id === 'pr').forEach(c => out.unshift({ seg: null, stars: 1, text: t('customer.viral', { detail: c.detail }), kind: 'neg' }));
+  (r.crises || []).filter(c => c.id === 'pr').forEach(c => out.unshift({ seg: null, stars: 1, text: t('customer.viral', { detail: crisisDetail(c) }), kind: 'neg' }));
   return out.slice(0, 5);
 }
 
@@ -60,7 +61,7 @@ export function CustomerTab({ s }) {
         <h2>{t('customer.awTitle')}</h2>
         <p class="small">{t('customer.awIntro')}</p>
         {SEGMENTS.map(sg => (
-          <HBar key={sg.id} label={sg.name} v={y.aw[sg.id] * 100} mark={o.comp.aw[sg.id] * 100} right={Math.round(y.aw[sg.id] * 100) + '%'} />
+          <HBar key={sg.id} label={N.seg(sg.id)} v={y.aw[sg.id] * 100} mark={o.comp.aw[sg.id] * 100} right={Math.round(y.aw[sg.id] * 100) + '%'} />
         ))}
       </div>
       <div class="panel">
@@ -69,7 +70,7 @@ export function CustomerTab({ s }) {
         {SEGMENTS.map(sg => {
           const q = y.segQ[sg.id];
           return (
-            <HBar key={sg.id} label={<>{sg.name}<br /><span class="small muted">{t('customer.roomNights', { n: Math.round(q.n) })}</span></>}
+            <HBar key={sg.id} label={<>{N.seg(sg.id)}<br /><span class="small muted">{t('customer.roomNights', { n: Math.round(q.n) })}</span></>}
               v={q.q} mark={q.e} right={`${q.rating.toFixed(1)}★`} />
           );
         })}
@@ -104,7 +105,7 @@ export function CustomerTab({ s }) {
           ? rvs.map((r, i) => (
             <div key={i} class="review">
               <span class="stars">{'★'.repeat(r.stars)}{'☆'.repeat(5 - r.stars)}</span>{' '}
-              <span class="small muted">{r.seg ? r.seg.name : t('customer.social')}</span><br />{r.text}
+              <span class="small muted">{r.seg ? N.seg(r.seg.id) : t('customer.social')}</span><br />{r.text}
             </div>
           ))
           : <p class="muted small">{t('customer.noReviews')}</p>}

@@ -1,21 +1,34 @@
 /* Shared building blocks: source link, season chips, bars, slider with −/+ steppers, line chart. */
 import { Fragment } from 'preact';
 import { useState } from 'preact/hooks';
-import { clamp, SEASON_NAME, TMD_NAME } from '../../sim/core.js';
+import { clamp } from '../../sim/core.js';
+import { N } from '../names.js';
 import { SRC } from '../sources.js';
 import { fmt, baht } from '../format.js';
-import { t } from '../../i18n/index.js';
+import { t, LANGS, getLang } from '../../i18n/index.js';
 
 /* Join a list of nodes with <br/> between them. */
 export const lines = items => items.map((x, i) => <Fragment key={i}>{i > 0 && <br />}{x}</Fragment>);
+
+/* Language buttons, each shown in its own language. */
+export function LangSwitch({ onChange }) {
+  const cur = getLang();
+  return (
+    <div class="langbar" role="group" aria-label="Language · ภาษา · 語言">
+      {LANGS.map(([k, name]) => (
+        <button key={k} type="button" lang={k} aria-pressed={cur === k} onClick={() => onChange(k)}>{name}</button>
+      ))}
+    </div>
+  );
+}
 
 export const Src = ({ k, children }) => <a href={SRC[k]} target="_blank" rel="noopener noreferrer">{children}</a>;
 
 /* A changed value: green when good for the player's hotel, red when bad, plain when neutral (good == null). */
 export const Chg = ({ good, children }) => (good == null ? <>{children}</> : <b class={good ? 'up' : 'down'}>{children}</b>);
 
-export const SeasonChip = ({ lab }) => <span class={`chip ${lab}`}>{SEASON_NAME[lab]}</span>;
-export const TmdChip = ({ tmd }) => <span class={`chip ${tmd}`}>{TMD_NAME[tmd]}</span>;
+export const SeasonChip = ({ lab }) => <span class={`chip ${lab}`}>{N.season(lab)}</span>;
+export const TmdChip = ({ tmd }) => <span class={`chip ${tmd}`}>{N.tmd(tmd)}</span>;
 
 /* Horizontal bar with an optional black marker (e.g. competitor average or guest expectation). */
 export function HBar({ label, v, mark, max = 100, right }) {

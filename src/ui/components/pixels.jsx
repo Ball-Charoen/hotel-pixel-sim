@@ -4,6 +4,7 @@ import LANDMARKS from '../../data/landmarks.json';
 import { CITIES, mulberry32 } from '../../sim/core.js';
 import { PAL } from '../theme.js';
 import { t } from '../../i18n/index.js';
+import { N } from '../names.js';
 
 /* One <rect> per horizontal run of the same character; colorOf(ch) returns a fill or null to skip. */
 function pixelRuns(rows, colorOf) {
@@ -24,7 +25,7 @@ function pixelRuns(rows, colorOf) {
 
 export function Landmark({ city }) {
   return (
-    <svg viewBox="0 0 20 16" class="lm" role="img" aria-label={CITIES[city].lm} shape-rendering="crispEdges">
+    <svg viewBox="0 0 20 16" class="lm" role="img" aria-label={N.cityLm(city)} shape-rendering="crispEdges">
       <rect width="20" height="16" fill="#BFE0EA" />
       {pixelRuns(LANDMARKS[city], ch => (ch === '.' ? null : PAL[ch]))}
     </svg>
@@ -38,13 +39,13 @@ export function ThaiMap({ selected, onSelect }) {
     const on = id === selected;
     const pick = () => onSelect(id);
     return (
-      <g key={id} data-city={id} tabindex="0" role="button" aria-label={c.name} aria-pressed={on} onClick={pick}
+      <g key={id} data-city={id} tabindex="0" role="button" aria-label={N.city(id)} aria-pressed={on} onClick={pick}
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } }}>
         <rect class="pin" x={(x - 1).toFixed(1)} y={(y - 1).toFixed(1)} width="2" height="2"
           fill={on ? 'var(--lamp)' : 'var(--pin)'} stroke="var(--line)" stroke-width=".4" />
         {on && (
           <text x={(x + 1.8).toFixed(1)} y={(y + 0.9).toFixed(1)} font-size="2.6" font-weight="700" fill="var(--ink)"
-            stroke="var(--surface)" stroke-width=".5" paint-order="stroke">{c.name}</text>
+            stroke="var(--surface)" stroke-width=".5" paint-order="stroke">{N.city(id)}</text>
         )}
       </g>
     );

@@ -17,13 +17,15 @@ Educational web game: students run a hotel in Thailand, from an 8-room hostel to
 ## Commands
 - `npm test` — runs `tests/*.test.mjs` (node:test): sim core, `src/sim/save.js`, `src/ui/session.js`, text files. Must stay green.
 - `npm run dev` — Vite dev server on port 5173 (Preview config "game" in `.claude/launch.json`). `npm run build` → `dist/`.
+- `npm run font:zh` — rebuild the Chinese font subset after editing `src/i18n/zh-TW.json` (needs `tools/font-src/NotoSansTC[wght].ttf`, git-ignored; URL in `scripts/build-zh-font.mjs`). A test fails if a Chinese character is missing.
 - Stack (owner-approved 8 Oct 2026): Vite 8 + Preact 10 (not 11, too new) + `@preact/preset-vite`. Node 24 LTS.
 
 ## Layout
 - `src/sim/core.js` — economy core, ES module, pure and deterministic (seeded RNG). No DOM. All balance constants live here.
 - `src/ui/` — Preact UI: `App.jsx`, `screens/`, `tabs/`, `components/`, `styles/game.css` (ported from prototype). `session.js` = pure glue (decision log, hire/fire, end week). `saveStore.js` = one autosave slot in localStorage.
 - `src/sim/save.js` — game ↔ JSON (RNG state + shock ids as markers). A resumed game must replay identically (tests/save.test.mjs). Bump `SAVE_VERSION` in `src/ui/saveStore.js` when rules or the save format change.
-- `src/i18n/` — `t(key, vars)` / `tx(key, {name: <jsx/>})`; every UI string goes in `th.json` (EN + zh-Hant added in P1 step 2).
+- `src/i18n/` — `t(key, vars)` / `tx(key, {name: <jsx/>})`; every UI string goes in `th.json`, `en.json`, `zh-TW.json` (tests check same keys/placeholders). Core text (cities, events, names) lives under `data` and is shown via `src/ui/names.js`; the core has no display text.
+- `src/fonts/` — Noto Sans TC subset (regular only, 132 KB, OFL licence alongside), loaded only for Chinese text.
 - `src/data/` — `thmap.json` (pixel map of Thailand rasterised from Natural Earth, public domain), `landmarks.json` (9 original 20×16 pixel vignettes).
 - `prototype/` — P0 v0.3 single-file game + its source pieces (UI patterns to port).
 - `assets/art-templates/` — palette (`hotel-pixel-32.gpl/.hex`), real-size canvases, layout guides. Owner's finished PNGs go to `assets/sprites/`.

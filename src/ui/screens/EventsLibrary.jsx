@@ -1,5 +1,6 @@
 /* Content of the "i" window: how events are drawn, frequencies, and the full event catalogue. */
-import { CITIES, CHAOS, CATS, SEV, SHOCKS, NATIONAL, SEEDED, INTERNAL, CANCEL_P, COST, TH_MONTH, TH_MONTH_FULL } from '../../sim/core.js';
+import { CITIES, CHAOS, SHOCKS, NATIONAL, SEEDED, CANCEL_P, COST } from '../../sim/core.js';
+import { N } from '../names.js';
 import { eventFrequency } from '../session.js';
 import { HBar, Src } from '../components/widgets.jsx';
 import { effText, schedText } from '../eventText.jsx';
@@ -8,7 +9,7 @@ import { t, tx } from '../../i18n/index.js';
 
 function citiesFor(s) {
   const ids = Object.keys(CITIES).filter(id => s.where(CITIES[id]));
-  return ids.length === Object.keys(CITIES).length ? t('lib.allCities') : ids.map(id => CITIES[id].name).join(', ');
+  return ids.length === Object.keys(CITIES).length ? t('lib.allCities') : ids.map(N.city).join(', ');
 }
 
 function duration(s) {
@@ -24,7 +25,7 @@ function ShockTable({ G, cat }) {
       <table>
         <thead><tr>
           <th>{t('lib.colShock')}</th><th>{t('lib.colSev')}</th><th>{t('lib.colWhere')}</th>
-          <th>{t('lib.colDur')}</th><th>{t('lib.colFull')}</th><th>{t('lib.colWeight', { city: city.name })}</th>
+          <th>{t('lib.colDur')}</th><th>{t('lib.colFull')}</th><th>{t('lib.colWeight', { city: N.city(G.city) })}</th>
         </tr></thead>
         <tbody>
           {SHOCKS.filter(s => s.cat === cat).map(s => {
@@ -32,11 +33,11 @@ function ShockTable({ G, cat }) {
             const here = s.where(city);
             return (
               <tr key={s.id}>
-                <td>{s.positive ? '▲' : '▼'} <b>{s.name}</b><br /><span class="small muted">{s.text}</span></td>
-                <td>{SEV[s.sev]}</td>
+                <td>{s.positive ? '▲' : '▼'} <b>{N.shock(s.id)}</b><br /><span class="small muted">{N.shockText(s.id)}</span></td>
+                <td>{N.sev(s.sev)}</td>
                 <td class="small">
                   {citiesFor(s)}
-                  {s.months && <><br />{t('lib.onlyMonths', { months: s.months.map(m => TH_MONTH[m]).join(' ') })}</>}
+                  {s.months && <><br />{t('lib.onlyMonths', { months: s.months.map(N.month).join(' ') })}</>}
                 </td>
                 <td>{duration(s)}{s.repeat && <><br /><span class="small muted">{t('lib.repeat')}</span></>}</td>
                 <td class="small">{effText(s.eff)}</td>
@@ -56,12 +57,12 @@ function Frequency({ G, f }) {
   return (
     <>
       <p>{tx('lib.freqSummary', {
-        n: f.n, city: CITIES[G.city].name, month: TH_MONTH_FULL[G.startMonth], chaos: ch.name,
+        n: f.n, city: N.city(G.city), month: N.monthFull(G.startMonth), chaos: N.chaos(G.chaos),
         avg: <b>{(f.tot / f.n).toFixed(1)}</b>, neg: (f.neg / f.n).toFixed(1), pos: (f.pos / f.n).toFixed(1),
       })}</p>
-      <p class="small">{t('lib.freqCats', { cats: Object.entries(f.cat).map(([k, v]) => `${CATS[k]} ${(v / f.n).toFixed(2)}`).join(' · ') })}</p>
+      <p class="small">{t('lib.freqCats', { cats: Object.entries(f.cat).map(([k, v]) => `${N.cat(k)} ${(v / f.n).toFixed(2)}`).join(' · ') })}</p>
       {f.top.slice(0, 12).map(x => (
-        <HBar key={x.s.id} label={x.s.name} v={x.c / f.n * 100} max={max} right={(x.c / f.n * 100).toFixed(0) + '%'} />
+        <HBar key={x.s.id} label={N.shock(x.s.id)} v={x.c / f.n * 100} max={max} right={(x.c / f.n * 100).toFixed(0) + '%'} />
       ))}
       <p class="note">{t('lib.freqNote')}</p>
     </>
@@ -83,7 +84,7 @@ export function EventsLibrary({ s, update }) {
           disaster: <b>{t('lib.disaster')}</b>, crisis: <b>{t('lib.crisis')}</b>,
           src1: <Src k="faulkner">{t('lib.src')}</Src>, src2: <Src k="faulknerPhases">{t('lib.src')}</Src>,
         })}</p>
-        <h3>{t('lib.howTitle', { chaos: ch.name })}</h3>
+        <h3>{t('lib.howTitle', { chaos: N.chaos(G.chaos) })}</h3>
         <ul class="list">
           <li>{t('lib.how1')}</li>
           <li>{t('lib.how2', { p: Math.round(ch.p * 100), max: ch.max })}</li>
@@ -117,8 +118,8 @@ export function EventsLibrary({ s, update }) {
             <tbody>
               {NATIONAL.filter(e => !e.city || e.city === G.city).map(e => (
                 <tr key={e.id}>
-                  <td><b>{e.name}</b><br /><span class="small muted">{e.text}</span></td>
-                  <td>{e.d} {TH_MONTH[e.m]}{e.id === 'loykrathong' || e.id === 'cny' ? t('lib.approx') : ''}</td>
+                  <td><b>{N.event(e.id)}</b><br /><span class="small muted">{N.eventText(e.id)}</span></td>
+                  <td>{e.d} {N.month(e.m)}{e.id === 'loykrathong' || e.id === 'cny' ? t('lib.approx') : ''}</td>
                   <td class="small">{schedText(e)}</td>
                 </tr>
               ))}
@@ -132,7 +133,7 @@ export function EventsLibrary({ s, update }) {
             <thead><tr><th>{t('lib.colEvent')}</th><th>{t('lib.colEffect')}</th></tr></thead>
             <tbody>
               {SEEDED.map(e => (
-                <tr key={e.name}><td><b>{e.name}</b><br /><span class="small muted">{e.text}</span></td><td class="small">{schedText(e)}</td></tr>
+                <tr key={e.id}><td><b>{N.event(e.id)}</b><br /><span class="small muted">{N.eventText(e.id)}</span></td><td class="small">{schedText(e)}</td></tr>
               ))}
             </tbody>
           </table>
@@ -140,7 +141,7 @@ export function EventsLibrary({ s, update }) {
       </div>
       {['macro', 'political', 'industry'].map(k => (
         <div key={k} class="panel evcat">
-          <h2>{t('lib.shockTitle', { cat: CATS[k] })}</h2>
+          <h2>{t('lib.shockTitle', { cat: N.cat(k) })}</h2>
           <ShockTable G={G} cat={k} />
         </div>
       ))}
@@ -150,9 +151,9 @@ export function EventsLibrary({ s, update }) {
           <table>
             <thead><tr><th>{t('lib.colShock')}</th><th>{t('lib.colChance')}</th><th>{t('lib.colResult')}</th></tr></thead>
             <tbody>
-              {INTERNAL_KEYS.map((k, idx) => (
+              {INTERNAL_KEYS.map(k => (
                 <tr key={k}>
-                  <td><b>{INTERNAL[idx].name}</b>{k === 'pr' && <><br /><span class="small muted">{INTERNAL[idx].variants.join(' / ')}</span></>}</td>
+                  <td><b>{N.internal(k)}</b>{k === 'pr' && <><br /><span class="small muted">{t('data.internal.pr.variants').join(' / ')}</span></>}</td>
                   <td>{t(`lib.${k}.chance`)}</td>
                   <td>{t(`lib.${k}.result`, { c: fmt(cost[k] || 0) })}</td>
                 </tr>

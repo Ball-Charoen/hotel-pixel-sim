@@ -1,4 +1,5 @@
-import { WEEKS, CANCEL_P, SEASON_NAME, TMD_NAME } from '../../sim/core.js';
+import { WEEKS, CANCEL_P } from '../../sim/core.js';
+import { N, weekLabel, newsText } from '../names.js';
 import { weekCtx } from '../session.js';
 import { CityCard } from '../components/CityCard.jsx';
 import { SeasonChip, TmdChip, lines } from '../components/widgets.jsx';
@@ -12,10 +13,10 @@ function SeasonBand({ G }) {
     const x = weekCtx(G, w);
     const cur = w === G.week ? ' cur' : '';
     const sch = G.timeline[w].scheduled;
-    wk.push(<div key={w} class={`cell ev${cur}`}><b>{weekShort(w + 1)}</b><br />{x.wi.label}</div>);
-    tour.push(<div key={w} class={`cell ${x.lab}${cur}`}>{SEASON_NAME[x.lab]}</div>);
-    tmd.push(<div key={w} class={`cell ${x.tmd}${cur}`}>{TMD_NAME[x.tmd]}</div>);
-    ev.push(<div key={w} class={`cell ev${cur}`}>{sch.length ? lines(sch.map(e => '★ ' + e.name)) : '–'}</div>);
+    wk.push(<div key={w} class={`cell ev${cur}`}><b>{weekShort(w + 1)}</b><br />{weekLabel(x.wi)}</div>);
+    tour.push(<div key={w} class={`cell ${x.lab}${cur}`}>{N.season(x.lab)}</div>);
+    tmd.push(<div key={w} class={`cell ${x.tmd}${cur}`}>{N.tmd(x.tmd)}</div>);
+    ev.push(<div key={w} class={`cell ev${cur}`}>{sch.length ? lines(sch.map(e => '★ ' + N.event(e.id))) : '–'}</div>);
   }
   return (
     <>
@@ -44,7 +45,7 @@ function CalendarTable({ G, reveal }) {
     const sch = tl.scheduled.length
       ? lines(tl.scheduled.map(e => (
           <>
-            <b>{e.name}</b>{e.kind === 'national' ? t('market.national') : t('market.announced')}<br />
+            <b>{N.event(e.id)}</b>{e.kind === 'national' ? t('market.national') : t('market.announced')}<br />
             <span class="small muted">{schedText(e)}</span>
             {past && e.cancelled && <><br /><span class="down">{t('market.cancelled')}</span></>}
           </>
@@ -53,16 +54,16 @@ function CalendarTable({ G, reveal }) {
     let sh;
     if (past) {
       sh = tl.shocks.length
-        ? lines(tl.shocks.map(s => <>{s.ev.positive ? '▲' : '▼'} {s.ev.name} <span class="small muted">({phaseName(s.k, s.d, s.perm)})</span></>))
+        ? lines(tl.shocks.map(s => <>{s.ev.positive ? '▲' : '▼'} {N.shock(s.ev.id)} <span class="small muted">({phaseName(s.k, s.d, s.perm)})</span></>))
         : <span class="muted">{t('market.none')}</span>;
     } else if (reveal) {
-      sh = tl.shocks.length ? lines(tl.shocks.map(s => <span class="muted">{s.ev.name}</span>)) : '–';
+      sh = tl.shocks.length ? lines(tl.shocks.map(s => <span class="muted">{N.shock(s.ev.id)}</span>)) : '–';
     } else {
       sh = <span class="muted">?</span>;
     }
     rows.push(
       <tr key={w} class={w === G.week ? 'now' : ''}>
-        <td>{weekShort(w + 1)}<br /><span class="small muted">{x.wi.label}</span></td>
+        <td>{weekShort(w + 1)}<br /><span class="small muted">{weekLabel(x.wi)}</span></td>
         <td><SeasonChip lab={x.lab} /><br /><TmdChip tmd={x.tmd} /></td>
         <td>{sch}</td>
         <td>{sh}</td>
@@ -91,7 +92,7 @@ export function MarketTab({ s }) {
         <div class="panel">
           <h2>{t('market.news')}</h2>
           {news.length
-            ? <ul class="list">{news.map((n, i) => <li key={i}>{t('market.newsItem', { week: weekShort(n.week), text: n.text })}</li>)}</ul>
+            ? <ul class="list">{news.map((n, i) => <li key={i}>{t('market.newsItem', { week: weekShort(n.week), text: newsText(G, n) })}</li>)}</ul>
             : <p class="muted small">{t('market.noNews')}</p>}
         </div>
       </div>
