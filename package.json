@@ -3,7 +3,7 @@
   "version": "0.3.0",
   "private": true,
   "type": "module",
-  "description": "Educational hotel-management web game set in Thailand (pixel art). P0 prototype done; P1 in progress.",
+  "description": "Educational hotel-management web game set in Thailand (pixel art). P0 and P1 done; P2 (classroom multiplayer) in progress.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
