@@ -36,7 +36,11 @@ export const staffLimit = G => maxStaff(player(G));
 
 /* Growth actions for the player's hotel: 'licence' (Type 1 + build to 16 rooms) or 'restaurant' (Type 2). */
 export const canGrow = (G, kind) => canStart(player(G), kind);
-export const grow = (G, kind) => startProject(player(G), kind);
+export const grow = (G, kind) => {
+  const ok = startProject(player(G), kind);
+  if (ok && G.classroom) (G.started ||= []).push(kind);
+  return ok;
+};
 export const hasFrontOffice = G => player(G).staff.some(s => s.role === 'fo');
 
 /* Hire a candidate, or fire them if already on the team (pays 1 week severance). */

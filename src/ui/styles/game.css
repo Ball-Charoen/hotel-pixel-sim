@@ -274,3 +274,10 @@ img.lm{object-fit:cover}
 .modal.confirm{max-width:440px}
 .modal.confirm p{margin:0 0 14px}
 .confirm-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+
+/* ---------- P2 classroom ---------- */
+.classform input[type=text],.classform input[type=email],.classform input[type=password]{width:100%;max-width:24rem}
+.classform table td,.classform table th{vertical-align:top}
+.roomcode{font-family:'VT323',monospace;font-size:clamp(3rem,10vw,5.5rem);letter-spacing:.25em;line-height:1;margin:12px 0;color:var(--lamp)}
+.note-box{border:2px dashed var(--line);border-radius:4px;padding:8px 12px;margin-bottom:14px}
+.note-box .btn{text-align:left}

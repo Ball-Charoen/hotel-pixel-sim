@@ -53,7 +53,9 @@ export function StaffTab({ s, update }) {
   const team = {}, comp = {};
   STATS.forEach(k => {
     team[k] = avg(h.staff, k);
-    comp[k] = bots.reduce((a, b) => a + b.staff.reduce((x, st) => x + st[k], 0) / Math.max(1, b.staff.length), 0) / bots.length;
+    // Classroom: the server sends only the market average of competitors' teams (G.compStaff).
+    comp[k] = G.compStaff ? G.compStaff[k]
+      : bots.reduce((a, b) => a + b.staff.reduce((x, st) => x + st[k], 0) / Math.max(1, b.staff.length), 0) / bots.length;
   });
   const toggle = id => update(() => toggleStaff(G, id));
   const max = staffLimit(G);

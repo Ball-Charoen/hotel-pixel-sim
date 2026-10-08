@@ -134,6 +134,7 @@ export function viewFor(g, out, key) {
     week: g.week, refP: g.refP, timeline, news: g.news, hotels, compStaff,
     candidates: deep(me.candidates),
   };
+  if (over) G.final = publicFor(g, null).final.map(f => (f.id === key ? { ...f, id: 'you' } : f));
   let last = null;
   if (out) {
     const hotelsOut = Object.fromEntries(g.hotels.map(h => [idOf(h), h === me ? out.hotels[h.id] : pick(out.hotels[h.id], PUBLIC_REC)]));

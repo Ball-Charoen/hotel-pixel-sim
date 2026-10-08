@@ -90,7 +90,8 @@ function InfoModal({ onClose, children }) {
 
 /* Desktop: everything stacked (as in the prototype). Phone landscape: CSS turns .game into a
    left sidebar (language, stats, tabs, end button) and a scrolling content panel (#tabbody). */
-export function GameScreen({ s, update, saveOk, onFinal, langSwitch, initialTab = 'market' }) {
+/* classBar: classroom mode replaces the end-of-week bar (submit decisions, timer); see ClassroomScreens.jsx. */
+export function GameScreen({ s, update, saveOk, onFinal, langSwitch, initialTab = 'market', classBar = null }) {
   const [tab, setTab] = useState(initialTab);
   const body = useRef(null);
   const phone = useMedia(PHONE);
@@ -125,7 +126,7 @@ export function GameScreen({ s, update, saveOk, onFinal, langSwitch, initialTab 
         {tab === 'customer' && <CustomerTab s={s} />}
         {tab === 'report' && <ReportTab s={s} />}
       </div>
-      <EndBar G={s.G} saveOk={saveOk} onEndWeek={doEndWeek} onFinal={onFinal} />
+      {classBar || <EndBar G={s.G} saveOk={saveOk} onEndWeek={doEndWeek} onFinal={onFinal} />}
       {info && (
         <InfoModal onClose={() => { setInfo(false); infoBtnFocus(); }}>
           <EventsLibrary s={s} update={update} />

@@ -83,3 +83,24 @@ test('a game saved between server requests continues exactly like one kept in me
   assert.equal(pa.final.length, 4);
   assert.equal(pa.final.find(f => f.bot).arch !== undefined, true, 'bot personality revealed at the end');
 });
+
+test('what a student does on their screen reaches the server unchanged (hire, fire, licence, prices)', async () => {
+  const { sessionFromView } = await import('../src/net/classroom.js');
+  const { toggleStaff, openCandidates, grow, player } = await import('../src/ui/session.js');
+  const g = startClassGame(room, players);
+  runClassWeek(g, {});
+  // Student screen: build the session from the server view, then play like in single player.
+  const s = sessionFromView(JSON.parse(toSaveJSON(viewFor(g, null, 'p1'))));
+  const fo = openCandidates(s.G).find(c => c.role === 'fo'), hk = openCandidates(s.G).find(c => c.role === 'hk');
+  toggleStaff(s.G, fo.id); toggleStaff(s.G, hk.id); toggleStaff(s.G, hk.id); toggleStaff(s.G, hk.id);   // hire, fire, rehire
+  grow(s.G, 'licence');
+  player(s.G).price.wd = 1350; player(s.G).mk.online = 2500;
+  const d = decisionOf(player(s.G), s.G.started);
+  // Server applies it to the real hotel.
+  const h = hotel(g, 'p1');
+  applyDecision(g, h, JSON.parse(JSON.stringify(d)));
+  assert.deepEqual(h.staff.map(x => x.id).sort(), [fo.id, hk.id].sort());
+  assert.equal(h.proj.licence > 0, true);
+  assert.equal(h.price.wd, 1350); assert.equal(h.mk.online, 2500);
+  assert.deepEqual(d.start, ['licence']);
+});

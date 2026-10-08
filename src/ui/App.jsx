@@ -7,12 +7,19 @@ import { FinalScreen } from './screens/FinalScreen.jsx';
 import { t, getLang, setLang } from '../i18n/index.js';
 import { LangSwitch } from './components/widgets.jsx';
 import { ConfirmHost, confirmDialog } from './confirm.jsx';
+import { ClassEntry, JoinScreen, StudentRoom, InstructorScreen, ClassDemo } from './screens/ClassroomScreens.jsx';
 
 /* The sim core mutates the game object in place, so the session lives in a ref
    and update(fn) runs the change then forces a re-render.
    Every change is autosaved to this browser (one slot); see saveStore.js. */
+/* Screens: setup / game / final (single player), join / student / teacher (classroom, P2).
+   A link ending in #join=CODE opens the join form; #teacher opens the instructor login. */
+const firstScreen = () => (/#join=/.test(location.hash) ? 'join' : location.hash === '#teacher' ? 'teacher'
+  : import.meta.env.DEV && location.hash === '#classdemo' ? 'classdemo' : 'setup');
+
 export function App() {
-  const [screen, setScreen] = useState('setup');
+  const [screen, setScreen] = useState(firstScreen);
+  const [classPlayer, setClassPlayer] = useState(null);
   const [, setLangState] = useState(getLang()); // re-render everything when the language changes
   const changeLang = l => { setLang(l); setLangState(l); };
   const [resume, setResume] = useState(() => readSave());
@@ -69,8 +76,19 @@ export function App() {
     return () => window.removeEventListener('beforeunload', warn);
   }, [screen, saveOk]);
 
+  const home = () => { history.replaceState(null, '', location.pathname); go('setup'); };
   let body;
-  if (screen === 'setup') body = <SetupScreen onStart={start} resume={resume} onContinue={continueGame} onDeleteSave={deleteSave} />;
+  if (screen === 'setup') {
+    body = (
+      <>
+        <ClassEntry onJoin={() => go('join')} onTeacher={() => go('teacher')} />
+        <SetupScreen onStart={start} resume={resume} onContinue={continueGame} onDeleteSave={deleteSave} />
+      </>
+    );
+  } else if (screen === 'join') body = <JoinScreen onBack={home} onEnter={id => { setClassPlayer(id); go('student'); }} />;
+  else if (screen === 'student') body = <StudentRoom playerId={classPlayer} onExit={() => go('join')} langSwitch={<LangSwitch onChange={changeLang} />} />;
+  else if (screen === 'teacher') body = <InstructorScreen onBack={home} />;
+  else if (screen === 'classdemo') body = <ClassDemo langSwitch={<LangSwitch onChange={changeLang} />} />;
   else if (screen === 'final') body = <FinalScreen s={session.current} onRestart={restart} />;
   else {
     body = (
@@ -82,7 +100,7 @@ export function App() {
   return (
     <>
       <p class="rotate-hint">{t('app.rotate')}</p>
-      {screen !== 'game' && <LangSwitch onChange={changeLang} />}
+      {screen !== 'game' && screen !== 'student' && screen !== 'classdemo' && <LangSwitch onChange={changeLang} />}
       {body}
       <ConfirmHost />
     </>

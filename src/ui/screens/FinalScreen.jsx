@@ -8,7 +8,7 @@ import { t, tx } from '../../i18n/index.js';
 
 export function FinalScreen({ s, onRestart }) {
   const { G, log } = s;
-  const fs = finalScores(G);
+  const fs = G.final || finalScores(G);   // classroom: ranking computed on the server
   const rank = fs.findIndex(f => f.id === 'you') + 1;
   const avg = k => log.reduce((a, r) => a + r[k], 0) / log.length;
   return (
