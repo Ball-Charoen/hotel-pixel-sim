@@ -55,10 +55,15 @@ def read_png(path):
 
 
 def write_png(path, rows):
+    """rows of (r,g,b) tuples; a None pixel makes the PNG transparent there (RGBA)."""
     h, w = len(rows), len(rows[0])
-    raw = b''.join(b'\x00' + bytes(v for px in row for v in px) for row in rows)
+    alpha = any(px is None for row in rows for px in row)
+    if alpha:
+        raw = b''.join(b'\x00' + bytes(v for px in row for v in ((0, 0, 0, 0) if px is None else (*px, 255))) for row in rows)
+    else:
+        raw = b''.join(b'\x00' + bytes(v for px in row for v in px) for row in rows)
     chunk = lambda k, d: struct.pack('>I', len(d)) + k + d + struct.pack('>I', zlib.crc32(k + d) & 0xffffffff)
-    open(path, 'wb').write(b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 2, 0, 0, 0))
+    open(path, 'wb').write(b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 6 if alpha else 2, 0, 0, 0))
                            + chunk(b'IDAT', zlib.compress(raw, 9)) + chunk(b'IEND', b''))
 
 

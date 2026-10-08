@@ -1,7 +1,7 @@
 /* Building geometry in canvas pixels (320×300), one layout per building picture.
    Each layout is measured from the owner's art (ChatGPT, 9 Oct 2026): windows, floor beams, desk, stairs.
-   T0 = assets/sprites/building-t0.png, T1 = building-t1.png (16 rooms, 4 floors). T2 (restaurant) uses
-   the T1 layout until its art arrives; then measure it the same way (see docs/art-prompts-chatgpt.md).
+   T0 = assets/sprites/building-t0.png, T1 = building-t1.png (16 rooms, 4 floors), T2 = building-t2.png
+   (T1 + restaurant in the lobby). For new art, measure it the same way (see docs/art-prompts-chatgpt.md).
    Floor index 0 = lobby, higher = upper floors. A floor's `bottom` is where staff feet stand.
    wall / deskX / restX / stairsX / walk only shape the placeholder art and where staff walk. */
 export const W = 320, H = 300;
@@ -28,4 +28,7 @@ export const LAYOUT_T1 = {
   deskX: 72, restX: [178, 262], stairsX: 272, walk: [45, 272],
 };
 
-export const layoutFor = roomCount => (roomCount > 8 ? LAYOUT_T1 : LAYOUT_T0);
+/* T2 = the T1 picture with a FOOD sign and a table set added in the lobby's middle bay (building-t2.png). */
+export const LAYOUT_T2 = { ...LAYOUT_T1, restX: [104, 136] };
+
+export const layoutFor = (roomCount, restaurant = false) => (restaurant ? LAYOUT_T2 : roomCount > 8 ? LAYOUT_T1 : LAYOUT_T0);

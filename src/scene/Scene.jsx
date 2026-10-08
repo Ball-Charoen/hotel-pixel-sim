@@ -16,7 +16,7 @@ export function Scene({ G }) {
   const state = useRef({ walkers: [], art: null, artKey: '', sheet: null, lit: 0, closed: 0, L: null, building: false });
   const h = player(G);
   const last = h.history[h.history.length - 1];
-  const L = layoutFor(h.rooms);
+  const L = layoutFor(h.rooms, h.restaurant);
   const roomCount = L.rooms.length;
   const lit = Math.round(clamp(last ? last.occ : 0, 0, 1) * roomCount);
   const closed = h.closed || 0;

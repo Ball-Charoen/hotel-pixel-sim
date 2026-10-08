@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { makeWalker, stepWalker, frameOf, feetY, FRAME } from '../src/scene/walkers.js';
-import { LAYOUT_T0, LAYOUT_T1 } from '../src/scene/layout.js';
+import { LAYOUT_T0, LAYOUT_T1, LAYOUT_T2, layoutFor } from '../src/scene/layout.js';
 
 const [WALK_MIN, WALK_MAX] = LAYOUT_T0.walk, FLOORS = LAYOUT_T0.floors;
 import { mulberry32 } from '../src/sim/core.js';
@@ -42,7 +42,7 @@ test('after growing to 4 guest floors, housekeeping uses all of them and nobody 
 });
 
 test('every layout: windows sit inside their floor and the wall, stairs are reachable', () => {
-  for (const L of [LAYOUT_T0, LAYOUT_T1]) {
+  for (const L of [LAYOUT_T0, LAYOUT_T1, LAYOUT_T2]) {
     assert.equal(L.rooms.length, (L.floors.length - 1) * 4);
     for (const r of L.rooms) {
       const f = L.floors[r.floor];
@@ -51,5 +51,9 @@ test('every layout: windows sit inside their floor and the wall, stairs are reac
     }
     assert.ok(L.stairsX >= L.walk[0] && L.stairsX <= L.walk[1]);
     assert.ok(L.deskX >= L.walk[0] && L.deskX <= L.walk[1]);
+    assert.ok(L.restX[0] >= L.walk[0] && L.restX[1] <= L.walk[1]);
   }
+  assert.equal(layoutFor(8), LAYOUT_T0);
+  assert.equal(layoutFor(16), LAYOUT_T1);
+  assert.equal(layoutFor(16, true), LAYOUT_T2);
 });

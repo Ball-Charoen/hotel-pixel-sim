@@ -4,7 +4,7 @@ staff-sprites.png    128x256  ตัวละครพนักงาน 8 ค�
 staff-portraits.png  384x48   ภาพหน้าตรง 8 คน เรียงซ้ายไปขวา ตามลำดับเดียวกับแถวของ staff-sprites.png
 building-t0.png      320x300  ตึกโฮสเทล (มีแล้ว จาก ChatGPT: ตำแหน่งหน้าต่างและพื้นใน src/scene/layout.js วัดจากภาพนี้)
 building-t1.png      320x300  โรงแรมประเภท 1 (16 ห้อง 4 ชั้น ป้าย HOTEL) วางห้องตามไกด์ guide-building-t1-t2-320x300-x2.png
-building-t2.png      320x300  โรงแรมประเภท 2 = แบบ t1 + ห้องอาหารในล็อบบี้ฝั่งขวา (กรอบชมพูในไกด์เดียวกัน)
+building-t2.png      320x300  โรงแรมประเภท 2 = ภาพ t1 + ป้าย FOOD และโต๊ะกลางล็อบบี้ (มีแล้ว)
 city-bkk.png ... city-pnb.png  160x96  ภาพเมือง 9 ภาพ (bkk kkn hkt pty pbi rbr rng cnx pnb)
 
 ไกด์และผืนผ้าใบอยู่ที่ assets/art-templates/ (ดู README-TH.txt ในโฟลเดอร์นั้น)
