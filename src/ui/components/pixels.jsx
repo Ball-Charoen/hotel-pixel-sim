@@ -4,6 +4,7 @@ import LANDMARKS from '../../data/landmarks.json';
 import { CITIES, mulberry32 } from '../../sim/core.js';
 import { PAL } from '../theme.js';
 import { t } from '../../i18n/index.js';
+import { spriteUrl, staffRow } from '../../scene/sprites.js';
 import { N } from '../names.js';
 
 /* One <rect> per horizontal run of the same character; colorOf(ch) returns a fill or null to skip. */
@@ -24,6 +25,8 @@ function pixelRuns(rows, colorOf) {
 }
 
 export function Landmark({ city }) {
+  const png = spriteUrl(`city-${city}.png`);
+  if (png) return <img class="lm" src={png} alt={N.cityLm(city)} width="160" height="96" />;
   return (
     <svg viewBox="0 0 20 16" class="lm" role="img" aria-label={N.cityLm(city)} shape-rendering="crispEdges">
       <rect width="20" height="16" fill="#BFE0EA" />
@@ -60,7 +63,10 @@ export function ThaiMap({ selected, onSelect }) {
 }
 
 /* Placeholder staff face generated from a seed; replaced by the owner's 48×48 portraits later. */
-export function Avatar({ look, label }) {
+export function Avatar({ id, look, label }) {
+  // Owner's portraits: 8 faces of 48×48 in one strip, same order as the staff sprites (c0..c7).
+  const png = id != null && spriteUrl('staff-portraits.png');
+  if (png) return <span class="avatar portrait" role="img" aria-label={label} style={{ backgroundImage: `url(${png})`, backgroundPosition: `${-staffRow(id) * 36}px 0` }} />;
   const rng = mulberry32(look || 1);
   const skins = ['#F1C9A5', '#E0AC82', '#C68B5E', '#9A6644'];
   const hairs = ['#2B2222', '#4A3426', '#7A4E2D', '#1E2430', '#B6542F'];

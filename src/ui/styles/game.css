@@ -244,3 +244,14 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   .game>.tabs button{min-height:28px;padding:2px 4px}
   .game>.endbar .btn{padding:6px 10px}
 }
+
+/* ---------- P1 step 4: building scene ---------- */
+.hero{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:16px;align-items:start}
+.scene canvas{display:block;width:100%;height:auto;image-rendering:pixelated;border:2px solid var(--line);border-radius:4px;background:#bfe0ea}
+.avatar.portrait{display:inline-block;background-size:288px 36px;background-repeat:no-repeat;image-rendering:pixelated}
+img.lm{object-fit:cover}
+@media (max-width:600px){.hero{grid-template-columns:1fr}.hero .scene{width:100%;max-width:260px;margin:0 auto 8px}}
+@media (orientation:landscape) and (max-height:560px){
+  #tabbody>.scene{display:flex;justify-content:center;margin-bottom:10px}
+  #tabbody>.scene canvas{width:auto;height:min(180px,48vh)}
+}

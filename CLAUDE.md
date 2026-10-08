@@ -16,6 +16,7 @@ Educational web game: students run a hotel in Thailand, from an 8-room hostel to
 
 ## Commands
 - `npm test` — runs `tests/*.test.mjs` (node:test): sim core, `src/sim/save.js`, `src/ui/session.js`, text files. Must stay green.
+- Testing in the browser pane: use Preview config `game-test` (port 5174) so test games never touch the owner's autosave/language on 5173.
 - `npm run dev` — Vite dev server on port 5173 (Preview config "game" in `.claude/launch.json`). `npm run build` → `dist/`.
 - `npm run font:zh` — rebuild the Chinese font subset after editing `src/i18n/zh-TW.json` (needs `tools/font-src/NotoSansTC[wght].ttf`, git-ignored; URL in `scripts/build-zh-font.mjs`). A test fails if a Chinese character is missing.
 - Stack (owner-approved 8 Oct 2026): Vite 8 + Preact 10 (not 11, too new) + `@preact/preset-vite`. Node 24 LTS.
@@ -25,6 +26,7 @@ Educational web game: students run a hotel in Thailand, from an 8-room hostel to
 - `src/ui/` — Preact UI: `App.jsx`, `screens/`, `tabs/`, `components/`, `styles/game.css` (ported from prototype). `session.js` = pure glue (decision log, hire/fire, end week). `saveStore.js` = one autosave slot in localStorage.
 - `src/sim/save.js` — game ↔ JSON (RNG state + shock ids as markers). A resumed game must replay identically (tests/save.test.mjs). Bump `SAVE_VERSION` in `src/ui/saveStore.js` when rules or the save format change.
 - `src/i18n/` — `t(key, vars)` / `tx(key, {name: <jsx/>})`; every UI string goes in `th.json`, `en.json`, `zh-TW.json` (tests check same keys/placeholders). Core text (cities, events, names) lives under `data` and is shown via `src/ui/names.js`; the core has no display text.
+- `src/scene/` — live pixel building (canvas 320×300, layout from the art guide) with walking staff. Placeholder art is drawn in code; owner PNGs in `assets/sprites/` (names in its README-TH.txt) replace it automatically via `import.meta.glob`. Walker logic is pure (`walkers.js`, tested); visual randomness never touches the sim RNG.
 - `src/fonts/` — Noto Sans TC subset (regular only, 132 KB, OFL licence alongside), loaded only for Chinese text.
 - `src/data/` — `thmap.json` (pixel map of Thailand rasterised from Natural Earth, public domain), `landmarks.json` (9 original 20×16 pixel vignettes).
 - `prototype/` — P0 v0.3 single-file game + its source pieces (UI patterns to port).

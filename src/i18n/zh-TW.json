@@ -235,8 +235,7 @@
     "headline": "第 {week} 週（{date}）：RGI {rgi}，你的每房收入{dir}競爭對手平均 {diff}%",
     "more": "高於",
     "less": "低於",
-    "bldNote": "窗戶亮燈數依本週住房率而定；紅色 = 維修中的客房。",
-    "bldAria": "青年旅館剖面圖，{rooms} 間客房中有 {lit} 間亮燈",
+    "bldNote": "上方建築的窗戶亮燈數依最新住房率而定；紅色 = 維修中的客房。",
     "quadTitle": "你的位置：銷量 × 價格（與競爭對手比較）",
     "diagTitle": "分析",
     "causeTitle": "本週的因 → 果",
@@ -887,5 +886,8 @@
       "bot2": "觀景民宿"
     },
     "staffFallback": "員工"
+  },
+  "scene": {
+    "aria": "青年旅館剖面圖：{rooms} 間客房中有 {lit} 間亮燈，{n} 名員工正在工作"
   }
 }

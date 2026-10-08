@@ -11,7 +11,7 @@ function StaffCard({ c, hired, canHire, onToggle, playing }) {
   return (
     <div class={`card${hired ? ' hired' : ''}`}>
       <div class="head">
-        <Avatar look={c.look} label={N.staff(c.name)} />
+        <Avatar id={c.id} look={c.look} label={N.staff(c.name)} />
         <div class="nm" style="flex:1"><span>{N.staff(c.name)}</span><span class="small">{t('unit.perWeek', { amount: fmt(c.salary) })}</span></div>
       </div>
       {STATS.map(k => (

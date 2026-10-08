@@ -9,10 +9,24 @@ import { StaffTab } from '../tabs/StaffTab.jsx';
 import { CustomerTab } from '../tabs/CustomerTab.jsx';
 import { ReportTab } from '../tabs/ReportTab.jsx';
 import { EventsLibrary } from './EventsLibrary.jsx';
+import { Scene } from '../../scene/Scene.jsx';
 import { fmt, baht } from '../format.js';
 import { t, tx } from '../../i18n/index.js';
 
 const TABS = ['market', 'decide', 'staff', 'customer', 'report'];
+// Same query as the phone layout in styles/game.css.
+const PHONE = '(orientation: landscape) and (max-height: 560px)';
+
+function useMedia(query) {
+  const [match, setMatch] = useState(() => matchMedia(query).matches);
+  useEffect(() => {
+    const mq = matchMedia(query);
+    const on = () => setMatch(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, [query]);
+  return match;
+}
 
 function TopBar({ G, onInfo }) {
   const h = player(G);
@@ -79,6 +93,7 @@ function InfoModal({ onClose, children }) {
 export function GameScreen({ s, update, saveOk, onFinal, langSwitch, initialTab = 'market' }) {
   const [tab, setTab] = useState(initialTab);
   const body = useRef(null);
+  const phone = useMedia(PHONE);
   // New tab or new week: start the content panel at the top (only matters when it scrolls on its own).
   useEffect(() => { if (body.current) body.current.scrollTop = 0; }, [tab, s.G.week]);
   const [info, setInfo] = useState(false);
@@ -94,13 +109,16 @@ export function GameScreen({ s, update, saveOk, onFinal, langSwitch, initialTab 
   return (
     <div class="game">
       {langSwitch}
-      <TopBar G={s.G} onInfo={() => setInfo(true)} />
+      {phone
+        ? <TopBar G={s.G} onInfo={() => setInfo(true)} />
+        : <div class="hero"><Scene G={s.G} /><TopBar G={s.G} onInfo={() => setInfo(true)} /></div>}
       <div class="tabs" role="tablist">
         {TABS.map(k => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}>{t(`tabs.${k}`)}</button>
         ))}
       </div>
       <div id="tabbody" ref={body}>
+        {phone && <Scene G={s.G} />}
         {tab === 'market' && <MarketTab s={s} />}
         {tab === 'decide' && <DecideTab s={s} update={update} onGoStaff={() => setTab('staff')} />}
         {tab === 'staff' && <StaffTab s={s} update={update} />}

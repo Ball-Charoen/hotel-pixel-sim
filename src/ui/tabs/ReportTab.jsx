@@ -2,7 +2,6 @@ import { Fragment } from 'preact';
 import {
   CITIES, SEGMENTS, WEEKS, ROOMS, COST, CANCEL_P, tmdSeason, seasonLabel,
 } from '../../sim/core.js';
-import { Building } from '../components/Building.jsx';
 import { Quadrant, QuadLegend } from '../components/Quadrant.jsx';
 import { LineChart, Src, Chg } from '../components/widgets.jsx';
 import { SEG_COLOR } from '../theme.js';
@@ -216,10 +215,7 @@ export function ReportTab({ s }) {
           week: o.week, date: weekLabel(o.info), rgi: Math.round(i.rgi),
           dir: i.rgi >= 100 ? t('report.more') : t('report.less'), diff: Math.abs(Math.round(i.rgi - 100)),
         })}</div>
-        <div style="display:grid;grid-template-columns:minmax(120px,200px) 1fr;gap:14px;align-items:center;margin-bottom:10px">
-          <Building occ={y.occ} closed={y.closed} />
-          <div><SegMix y={y} /><p class="note">{t('report.bldNote')}</p></div>
-        </div>
+        <div style="margin-bottom:10px"><SegMix y={y} /><p class="note">{t('report.bldNote')}</p></div>
         <KpiCards o={o} />
       </div>
       <div class="two">

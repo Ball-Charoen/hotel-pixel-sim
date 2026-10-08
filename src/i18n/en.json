@@ -235,8 +235,7 @@
     "headline": "Week {week} ({date}): RGI {rgi}, you earned {diff}% {dir} revenue per room than the competitor average",
     "more": "more",
     "less": "less",
-    "bldNote": "Lit windows follow this week's occupancy; red = room closed for repair.",
-    "bldAria": "Hostel cross-section, {lit} of {rooms} rooms lit",
+    "bldNote": "Lit windows in the building above follow the latest occupancy; red = room closed for repair.",
     "quadTitle": "Your position: volume × price vs competitors",
     "diagTitle": "Analysis",
     "causeTitle": "Cause → effect this week",
@@ -887,5 +886,8 @@
       "bot2": "Viewpoint House"
     },
     "staffFallback": "Staff member"
+  },
+  "scene": {
+    "aria": "Hostel cross-section: {lit} of {rooms} rooms lit, {n} staff at work"
   }
 }
