@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>เครื่องจำลองเศรษฐกิจโรงแรม (ต้นแบบ P0 v0.3)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;600;700&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#DCEAEB;--surface:#F6F9F9;--surface2:#EAF2F2;--ink:#1D2B34;--muted:#55666E;--line:#1D2B34;--soft:#B9CCCE;
+  --jade:#1F7A65;--jade-ink:#FFFFFF;--lamp:#F2B33D;--chili:#B93B28;--good:#1F7A65;
+  --wall:#E9D9BF;--roof:#7A4B32;--teak:#8C5A3C;--door:#5B3724;--winoff:#9DB3B8;--ground:#6E8F5A;--sky:#BFE0EA;--star:transparent;
+  --font:'IBM Plex Sans Thai','Noto Sans Thai','Leelawadee UI','Tahoma',system-ui,sans-serif;
+  --pix:'VT323','IBM Plex Sans Thai',ui-monospace,monospace;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101A23;--surface:#18242F;--surface2:#1F2E3A;--ink:#E3ECEE;--muted:#9AABB3;--line:#5E7480;--soft:#2E4250;
+  --jade:#46B395;--jade-ink:#0E1A17;--lamp:#FFC857;--chili:#EE7A64;--good:#46B395;
+  --wall:#3B3A44;--roof:#5A3A2A;--teak:#6E4A35;--door:#2A1C14;--winoff:#25323C;--ground:#2F4428;--sky:#0D1824;--star:#E8EEF2;}}
+:root[data-theme="dark"]{
+  --bg:#101A23;--surface:#18242F;--surface2:#1F2E3A;--ink:#E3ECEE;--muted:#9AABB3;--line:#5E7480;--soft:#2E4250;
+  --jade:#46B395;--jade-ink:#0E1A17;--lamp:#FFC857;--chili:#EE7A64;--good:#46B395;
+  --wall:#3B3A44;--roof:#5A3A2A;--teak:#6E4A35;--door:#2A1C14;--winoff:#25323C;--ground:#2F4428;--sky:#0D1824;--star:#E8EEF2;}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.6}
+a{color:var(--jade)}
+.wrap{max-width:1180px;margin:0 auto;padding:16px}
+h1{font-size:1.6rem;line-height:1.25;margin:0 0 4px}
+h2{font-size:1.15rem;margin:0 0 10px}
+h3{font-size:1rem;margin:16px 0 8px}
+p{margin:0 0 10px}
+.muted{color:var(--muted)}
+.small{font-size:.875rem}
+.panel{background:var(--surface);border:2px solid var(--line);border-radius:4px;padding:16px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:minmax(300px,430px) 1fr;gap:16px;align-items:start}
+@media (max-width:880px){.grid{grid-template-columns:1fr}}
+.setup{display:grid;grid-template-columns:260px 1fr;gap:20px;align-items:center}
+@media (max-width:700px){.setup{grid-template-columns:1fr}}
+.bld{width:100%;max-width:260px;display:block;margin:0 auto}
+.bld .sky{fill:var(--sky)}.bld .star{fill:var(--star)}.bld .wall{fill:var(--wall)}.bld .roof{fill:var(--roof)}.bld .beam{fill:var(--teak)}
+.bld .win{fill:var(--winoff)}.bld .win.on{fill:var(--lamp)}.bld .glint{fill:#fff;opacity:.55}.bld .sign{fill:var(--jade)}
+.bld .signtxt{fill:var(--jade-ink);font-family:var(--pix);font-size:13px}.bld .door{fill:var(--door)}.bld .ground{fill:var(--ground)}
+fieldset{border:0;padding:0;margin:0 0 14px}
+legend{font-weight:600;margin-bottom:6px;padding:0}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{font:inherit;font-size:.9rem;padding:6px 12px;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:3px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+input[type=text],input[type=number],select{font:inherit;padding:6px 8px;border:2px solid var(--line);border-radius:3px;background:var(--surface);color:var(--ink);max-width:100%}
+
+label.row{display:flex;justify-content:space-between;gap:8px;align-items:baseline;margin-top:8px}
+.btn{font:inherit;font-weight:600;padding:10px 18px;border:2px solid var(--line);border-radius:3px;background:var(--jade);color:var(--jade-ink);cursor:pointer;box-shadow:3px 3px 0 var(--line)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--line)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:var(--surface);color:var(--ink)}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var(--lamp);outline-offset:2px}
+.topbar{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline;margin-bottom:12px}
+.stat .v{font-family:var(--pix);font-size:1.8rem;line-height:1.1}
+.stat .k{font-size:.8rem;color:var(--muted);display:block}
+.staff{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.card{border:2px solid var(--soft);border-radius:3px;padding:8px 10px;background:var(--surface)}
+.card.hired{border-color:var(--jade);background:var(--surface2)}
+.card .nm{display:flex;justify-content:space-between;font-weight:600}
+.bar{display:grid;grid-template-columns:96px 1fr 26px;gap:6px;align-items:center;font-size:.78rem;color:var(--muted)}
+.bar i{display:block;height:6px;background:var(--soft);position:relative}
+.bar i b{position:absolute;left:0;top:0;bottom:0;background:var(--ink)}
+.card .btn{padding:4px 10px;font-size:.85rem;box-shadow:2px 2px 0 var(--line);margin-top:6px}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:520px){.kpis{grid-template-columns:1fr}}
+.kpi{border:2px solid var(--line);border-radius:3px;padding:10px 12px;background:var(--surface)}
+.kpi .name{font-weight:600}
+.kpi .num{font-family:var(--pix);font-size:2.7rem;line-height:1}
+.kpi .vs{font-size:.85rem;color:var(--muted)}
+.up{color:var(--good)}.down{color:var(--chili)}
+details{margin-top:8px;border-top:1px dashed var(--soft);padding-top:6px}
+summary{cursor:pointer;font-size:.9rem;color:var(--jade);font-weight:600}
+details p,details li{font-size:.9rem}
+details ul{margin:6px 0;padding-left:18px}
+.calc{font-family:var(--pix);font-size:1.2rem;background:var(--surface2);padding:4px 8px;display:inline-block;border-radius:2px}
+.list{margin:0;padding-left:20px}.list li{margin-bottom:6px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--soft);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+tr.you td{font-weight:600}
+.chart svg{width:100%;height:auto;display:block}
+.chart .ax{stroke:var(--soft)}.chart .lbl{fill:var(--muted);font-size:11px;font-family:var(--font)}
+.legend{display:flex;gap:14px;font-size:.85rem;color:var(--muted);flex-wrap:wrap}
+.legend span::before{content:"";display:inline-block;width:14px;height:3px;margin-right:6px;vertical-align:middle;background:var(--c)}
+.endbar{position:sticky;bottom:0;padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--bg) 30%)}
+.endbar .btn{width:100%}
+.warn{border-left:4px solid var(--chili);padding:6px 10px;background:var(--surface2);font-size:.9rem;margin:8px 0}
+.note{font-size:.85rem;color:var(--muted)}
+.segbar{display:flex;height:14px;border:2px solid var(--line);margin:4px 0}
+.segbar span{display:block;height:100%}
+.headline{font-size:1.15rem;font-weight:600;margin-bottom:12px}
+textarea{width:100%;min-height:120px;font-family:ui-monospace,monospace;font-size:.8rem;background:var(--surface2);color:var(--ink);border:2px solid var(--soft)}
+.hidden{display:none}
+:root{--land:#9CC58A;--nb:#D5DCD3;--sea:#BFE0EA;--hi:#E2774E;--sh:#E8C25A;--lo:#7FA7C9;--pin:#B93B28}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--land:#4E7A4A;--nb:#2C3A40;--sea:#13283A;--hi:#D9774F;--sh:#C9A64A;--lo:#4F7DA6;--pin:#FF8A6B}}
+:root[data-theme="dark"]{--land:#4E7A4A;--nb:#2C3A40;--sea:#13283A;--hi:#D9774F;--sh:#C9A64A;--lo:#4F7DA6;--pin:#FF8A6B}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 12px;border-bottom:2px solid var(--line)}
+.tabs button{font:inherit;font-size:.95rem;padding:8px 14px;border:2px solid var(--line);border-bottom:0;background:var(--surface2);color:var(--ink);border-radius:4px 4px 0 0;cursor:pointer;margin-bottom:-2px}
+.tabs button[aria-selected="true"]{background:var(--surface);font-weight:600;border-bottom:2px solid var(--surface)}
+.chip{display:inline-block;font-size:.8rem;padding:1px 8px;border:2px solid var(--line);border-radius:3px;margin-right:4px;white-space:nowrap}
+.chip.high{background:var(--hi);color:#fff}.chip.shoulder{background:var(--sh);color:#1D2B34}.chip.low{background:var(--lo);color:#fff}
+.chip.summer{background:#F2B33D;color:#1D2B34}.chip.rainy{background:#5C8FB8;color:#fff}.chip.winter{background:#D8E6EE;color:#1D2B34}
+.two{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.two{grid-template-columns:1fr}}
+.setup2{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:20px;align-items:start}
+@media (max-width:720px){.setup2{grid-template-columns:1fr}}
+.thmap{width:100%;max-width:300px;display:block;margin:0 auto}
+.thmap [data-city]{cursor:pointer}.thmap [data-city]:focus{outline:none}.thmap [data-city]:focus rect.pin{stroke:var(--lamp);stroke-width:2}
+.citycard{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:start}
+@media (max-width:520px){.citycard{grid-template-columns:1fr}}
+.lm{width:150px;height:auto;display:block;border:2px solid var(--line);image-rendering:pixelated}
+.band{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:3px}
+.band div{font-size:.72rem;text-align:center;padding:3px 0;border:2px solid transparent;border-radius:2px;line-height:1.25}
+.band .cur{border-color:var(--line);font-weight:700}
+.band .high{background:var(--hi);color:#fff}.band .shoulder{background:var(--sh);color:#1D2B34}.band .low{background:var(--lo);color:#fff}
+.mbars{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;align-items:end;height:70px}
+.mbars span{display:block;border:1px solid var(--line)}
+.mlabels{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;font-size:.68rem;text-align:center;color:var(--muted)}
+.hbar{display:grid;grid-template-columns:120px 1fr 44px;gap:8px;align-items:center;font-size:.85rem;margin:4px 0}
+.hbar .track{height:12px;background:var(--surface2);border:1px solid var(--soft);position:relative}
+.hbar .track b{position:absolute;top:0;bottom:0;left:0;background:var(--jade)}
+.hbar .track i{position:absolute;top:-3px;bottom:-3px;width:3px;background:var(--line)}
+.review{border:2px solid var(--soft);border-radius:3px;padding:8px 10px;margin:6px 0;background:var(--surface)}
+.review .stars{color:var(--lamp);letter-spacing:1px}
+.avatar{image-rendering:pixelated;width:40px;height:40px;border:2px solid var(--line);background:var(--sky);flex:none}
+.card .head{display:flex;gap:8px;align-items:center}
+.meter{height:14px;border:2px solid var(--line);background:var(--surface2);position:relative;margin:4px 0}
+.meter b{position:absolute;left:0;top:0;bottom:0;background:var(--jade)}
+.cal td,.cal th{white-space:normal;vertical-align:top;text-align:left}
+.cal tr.now td{background:var(--surface2);font-weight:600}
+.evcat h3{margin-top:18px}
+.legendbox{border:2px dashed var(--soft);padding:8px 10px;font-size:.85rem;margin-top:8px}
+.weekbox{border:2px solid var(--line);padding:10px 12px;background:var(--surface2);border-radius:3px;margin-bottom:12px}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+
+/* v0.3: sliders */
+.ctl{margin:10px 0 4px}
+.rangerow{display:grid;grid-template-columns:40px 1fr 40px;gap:8px;align-items:center}
+.stepbtn{font:inherit;font-size:1.3rem;font-weight:700;line-height:1;height:36px;border:2px solid var(--line);border-radius:3px;background:var(--surface);color:var(--ink);cursor:pointer;box-shadow:2px 2px 0 var(--line);touch-action:manipulation}
+.stepbtn:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--line)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:40px;margin:0;background:transparent;cursor:pointer;touch-action:pan-y;--p:50%}
+input[type=range]:focus{outline:none}
+input[type=range]::-webkit-slider-runnable-track{height:12px;border:2px solid var(--line);border-radius:2px;background:linear-gradient(to right,var(--jade) var(--p),var(--surface2) var(--p))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:30px;height:30px;margin-top:-11px;background:var(--lamp);border:3px solid var(--line);border-radius:4px;box-shadow:2px 2px 0 var(--line);cursor:grab}
+input[type=range]:active::-webkit-slider-thumb{cursor:grabbing;transform:scale(1.08)}
+input[type=range]:focus-visible::-webkit-slider-thumb{outline:3px solid var(--lamp);outline-offset:2px}
+input[type=range]::-moz-range-track{height:12px;border:2px solid var(--line);border-radius:2px;background:var(--surface2)}
+input[type=range]::-moz-range-progress{height:12px;background:var(--jade)}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;background:var(--lamp);border:3px solid var(--line);border-radius:4px;box-shadow:2px 2px 0 var(--line);cursor:grab}
+input.num{width:110px;font-family:var(--pix);font-size:1.25rem;padding:2px 8px}
+.ctl b[data-show]{font-family:var(--pix);font-size:1.3rem;font-weight:400}
+/* v0.3: compact customer table */
+table.compact{font-size:.85rem}
+table.compact th,table.compact td{padding:5px 8px;white-space:normal}
+table.compact .focus{font-size:.72rem;color:var(--muted);line-height:1.3;display:block}
+/* v0.3: info button + modal */
+.topbar{align-items:flex-start}
+.infobtn{margin-left:auto;width:44px;height:44px;flex:none;font-family:var(--pix);font-size:2rem;line-height:1;border:2px solid var(--line);border-radius:4px;background:var(--lamp);color:#1D2B34;cursor:pointer;box-shadow:3px 3px 0 var(--line)}
+.infobtn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--line)}
+.overlay{position:fixed;inset:0;background:rgba(16,26,35,.55);z-index:50;display:flex;justify-content:center;align-items:flex-start;padding:calc(16px + env(safe-area-inset-top,0px)) 12px calc(16px + env(safe-area-inset-bottom,0px))}
+.modal{background:var(--bg);border:2px solid var(--line);border-radius:4px;box-shadow:4px 4px 0 var(--line);width:100%;max-width:1100px;max-height:100%;display:flex;flex-direction:column}
+.modal-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 14px;border-bottom:2px solid var(--line);background:var(--surface)}
+.modal-head h2{margin:0}
+.modal-body{overflow-y:auto;padding:14px;-webkit-overflow-scrolling:touch}
+/* v0.3: readable season band */
+.bandwrap{overflow-x:auto}
+.band2{display:grid;grid-template-columns:110px repeat(12,minmax(54px,1fr));gap:4px;min-width:760px;align-items:stretch}
+.band2 .lab{font-size:.85rem;font-weight:600;display:flex;align-items:center}
+.band2 .cell{font-size:.85rem;text-align:center;padding:6px 2px;border:2px solid transparent;border-radius:3px;line-height:1.35}
+.band2 .cell.cur{border-color:var(--line);box-shadow:2px 2px 0 var(--line);font-weight:700}
+.band2 .high{background:var(--hi);color:#fff}.band2 .shoulder{background:var(--sh);color:#1D2B34}.band2 .low{background:var(--lo);color:#fff}
+.band2 .summer{background:#F2B33D;color:#1D2B34}.band2 .rainy{background:#5C8FB8;color:#fff}.band2 .winter{background:#D8E6EE;color:#1D2B34}
+.band2 .ev{background:var(--surface2);color:var(--ink)}
+.bandlegend{display:flex;flex-wrap:wrap;gap:6px 4px;margin-top:10px}
+
+</style>
+</head>
+<body>
+<main class="wrap" id="app"></main>
+<footer class="wrap">
+ <div class="panel small">
+  <h2>เกี่ยวกับต้นแบบนี้ (v0.3)</h2>
+  <p>ต้นแบบ P0 ใช้ทดสอบสูตรเศรษฐกิจก่อนสร้างเกมจริง ราคา ต้นทุน ค่าจ้าง ดีมานด์รายเมือง ช่วงไฮ–โลว์ซีซั่น และขนาดผลกระทบของเหตุการณ์เป็นค่าออกแบบเพื่อการเรียนรู้ อัตราเข้าพักรวมตั้งเป้าราว 45–75% ใกล้ช่วงสถิติรายจังหวัดปี 2567 (<a href="https://www.nso.go.th/nsoweb/downloadFile/stat_main_nso/FgpN/file_th" target="_blank" rel="noopener">สสช.</a>) แผนที่พิกเซลสร้างจากเส้นเขตแดน <a href="https://github.com/nvkelso/natural-earth-vector" target="_blank" rel="noopener">Natural Earth</a> (สาธารณสมบัติ) ภาพสถานที่และตัวละครเป็นภาพพิกเซลชั่วคราวที่วาดขึ้นใหม่ รอแทนด้วยดีไซน์จริง ยังเป็นภาษาไทยอย่างเดียว ภาษาอังกฤษจะมาใน P1</p>
+  <p class="muted">ข้อจำกัดของแหล่งอ้างอิง: นิยามดัชนี MPI, ARI, RGI อิง <a href="https://str.com/resourcesglossary/revpar-indexrevenue-generating-index-rgi" target="_blank" rel="noopener">STR</a> ส่วนคำอธิบาย KPI อื่นมาจากอภิธานศัพท์ของบริษัทซอฟต์แวร์และสถาบันการศึกษาด้านการโรงแรม ข้อมูลฤดูท่องเที่ยวรายเมืองมาจากเว็บท่องเที่ยวและนิตยสาร ไม่ใช่สถิติรายเดือนทางการ กฎรีวิวปลอมที่อ้างถึงเป็นกฎหมายสหรัฐฯ</p>
+ </div>
+</footer>
+<script>
+const THMAP={"lon0":96.8,"lat1":20.8,"step":0.22,"W":43,"H":70,"rows":["nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn","nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn","nnnnnnnnnnnnTTTTnnnnnnnnnnnnnnnnnnnnnnnnnnn","nnnnnnnnnnTTTTTTTnnnnnnnnnnnnnnnnnnnnnnnnnn","nnnnnnnnnnTTTTTTnnnnnnnnnnnnnnnnnnnnnnnnn..","nnnnnTTTTTTTTTTTTnTTnnnnnnnnnnnnnnnnnnnnn..","nnnnnTTTTTTTTTTTTTTTnnnnnnnnnnnnnnnnnnnnn..","nnnnnTTTTTTTTTTTTTTTnnnnnnnnnnnnnnnnnnnnn..","nnnnTTTTTTTTTTTTTTTTnnnnnnnnnnnnnnnnnnnn...","nnnnTTTTTTTTTTTTTTTTnnnnnnnnnnnnnnnnnnnnn..","nnnTTTTTTTTTTTTTTTTnnnnnnnnnnnnnnnnnnnnnn..","nnnnTTTTTTTTTTTTTTTTnnnnnnnnnTTTTnnnnnnnnn.","nnnnTTTTTTTTTTTTTTTTnnnTTnnnTTTTTnnnnnnnnnn","nnnnTTTTTTTTTTTTTTTnnnTTTTnTTTTTTTnnnnnnnnn","nnnnnTTTTTTTTTTTTTTnTTTTTTTTTTTTTTTnnnnnnnn","nnnnnnTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTnnnnnnn",".nnnnnnTTTTTTTTTTTTTTTTTTTTTTTTTTTTTnnnnnnn","..nnnnnTTTTTTTTTTTTTTTTTTTTTTTTTTTTTnnnnnnn","..nnnnnnTTTTTTTTTTTTTTTTTTTTTTTTTTTTnnnnnnn","....nnnnTTTTTTTTTTTTTTTTTTTTTTTTTTTTnnnnnnn","...nnnnnnTTTTTTTTTTTTTTTTTTTTTTTTTTTTnnnnnn","....nnnnTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTnnnnn","....nnnnTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTnnnn","....nnnnTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTnnn","....nnnnTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTnnn",".....nTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTnnn",".....nTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTnnn",".....nnTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTnnn",".....nnnTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTnnnn","......nnTTTTTTTTTTTTTTTTTTTTTnnnnnnnnTnnnnn","......nnnTTTTTTTTTTTTTTTTTTTnnnnnnnnnnnnnnn",".......nnnTTTTTTTTTTTTTTTTTnnnnnnnnnnnnnnnn",".......nnnnTTTTTTTTTTTTTTTnnnnnnnnnnnnnnnnn",".......nnnnTTTT....TTTTTTnnnnnnnnnnnnnnnnnn","........nnnTTTT....TTTTTTnnnnnnnnnnnnnnnnnn","........nnnTTTT....TTTTTTTnnnnnnnnnnnnnnnnn","........nnnTTT.....TTTTTTTnnnnnnnnnnnnnnnnn",".......nnnnnTT..........TTTnnnnnnnnnnnnnnnn",".....n..nnnnTTT..........TTnnnnnnnnnnnnnnnn","........nnnnTT.............nnnnnnnnnnnnnnnn","........nnnnnT.............nnnnnnnnnnnnnnnn",".......n.nnnn...............nnnnnnnnnnnnnnn",".........nnnT................nnnnnnnnnnnnnn",".........nnTT................nnnnnnnnnnnnnn",".........nTT.................n.nnnnnnnnnnnn","........nTTT...................nnnnnnnnnnnn","........nTT....................n.nnnnnnnnnn","........nTT.....................n..nnnnnnnn",".........TT..........................nnnnnn","........TTT...........................nnn.n","........TTT..........................nnnnn.",".......TTTT...T......................nnnnnn",".......TTTT.TT......................nnnnn..",".......TTTTTTT......................nnn....",".......TTTTTTT......................nnn....",".......TTTTTTT.............................",".......TTTTTTTTT...........................",".........TTTTTTT...........................","..........TTTTTT...........................","...........TTTT............................","...........TTTTTT..........................",".............TTT...........................",".............TTTTT.........................",".............TTTTTTTTT.....................","..............TnTTTTTT.....................",".............n.nnnTTTTT....................","................nnnTTTTTn..................","................nnnTTTTnnn.................","................nnnTnnnnnnn................","................nnnnnnnnnnnn..............."]};
+const LANDMARK={"bkk":["..........y.........","..........y.........",".........www........",".........wyw........","........wwwww.......","........wyyyw.......",".......wwwwwww......",".......wyyyyyw......","......wwwwwwwww.....","..w...wyyyyyyyw...w.",".www.wwwwwwwwwww.www",".wyw.wyyyyyyyyyw.wyw","wwwwwwwwwwwwwwwwwwww","tttttttttttttttttttt","bbbbbbbbbbbbbbbbbbbb","bcbbbbbbbbbcbbbbbbbb"],"kkn":[".........yy.........",".........yy.........","........wwww........","........wyyw........",".......wwwwww.......",".......rrrrrr.......","......wwwwwwww......","......rrrrrrrr......",".....wwwwwwwwww.....",".....rrrrrrrrrr.....","....wwwwwwwwwwww....","....wkwwkwwkwwkw....","...wwwwwwwwwwwwww...","...wkwwkwwkwwkwww...","gggggggggggggggggggg","dddddddddddddddddddd"],"hkt":["....................","..ddd...............",".ddddd.......cc.....","..dtd.......cccc....","...t................","...t................","...t................","...t.........r......","...t........rrt.....","..tt..ttttttttt.....","bbbbbbbtttttttbbbbbb","bbbbbbbbbbbbbbbbbbbb","bbcbbbbbbbbbbbbbbbcb","yyyyyyyyyyyyyyyyyyyy","yyyyyyyyyyyyyyyyyyyy","yyyyyyyyyyyyyyyyyyyy"],"pty":["....................","....................","..mm.........k.k....",".mmmm...k....k.k.k..","mmmmmm..k.k..k.kkk..","mmmmmmm.kkk.kkkkkk..","mmmmmmmmkkkkkkkkkkk.","mmmmmmmmkwkkwkkwkkkk","mmmmmmmmkkkkkkkkkkkk","bbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbb","bbbcbbbbbbbbbbcbbbbb","bbbbbbbbbbbbbbbbbbbb","yyyyyyyyyyyyyyyyyyyy","yyyyyyyyyyyyyyyyyyyy","yyyyyyyyyyyyyyyyyyyy"],"pbi":["...........w........","..........www.......","..........www.......",".....r...wwwww......","....rrr..wwwww......","...rrrrr.wwwww......","...wwwww.wwwww......","...wkwkw..ddd.......",".ddddddddddddd......","dddddddddddddddd....","ddddddddddddddddddd.","dgdddgdddddgddddddd.","gggggggggggggggggggg","gggggggggggggggggggg","tttttttttttttttttttt","tttttttttttttttttttt"],"rbr":["....................","....................",".......yyy..........","......yyyyy.........",".......kkk..........","........k...........",".......rrr..........","....o..rrr..p.g.....","ttttttttttttttttttt.",".ttttttttttttttttt..","..ttttttttttttttt...","bbbbbbbbbbbbbbbbbbbb","bbbcbbbbbbbbbbbbcbbb","bbbbbbbbbbbbbbbbbbbb","gggggggggggggggggggg","dddddddddddddddddddd"],"rng":[".b.....b......b.....","...b.......b......b.",".......c............","......c.c...........",".....c...c..........","......c..c..........",".......cc...........","..m..........mm.....",".mmm........mmmm....","mmmmm..bbbb.mmmmm...","mmmmmmbbbbbbmmmmmm..","mmmmmbbbcbbbbmmmmmm.","ddddddbbbbbbdddddddd","dddddddddddddddddddd","gggggggggggggggggggg","gggggggggggggggggggg"],"cnx":["............y.......","...........yyy......","..........mmmmm.....",".........mmmmmmm....","........mmmmmmmmm...",".......mmmmmmmmmmm..","oo.oo.oo.oo.oo.oo.oo","oooooooooooooooooooo","oooooooooooooooooooo","ooooooo......ooooooo","oooooo........oooooo","oooooo........oooooo","oooooo........oooooo","oooooo........oooooo","tttttttttttttttttttt","tttttttttttttttttttt"],"pnb":["....................",".......m............","......mmm.......m...",".....mmmmm.....mmm..","cccccccccccccccccccc","...mmmmmmmmm.mmmmmmm","..mmmmmmmmmmmmmmmmmm","cccccccccccccccccccc","dddddddddddddddddddd","gGgGgGgGgGgGgGgGgGgG","GgGgGgGgGgGgGgGgGgGg","gGgGgGgGgGgGgGgGgGgG","dddddddddddddddddddd","GgGgGgGgGgGgGgGgGgGg","gGgGgGgGgGgGgGgGgGgG","dddddddddddddddddddd"]};
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function hashSeed(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19;}return h>>>0;}
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const r100=x=>Math.round(x/100)*100, r10=x=>Math.round(x/10)*10;
+const ROOMS=8,NIGHTS={wd:5,we:2},WEEKS=12;
+const TH_MONTH=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const TH_MONTH_FULL=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const SEGMENTS=[
+ {id:'bp',name:'แบ็คแพ็คเกอร์',wtp:450,bp:3.0,wdShare:.70,w:{app:.15,serv:.45,exp:.25,prof:.15},fb:1.3},
+ {id:'fam',name:'กลุ่มครอบครัว',wtp:900,bp:2.2,wdShare:.35,w:{app:.2,serv:.4,exp:.25,prof:.15},fb:0.3},
+ {id:'cpl',name:'คู่รัก',wtp:1300,bp:1.6,wdShare:.45,w:{app:.35,serv:.35,exp:.15,prof:.15},fb:1.0},
+ {id:'biz',name:'นักธุรกิจ',wtp:1700,bp:1.2,wdShare:.9,w:{app:.2,serv:.2,exp:.25,prof:.35},fb:0.8}
+];
+const MAPS={
+ city:{name:'เมืองใหญ่',cities:['bkk','kkn']},
+ sea:{name:'ทะเลและเกาะท่องเที่ยว',cities:['hkt','pty']},
+ town:{name:'เมืองรอง',cities:['pbi','rbr','rng']},
+ mountain:{name:'เมืองภูเขา',cities:['cnx','pnb']}
+};
+const CITIES={
+ bkk:{name:'กรุงเทพฯ',map:'city',lat:13.75,lon:100.50,flood:true,quake:false,coast:false,andaman:false,haze:true,mice:2,protest:2,lm:'วัดริมแม่น้ำเจ้าพระยา',
+  story:'เมืองหลวงที่ไม่เคยหลับ นักธุรกิจและแบ็คแพ็คเกอร์ต่างชาติหมุนเวียนตลอดปี แต่ที่พักเปิดใหม่ทุกซอย คู่แข่งจึงหนาแน่น',
+  demand:{bp:90,fam:35,cpl:50,biz:110},foreign:.55,monthly:[1.12,1.08,1.0,1.02,0.92,0.88,0.9,0.92,0.86,0.94,1.08,1.18]},
+ kkn:{name:'ขอนแก่น',map:'city',lat:16.43,lon:102.83,flood:true,quake:false,coast:false,andaman:false,haze:true,mice:2,protest:.5,lm:'พระมหาธาตุแก่นนคร',
+  story:'ศูนย์กลางภาคอีสาน งานประชุมและนักธุรกิจคือลูกค้าหลัก ต่างชาติไม่มาก แต่วันธรรมดาคึกคัก',
+  demand:{bp:30,fam:70,cpl:40,biz:125},foreign:.1,monthly:[1.05,1.0,0.95,1.1,0.9,0.92,0.95,0.95,0.92,1.0,1.08,1.15]},
+ hkt:{name:'ภูเก็ต',map:'sea',lat:7.88,lon:98.39,flood:false,quake:false,coast:true,andaman:true,haze:false,mice:1,protest:.3,lm:'หาดทรายและเรือหางยาว',
+  story:'ไข่มุกอันดามัน ต่างชาติสูงมาก ช่วง พ.ย.–เม.ย. คือช่วงท่องเที่ยวหลัก ส่วนมรสุมตะวันตกเฉียงใต้ทำให้ พ.ค.–ต.ค. เงียบลงชัดเจน',
+  demand:{bp:140,fam:45,cpl:150,biz:12},foreign:.8,monthly:[1.28,1.3,1.2,1.08,0.8,0.68,0.75,0.75,0.65,0.78,1.05,1.3]},
+ pty:{name:'พัทยา',map:'sea',lat:12.93,lon:100.88,flood:false,quake:false,coast:true,andaman:false,haze:false,mice:2,protest:.3,lm:'อ่าวพัทยา',
+  story:'เมืองชายทะเลใกล้กรุงเทพฯ คนไทยเที่ยวสุดสัปดาห์ ต่างชาติมาทั้งปี และมีงานอีเวนต์กับกีฬาบ่อย',
+  demand:{bp:110,fam:70,cpl:120,biz:25},foreign:.6,monthly:[1.18,1.15,1.05,1.12,0.9,0.82,0.85,0.88,0.78,0.92,1.08,1.25]},
+ pbi:{name:'เพชรบุรี',map:'town',lat:13.11,lon:99.94,flood:true,quake:false,coast:true,andaman:false,haze:false,mice:0,protest:.3,lm:'พระนครคีรี (เขาวัง)',
+  story:'เมืองเก่าเชิงเขาวัง ครอบครัวไทยแวะเที่ยวสุดสัปดาห์ก่อนต่อไปทะเลชะอำ ต่างชาติน้อย ราคาต้องจับต้องได้',
+  demand:{bp:25,fam:130,cpl:60,biz:35},foreign:.08,monthly:[1.1,1.0,1.08,1.15,1.02,0.85,0.88,0.9,0.8,1.0,1.0,1.18]},
+ rbr:{name:'ราชบุรี',map:'town',lat:13.54,lon:99.81,flood:true,quake:false,coast:false,andaman:false,haze:false,mice:0,protest:.3,lm:'ตลาดน้ำ',
+  story:'เมืองตลาดน้ำและเครื่องปั้นดินเผา ครอบครัวและคู่รักไทยมักมาเช้าเย็นกลับ โรงแรมต้องหาเหตุผลให้ลูกค้าพักค้างคืน',
+  demand:{bp:25,fam:110,cpl:55,biz:45},foreign:.06,monthly:[1.12,1.02,0.98,1.05,0.92,0.85,0.9,0.9,0.85,0.98,1.1,1.25]},
+ rng:{name:'ระนอง',map:'town',lat:9.96,lon:98.64,flood:true,quake:false,coast:true,andaman:true,haze:false,mice:0,protest:.2,lm:'บ่อน้ำร้อนรักษะวาริน',
+  story:'เมืองฝนแปดแดดสี่ บ่อน้ำร้อนและเกาะพยามดึงสายสุขภาพและแบ็คแพ็คเกอร์ แต่หน้ามรสุม พ.ค.–ต.ค. ยาวนาน',
+  demand:{bp:50,fam:70,cpl:70,biz:25},foreign:.22,monthly:[1.2,1.25,1.2,1.12,0.85,0.72,0.65,0.72,0.75,0.8,1.0,1.2]},
+ cnx:{name:'เชียงใหม่',map:'mountain',lat:18.79,lon:98.98,flood:true,quake:true,coast:false,andaman:false,haze:true,mice:1,protest:.3,lm:'ประตูท่าแพ',
+  story:'เมืองเก่าล้านนา หน้าหนาวคึกคักที่สุดทั้งไทยและต่างชาติ นอกฤดูต้องสู้กับดีมานด์ที่หายไปเกือบครึ่ง',
+  demand:{bp:110,fam:70,cpl:110,biz:25},foreign:.45,monthly:[1.35,1.15,0.9,0.95,0.78,0.72,0.82,0.85,0.8,0.95,1.25,1.45]},
+ pnb:{name:'เพชรบูรณ์',map:'mountain',lat:16.42,lon:101.16,flood:true,quake:false,coast:false,andaman:false,haze:true,mice:0,protest:.2,lm:'ทะเลหมอกและไร่กะหล่ำปลี',
+  story:'ทะเลหมอกเขาค้อและภูทับเบิก หน้าหนาวห้องเต็มเร็วมาก หน้าฝนเงียบเหงา เป็นเมืองที่ฤดูกาลแรงที่สุดในเกม',
+  demand:{bp:20,fam:125,cpl:115,biz:15},foreign:.05,monthly:[1.45,1.05,0.8,0.9,0.7,0.65,0.75,0.75,0.75,0.95,1.35,1.6]}
+};
+/* ---------- calendar ---------- */
+function weekStart(g,w){return new Date(Date.UTC(2027,g.startMonth,1+7*w));}
+function weekInfo(g,w){const s=weekStart(g,w),e=new Date(s.getTime()+6*864e5),mid=new Date(s.getTime()+3*864e5);
+  const lbl=(d)=>d.getUTCDate()+' '+TH_MONTH[d.getUTCMonth()];
+  return {start:s,end:e,month:mid.getUTCMonth(),day:mid.getUTCDate(),label:s.getUTCMonth()===e.getUTCMonth()?`${s.getUTCDate()}–${e.getUTCDate()} ${TH_MONTH[e.getUTCMonth()]}`:`${lbl(s)} – ${lbl(e)}`};}
+function tmdSeason(m,d){ // NSO/TMD: summer mid-Feb–mid-May, rainy mid-May–mid-Oct, winter mid-Oct–mid-Feb
+  if((m===1&&d>=15)||m===2||m===3||(m===4&&d<15))return 'summer';
+  if((m===4&&d>=15)||(m>=5&&m<=8)||(m===9&&d<15))return 'rainy';return 'winter';}
+const TMD_NAME={summer:'ฤดูร้อน',rainy:'ฤดูฝน',winter:'ฤดูหนาว'};
+function monthIdx(city,m,d){const a=CITIES[city].monthly;const f=(d-15)/30;if(f>=0)return a[m]*(1-f)+a[(m+1)%12]*f;return a[m]*(1+f)+a[(m+11)%12]*(-f);}
+function seasonMult(g,w){const wi=weekInfo(g,w);return monthIdx(g.city,wi.month,wi.day);}
+function seasonLabel(x){return x>=1.1?'high':x<=0.85?'low':'shoulder';}
+const SEASON_NAME={high:'ไฮซีซั่น',shoulder:'กึ่งไฮซีซั่น',low:'โลว์ซีซั่น'};
+/* ---------- scheduled events ---------- */
+const NATIONAL=[
+ {id:'songkran',name:'เทศกาลสงกรานต์',m:3,d:13,mult:{bp:1.3,fam:1.6,cpl:1.3,biz:.6},text:'13–15 เมษายน คนไทยเดินทางเที่ยวและกลับบ้านพร้อมกัน'},
+ {id:'loykrathong',name:'ลอยกระทง',m:10,d:15,mult:{bp:1.15,fam:1.2,cpl:1.45,biz:.9},text:'วันเพ็ญเดือนสิบสอง ราวกลางเดือนพฤศจิกายน (วันที่เปลี่ยนทุกปี)'},
+ {id:'newyear',name:'ปีใหม่',m:11,d:31,mult:{bp:1.3,fam:1.45,cpl:1.4,biz:.5},text:'ช่วงหยุดยาวสิ้นปี'},
+ {id:'cny',name:'ตรุษจีน',m:1,d:5,mult:{fam:1.2,cpl:1.1},foreign:1.2,text:'ช่วงปลาย ม.ค.–ก.พ. (วันที่เปลี่ยนทุกปี) ดีมานด์โรงแรมสูงขึ้น'},
+ {id:'vegfest',name:'เทศกาลถือศีลกินผักภูเก็ต',m:9,d:1,city:'hkt',mult:{fam:1.3,bp:1.15},foreign:1.1,text:'ช่วงปลาย ก.ย.–ต้น ต.ค. ราว 9 วัน'}
+];
+const SEEDED=[
+ {id:'concert',name:'คอนเสิร์ตใหญ่',mult:{bp:1.5,cpl:1.4},text:'แฟนเพลงวัยรุ่นและคู่รักจองที่พักใกล้งาน'},
+ {id:'conference',name:'งานประชุมนานาชาติ',mult:{biz:1.9},foreign:1.1,text:'บริษัทส่งพนักงานมาร่วมงาน ดีมานด์นักธุรกิจพุ่ง',mice:true},
+ {id:'marathon',name:'งานวิ่งมาราธอน',mult:{bp:1.3,fam:1.25,cpl:1.15},text:'นักวิ่งและครอบครัวเดินทางมาพักคืนก่อนแข่ง'},
+ {id:'tradefair',name:'งานแสดงสินค้า',mult:{biz:1.5,fam:1.1},text:'ผู้ประกอบการและผู้ซื้อมาร่วมงานหลายวัน',mice:true},
+ {id:'sport',name:'การแข่งขันกีฬานานาชาติ',mult:{bp:1.4,cpl:1.2,biz:1.15},foreign:1.2,text:'แฟนกีฬาต่างชาติเดินทางมาชมการแข่งขัน'}
+];
+const CANCEL_P=.12;
+/* ---------- shock library ---------- */
+const CATS={macro:'มหภาคและภัยธรรมชาติ',political:'การเมืองและความปลอดภัย',industry:'อุตสาหกรรมและการแข่งขัน',internal:'ปัญหาภายในที่พัก'};
+const SEV={minor:'เล็ก',major:'ใหญ่',cat:'รุนแรงมาก'};
+const SHOCKS=[
+ {id:'quake',cat:'macro',sev:'cat',name:'แผ่นดินไหวรุนแรง',text:'อาคารต้องตรวจความปลอดภัย นักท่องเที่ยวยกเลิกจำนวนมาก',where:c=>c.quake,w:1,dur:[2,3],eff:{all:.55,foreign:.8}},
+ {id:'tsunami',cat:'macro',sev:'cat',name:'สึนามิ',text:'ชายฝั่งเสียหาย พื้นที่ไม่ปลอดภัย การท่องเที่ยวหยุดชะงัก',where:c=>c.andaman,w:.6,dur:[4,5],eff:{all:.35}},
+ {id:'flood',cat:'macro',sev:'major',name:'น้ำท่วมใหญ่',text:'ถนนถูกตัดขาด การเดินทางหยุดชะงัก ต้นทุนดูแลอาคารเพิ่ม',where:c=>c.flood,months:[6,7,8,9,10],w:2,dur:[2,3],eff:{all:.55,cost:1.25}},
+ {id:'storm',cat:'macro',sev:'minor',name:'พายุเข้า',text:'ฝนตกหนักและลมแรง นักท่องเที่ยวเลื่อนทริป',where:()=>true,months:[4,5,6,7,8,9,10],w:3,dur:[1,1],eff:{all:.7},repeat:true},
+ {id:'pandemic',cat:'macro',sev:'cat',name:'โรคระบาดรุนแรง',text:'มีการจำกัดการเดินทางและล็อกดาวน์บางพื้นที่ ต่างชาติแทบหายไป',where:()=>true,w:.5,dur:[6,8],eff:{foreign:.15,domestic:.55}},
+ {id:'haze',cat:'macro',sev:'minor',name:'ฝุ่นควันหนาแน่น',text:'คุณภาพอากาศแย่ นักท่องเที่ยวบางส่วนเลี่ยงพื้นที่',where:c=>c.haze,months:[0,1,2,3],w:2,dur:[2,2],eff:{all:.85,foreign:.85}},
+ {id:'recession',cat:'macro',sev:'major',name:'เศรษฐกิจตกต่ำ',text:'คนลดงบท่องเที่ยว ลูกค้าอ่อนไหวต่อราคามากขึ้น',where:()=>true,w:1.5,dur:[4,5],eff:{all:.85,wtp:.88}},
+ {id:'fxstrong',cat:'macro',sev:'minor',name:'เงินบาทแข็งค่า',text:'เที่ยวไทยแพงขึ้นในสายตาต่างชาติ',where:()=>true,w:1.5,dur:[3,3],eff:{foreign:.85}},
+ {id:'fxweak',cat:'macro',sev:'minor',name:'เงินบาทอ่อนค่า',text:'เที่ยวไทยคุ้มค่าขึ้นสำหรับต่างชาติ',where:()=>true,w:1.5,dur:[3,3],eff:{foreign:1.15},positive:true},
+ {id:'energy',cat:'macro',sev:'minor',name:'ค่าไฟและพลังงานพุ่ง',text:'ต้นทุนคงที่ของทุกโรงแรมสูงขึ้น',where:()=>true,w:2,dur:[3,3],eff:{cost:1.3}},
+ {id:'protest',cat:'political',sev:'major',name:'การประท้วงรุนแรง',text:'การชุมนุมยืดเยื้อ ต่างชาติและนักธุรกิจเลี่ยงพื้นที่',where:()=>true,wf:c=>c.protest,w:1,dur:[2,3],eff:{foreign:.6,biz:.75,domestic:.9}},
+ {id:'politics',cat:'political',sev:'major',name:'วิกฤตการเมืองระดับประเทศ',text:'การเปลี่ยนแปลงทางการเมืองฉับพลัน (เช่น รัฐประหาร) ความเชื่อมั่นนักเดินทางลดลง',where:()=>true,w:.6,dur:[4,4],eff:{foreign:.65,biz:.8}},
+ {id:'terror',cat:'political',sev:'cat',name:'เหตุก่อการร้ายในพื้นที่',text:'ความกังวลด้านความปลอดภัย นักท่องเที่ยวยกเลิกทริป',where:()=>true,w:.4,dur:[3,4],eff:{foreign:.5,domestic:.75}},
+ {id:'advisory',cat:'political',sev:'minor',name:'ประกาศเตือนการเดินทาง',text:'ประเทศต้นทางหลักเตือนพลเมืองให้ชะลอการเดินทางมาพื้นที่นี้',where:()=>true,w:1.5,dur:[3,3],eff:{foreign:.7}},
+ {id:'newcomp',cat:'industry',sev:'major',name:'โรงแรมคู่แข่งเปิดใหม่',text:'โรงแรมใหม่ (นอกเกม) เปิดใกล้ๆ ลูกค้ามีทางเลือกมากขึ้นถาวร',where:()=>true,w:1.5,perm:true,eff:{A0:1.18}},
+ {id:'airbnb',cat:'industry',sev:'minor',name:'ที่พักทางเลือกแบบ Airbnb เพิ่มขึ้น',text:'บ้านและคอนโดให้เช่ารายวันเพิ่มขึ้น แย่งลูกค้าบางส่วนถาวร',where:()=>true,w:1.5,perm:true,eff:{A0:1.1}},
+ {id:'labour',cat:'industry',sev:'minor',name:'แรงงานบริการขาดแคลน',text:'พนักงานทุกโรงแรมคาดหวังเงินเดือนสูงขึ้น ความพึงพอใจลดลง',where:()=>true,w:2,dur:[1,1],eff:{staffHit:10},repeat:true},
+ {id:'viral',cat:'industry',sev:'minor',name:'คลิปเที่ยวเมืองนี้ไวรัล',text:'ต่างชาติสนใจพื้นที่นี้มากขึ้น',where:()=>true,w:2,dur:[2,2],eff:{foreign:1.3},positive:true},
+ {id:'flight',cat:'industry',sev:'minor',name:'สายการบินเปิดเส้นทางบินตรงใหม่',text:'เดินทางสะดวกขึ้น ต่างชาติเพิ่มขึ้น',where:()=>true,w:1.2,dur:[4,4],eff:{foreign:1.25},positive:true},
+ {id:'stimulus',cat:'industry',sev:'minor',name:'มาตรการกระตุ้นเที่ยวในประเทศ',text:'รัฐช่วยออกค่าที่พักบางส่วน คนไทยออกเที่ยวมากขึ้น',where:()=>true,w:1.5,dur:[2,2],eff:{domestic:1.25},positive:true},
+ {id:'film',cat:'industry',sev:'minor',name:'ซีรีส์ดังถ่ายทำในเมือง',text:'คู่รักและวัยรุ่นตามรอยสถานที่ถ่ายทำ',where:()=>true,w:1,dur:[3,3],eff:{cpl:1.3,bp:1.2},positive:true}
+];
+const INTERNAL=[
+ {id:'pr',name:'วิกฤตด้านชื่อเสียง',variants:['รีวิวลบไวรัลบนโซเชียล','ภาพห้องไม่สะอาดถูกแชร์','ข่าวแขกท้องเสียหลังอาหารเช้า','ข้อมูลแขกรั่วไหล'],text:'ดาวรีวิวลดลงทันที'},
+ {id:'overbook',name:'ระบบจองล่ม ห้องเกิน (overbooking)',text:'ต้องย้ายแขกไปที่อื่นและจ่ายชดเชย'},
+ {id:'repair',name:'ต้องปิดซ่อม 2 ห้อง',text:'ท่อแตกหรือหลังคารั่ว ขายได้น้อยลงและเสียค่าซ่อม'},
+ {id:'gouging',name:'ถูกวิจารณ์ว่าโก่งราคา',text:'ตั้งราคาสูงเกินคู่แข่งมากในช่วงที่มีอีเวนต์ แขกโพสต์ตำหนิ'}
+];
+const CHAOS={low:{p:.15,max:1,scale:.7,sevW:{minor:1,major:.25,cat:0},name:'ต่ำ'},mid:{p:.3,max:1,scale:1,sevW:{minor:1,major:.7,cat:.12},name:'กลาง'},high:{p:.4,max:2,scale:1.25,sevW:{minor:1,major:1,cat:.45},name:'สูง (โกลาหล)'}};
+const CHANNELS={
+ billboard:{name:'ป้ายโฆษณา',decay:.8,eff:{bp:.1,fam:.35,cpl:.2,biz:.25}},
+ online:{name:'โฆษณาออนไลน์',decay:.5,eff:{bp:.6,fam:.4,cpl:.55,biz:.4}},
+ influencer:{name:'อินฟลูเอนเซอร์',decay:.65,eff:{bp:.6,fam:.25,cpl:.8,biz:.1}}
+};
+const INFLUENCER={none:{name:'ไม่จ้าง',cost:0},micro:{name:'ไมโคร (ผู้ติดตามหลักหมื่น)',cost:3000,cred:[.5,1.1]},macro:{name:'แมคโคร (ผู้ติดตามหลักแสน)',cost:9000,cred:[.7,1.4]}};
+const OTA_BOOST={bp:.45,fam:.2,cpl:.35,biz:.3},OTA_COMMISSION=.15;
+const BASE_AW=.12,AW_K=.25,A0_BASE=.9;
+const COST={fixed:12000,perRoomNight:200,fake:1500,fine:5000,interest:.01,repair:8000,overbook:3000};
+const START_CASH=60000;
+const SCORE_W={fin:.5,rep:.35,staff:.15};
+const NAMES=['ต้น','ฝน','แบงค์','มายด์','นัท','ปลา','เจ','ออม','บีม','แพรว'];
+const BOT_NAMES=['บ้านริมทาง','ลานดาวโฮสเทล','ชมวิวเฮาส์','ทับทิมสยาม'];
+const ARCH={
+ budget:{name:'สายราคาประหยัด',pf:.65,wef:1.1,staff:[{app:45,serv:55,exp:50,prof:40,lang:50},{app:40,serv:50,exp:45,prof:40,lang:45}],bonus:300,mk:{billboard:0,online:800},ota:true,inf:()=>'none'},
+ luxury:{name:'สายหรูหรา',pf:1.45,wef:1.2,staff:[{app:88,serv:72,exp:70,prof:82,lang:80},{app:85,serv:70,exp:68,prof:80,lang:75},{app:80,serv:68,exp:72,prof:78,lang:70}],bonus:1500,mk:{billboard:1500,online:600},ota:true,inf:w=>w%4===0?'macro':'none'},
+ marketing:{name:'สายเน้นการตลาด',pf:1.0,wef:1.15,staff:[{app:68,serv:60,exp:56,prof:56,lang:65},{app:62,serv:58,exp:54,prof:54,lang:60}],bonus:300,mk:{billboard:300,online:2500},ota:true,inf:w=>w%2===0?'micro':'none'},
+ service:{name:'สายเน้นบริการ',pf:1.15,wef:1.15,staff:[{app:62,serv:88,exp:78,prof:66,lang:62},{app:60,serv:85,exp:75,prof:64,lang:58},{app:58,serv:84,exp:72,prof:62,lang:55}],bonus:1500,mk:{billboard:600,online:400},ota:false,inf:()=>'none'}
+};
+const SKILL={low:{name:'ต่ำ',step:.04,noise:.08,wrong:.3,look:0,event:0},mid:{name:'กลาง',step:.06,noise:.04,wrong:.1,look:.5,event:.5},high:{name:'สูง',step:.08,noise:.01,wrong:0,look:1,event:1}};
+function salaryOf(s){return r100(1500+22*(s.app+s.serv+s.exp+s.prof)/4+6*s.lang);}
+function makeCandidates(rng){const out=[];const names=NAMES.slice();
+  for(let i=0;i<8;i++){const nm=names.splice(Math.floor(rng()*names.length),1)[0];const st=()=>Math.round(30+rng()*65);
+    const s={id:'c'+i,name:nm,app:st(),serv:st(),exp:st(),prof:st(),lang:Math.round(5+rng()*90),sat:70,look:Math.floor(rng()*1e9)};s.salary=salaryOf(s);out.push(s);}
+  return out;}
+function refPrice(city){const c=CITIES[city];let n=0,d=0;SEGMENTS.forEach(s=>{n+=s.wtp*c.demand[s.id];d+=c.demand[s.id];});return n/d;}
+function pickWeighted(rng,items,wf){let t=0;const ws=items.map(i=>{const w=Math.max(0,wf(i));t+=w;return w;});if(t<=0)return null;let r=rng()*t;for(let k=0;k<items.length;k++){r-=ws[k];if(r<=0)return items[k];}return items[items.length-1];}
+function buildTimeline(g,rng){
+  const c=CITIES[g.city],ch=CHAOS[g.chaos];const tl=[];for(let w=0;w<WEEKS;w++)tl.push({scheduled:[],shocks:[]});
+  // national/city scheduled
+  NATIONAL.forEach(e=>{if(e.city&&e.city!==g.city)return;for(let w=0;w<WEEKS;w++){const s=weekStart(g,w);for(let k=0;k<7;k++){const d=new Date(s.getTime()+k*864e5);if(d.getUTCMonth()===e.m&&d.getUTCDate()===e.d){tl[w].scheduled.push(Object.assign({kind:'national',cancelled:false},e));}}}});
+  // seeded city events
+  const n=2+(c.mice>=2?1:0);const freeWeeks=[];for(let w=1;w<WEEKS;w++)if(!tl[w].scheduled.length)freeWeeks.push(w);
+  for(let i=0;i<n&&freeWeeks.length;i++){const w=freeWeeks.splice(Math.floor(rng()*freeWeeks.length),1)[0];
+    const t=pickWeighted(rng,SEEDED,x=>x.mice?(.5+c.mice*.6):1);tl[w].scheduled.push(Object.assign({kind:'city',cancelled:rng()<CANCEL_P},t));}
+  // shocks
+  const used=new Set();const active={};const lastStart={};const COOLDOWN=4;
+  for(let w=0;w<WEEKS;w++){
+    const draws=[];for(let k=0;k<ch.max;k++)if(rng()<ch.p)draws.push(k);
+    draws.forEach(()=>{const wi=weekInfo(g,w);
+      const pool=SHOCKS.filter(s=>s.where(c)&&(!s.months||s.months.includes(wi.month))&&!active[s.id]&&(s.repeat?(lastStart[s.id]===undefined||w-lastStart[s.id]>=COOLDOWN):!used.has(s.id)));
+      const s=pickWeighted(rng,pool,x=>x.w*(x.wf?x.wf(c):1)*ch.sevW[x.sev]);if(!s)return;
+      used.add(s.id);lastStart[s.id]=w;const d=s.perm?WEEKS-w:(s.dur[0]+Math.floor(rng()*(s.dur[1]-s.dur[0]+1)));active[s.id]=w+d;
+      for(let k=0;k<d&&w+k<WEEKS;k++)tl[w+k].shocks.push({ev:s,k,d,start:w,perm:!!s.perm});});
+    Object.keys(active).forEach(id=>{if(active[id]<=w+1)delete active[id];});
+  }
+  return tl;
+}
+function newHotel(id,name,isPlayer){return {id,name,isPlayer,price:{wd:0,we:0},staff:[],bonus:0,mk:{billboard:0,online:0},inf:'none',ota:true,fake:false,
+  stock:{billboard:0,online:0,influencer:0},R:3.5,N:8,cash:START_CASH,otaBan:0,profitCum:0,history:[],fakeCaught:0,closed:0,closedWeeks:0,crises:[]};}
+function newGame(opts){
+  const rng=mulberry32(hashSeed(String(opts.seed)));
+  const g={hotelName:opts.hotelName,seed:opts.seed,city:opts.city,startMonth:opts.startMonth,chaos:opts.chaos,allowFake:!!opts.allowFake,week:0,rng,news:[]};
+  g.refP=refPrice(opts.city);g.candidates=makeCandidates(rng);g.timeline=buildTimeline(g,rng);
+  const archKeys=Object.keys(ARCH);for(let i=archKeys.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[archKeys[i],archKeys[j]]=[archKeys[j],archKeys[i]];}
+  const skills=['low','mid','high'];for(let i=2;i>0;i--){const j=Math.floor(rng()*(i+1));[skills[i],skills[j]]=[skills[j],skills[i]];}
+  const p=newHotel('you',opts.hotelName||'โฮสเทลของคุณ',true);p.price.wd=r10(g.refP);p.price.we=r10(g.refP*1.15);p.mk.online=1000;g.hotels=[p];
+  for(let i=0;i<3;i++){const a=ARCH[archKeys[i]];const b=newHotel('bot'+i,BOT_NAMES[i],false);b.arch=archKeys[i];b.skill=skills[i];
+    const nz=1+(rng()-.5)*.1;b.price.wd=r10(g.refP*a.pf*nz);b.price.we=r10(b.price.wd*a.wef);
+    b.staff=a.staff.map((s,k)=>Object.assign({id:b.id+'s'+k,name:'',sat:70},s,{salary:salaryOf(s)}));b.bonus=a.bonus;b.mk=Object.assign({},a.mk);b.ota=a.ota;g.hotels.push(b);}
+  return g;}
+function schedMultFor(e,seg){return (e.mult&&e.mult[seg.id])||1;}
+function botDecide(g,b){
+  const a=ARCH[b.arch],sk=SKILL[b.skill],rng=g.rng;const last=b.history[b.history.length-1];
+  const sNext=seasonMult(g,g.week),sNow=g.week>0?seasonMult(g,g.week-1):1;
+  const known=g.timeline[g.week].scheduled.length>0;
+  ['wd','we'].forEach(p=>{let price=b.price[p];
+    if(last){const occ=last.occP[p];let dir=0;if(occ>.88)dir=1;else if(occ<.55)dir=-1;if(dir!==0&&rng()<sk.wrong)dir=-dir;price*=1+dir*sk.step;}
+    price*=1+sk.look*.35*(sNext-sNow);
+    if(known)price*=1+.12*sk.event; if(g.week>0&&g.timeline[g.week-1].scheduled.length&&!known)price*=1-.1*sk.event;
+    price*=1+(rng()*2-1)*sk.noise;b.price[p]=r10(clamp(price,g.refP*.4,g.refP*2.5));});
+  b.inf=a.inf(g.week+1);}
+function awareness(h,seg){let x=0;Object.keys(CHANNELS).forEach(c=>{x+=CHANNELS[c].eff[seg.id]*h.stock[c];});
+  let aw=BASE_AW+(1-BASE_AW)*(1-Math.exp(-AW_K*x));let otaPart=0;
+  if(h.ota&&h.otaBan===0){const tot=1-(1-aw)*(1-OTA_BOOST[seg.id]);otaPart=tot-aw;aw=tot;}return {aw,otaShare:aw>0?otaPart/aw:0};}
+function teamQuality(h,seg,fs,occRooms){
+  if(h.staff.length===0)return {q:0,adequacy:0,lang:0,base:0};
+  let base=0,lang=0,sat=0;h.staff.forEach(s=>{base+=seg.w.app*s.app+seg.w.serv*s.serv+seg.w.exp*s.exp+seg.w.prof*s.prof;lang+=s.lang;sat+=s.sat;});
+  base/=h.staff.length;lang/=h.staff.length;sat/=h.staff.length;
+  const adequacy=Math.min(1,h.staff.length/(1+occRooms/3));
+  let q=base*(0.55+0.45*adequacy)*(0.85+0.15*sat/100);const qF=q-Math.max(0,60-lang)*0.4;q=q*(1-fs)+qF*fs;
+  return {q,adequacy,lang,base};}
+function weekEffects(g,w){
+  const tl=g.timeline[w],ch=CHAOS[g.chaos];const E={seg:{},foreign:1,domestic:1,cost:1,A0:1,staffHit:0,wtp:1,list:[]};
+  SEGMENTS.forEach(s=>E.seg[s.id]=1);
+  tl.scheduled.forEach(e=>{if(e.cancelled)return;SEGMENTS.forEach(s=>E.seg[s.id]*=schedMultFor(e,s));if(e.foreign)E.foreign*=e.foreign;});
+  tl.shocks.forEach(sh=>{const inten=sh.perm?1:1-sh.k/sh.d;const sc=m=>1+(m-1)*ch.scale*inten;const f=sh.ev.eff;
+    if(f.all)SEGMENTS.forEach(s=>E.seg[s.id]*=sc(f.all));SEGMENTS.forEach(s=>{if(f[s.id])E.seg[s.id]*=sc(f[s.id]);});
+    if(f.foreign)E.foreign*=sc(f.foreign);if(f.domestic)E.domestic*=sc(f.domestic);if(f.cost)E.cost*=sc(f.cost);if(f.A0)E.A0*=f.A0;if(f.wtp)E.wtp*=sc(f.wtp);
+    if(f.staffHit)E.staffHit+=f.staffHit*ch.scale*inten;});
+  return E;}
+function simulateWeek(g){
+  const w=g.week,c=CITIES[g.city],rng=g.rng;g.hotels.forEach(h=>{if(!h.isPlayer)botDecide(g,h);});
+  const E=weekEffects(g,w);const season=seasonMult(g,w);const segDemand={};
+  SEGMENTS.forEach(s=>{const fs=clamp(c.foreign*s.fb,0,.95);const d=c.demand[s.id]*season*E.seg[s.id]*((1-fs)*E.domestic+fs*E.foreign)*(0.92+rng()*0.16);segDemand[s.id]={total:d,fs};});
+  g.hotels.forEach(h=>{h.stock.billboard=h.stock.billboard*CHANNELS.billboard.decay+h.mk.billboard/1000;h.stock.online=h.stock.online*CHANNELS.online.decay+h.mk.online/1000;
+    let add=0;h.infCred=null;if(h.inf!=='none'){const I=INFLUENCER[h.inf];h.infCred=I.cred[0]+rng()*(I.cred[1]-I.cred[0]);add=I.cost/1000*h.infCred;}
+    h.stock.influencer=h.stock.influencer*CHANNELS.influencer.decay+add;});
+  const A0=A0_BASE*E.A0;const res={};g.hotels.forEach(h=>res[h.id]={sold:{wd:0,we:0},rev:{wd:0,we:0},otaRev:0,seg:{},aw:{}});
+  g.hotels.forEach(h=>SEGMENTS.forEach(s=>res[h.id].aw[s.id]=awareness(h,s).aw));
+  ['wd','we'].forEach(p=>{const want={},segBook={};g.hotels.forEach(h=>want[h.id]=0);
+    SEGMENTS.forEach(s=>{const D=segDemand[s.id].total*(p==='wd'?s.wdShare:1-s.wdShare);const A={};let sum=0;const wtp=s.wtp*E.wtp;
+      g.hotels.forEach(h=>{const a=awareness(h,s);const U=s.bp*(1-h.price[p]/wtp)+0.9*(h.R-3.5);A[h.id]={v:a.aw*Math.exp(U),ota:a.otaShare};sum+=A[h.id].v;});
+      g.hotels.forEach(h=>{const b=D*A[h.id].v/(A0+sum);segBook[h.id+s.id]={b,ota:A[h.id].ota};want[h.id]+=b;});});
+    const cap={},filled={};let spill=0;
+    g.hotels.forEach(h=>{cap[h.id]=(ROOMS-h.closed)*NIGHTS[p];filled[h.id]=Math.min(cap[h.id],want[h.id]);spill+=Math.max(0,want[h.id]-cap[h.id])*.5;});
+    if(spill>0){const room=g.hotels.filter(h=>filled[h.id]<cap[h.id]);let tw=0;room.forEach(h=>tw+=want[h.id]+.01);room.forEach(h=>{filled[h.id]=Math.min(cap[h.id],filled[h.id]+spill*(want[h.id]+.01)/tw);});}
+    g.hotels.forEach(h=>{const scale=want[h.id]>0?filled[h.id]/want[h.id]:0;const sold=Math.round(filled[h.id]);res[h.id].sold[p]=sold;res[h.id].rev[p]=sold*h.price[p];
+      SEGMENTS.forEach(s=>{const sb=segBook[h.id+s.id];const n=sb.b*scale;res[h.id].seg[s.id]=(res[h.id].seg[s.id]||0)+n;res[h.id].otaRev+=n*h.price[p]*sb.ota;});});});
+  const out={week:w+1,info:weekInfo(g,w),season,tl:g.timeline[w],E,hotels:{},news:[]};
+  const compAvgPrice=g.hotels.filter(h=>!h.isPlayer).reduce((a,h)=>a+(h.price.wd*5+h.price.we*2)/7,0)/3;
+  const eventWeek=g.timeline[w].scheduled.some(e=>!e.cancelled);
+  g.hotels.forEach(h=>{
+    const r=res[h.id];const sold=r.sold.wd+r.sold.we;const occRooms=sold/7;const avgP=(r.rev.wd+r.rev.we)/(sold||1);
+    const segQ={};let qS=0,eS=0,rS=0,nS=0,adequacy=0,lang=0;
+    SEGMENTS.forEach(s=>{const t=teamQuality(h,s,segDemand[s.id].fs,occRooms);adequacy=t.adequacy;lang=t.lang;const Ex=30+30*Math.min(avgP/s.wtp,1.6);const rating=clamp(3.4+(t.q-Ex)/12,1,5);
+      segQ[s.id]={q:t.q,e:Ex,rating,n:r.seg[s.id]||0};const n=r.seg[s.id]||0;if(n>0){qS+=t.q*n;eS+=Ex*n;rS+=rating*n;nS+=n;}});
+    const Q=nS?qS/nS:0,Ex=nS?eS/nS:0;let rating=nS?rS/nS:0;const notes=[];const crises=[];
+    // internal crises (Faulkner: self-inflicted crisis)
+    const last=h.history[h.history.length-1];
+    let pPR=.02+(last&&last.rating&&last.rating<3?.08:0)+(adequacy<.8&&sold>0?.04:0);
+    if(rng()<pPR){const v=INTERNAL[0].variants[Math.floor(rng()*4)];crises.push({id:'pr',name:INTERNAL[0].name,detail:v});h.R=Math.max(1,h.R-.45);}
+    let extra=0;
+    if(last&&last.occ>.92&&rng()<.15){crises.push({id:'overbook',name:INTERNAL[1].name,detail:INTERNAL[1].text});extra+=COST.overbook;h.R=Math.max(1,h.R-.2);}
+    if(h.closedWeeks>0){h.closedWeeks--;if(h.closedWeeks===0)h.closed=0;}
+    else if(rng()<.03){crises.push({id:'repair',name:INTERNAL[2].name,detail:INTERNAL[2].text});extra+=COST.repair;h.closed=2;h.closedWeeks=2;}
+    const myP=(h.price.wd*5+h.price.we*2)/7;
+    if(eventWeek&&myP>compAvgPrice*1.6&&rng()<.3){crises.push({id:'gouging',name:INTERNAL[3].name,detail:INTERNAL[3].text});h.R=Math.max(1,h.R-.25);}
+    const newRev=Math.round(sold*.15);if(newRev>0){h.R=(h.R*h.N+rating*newRev)/(h.N+newRev);h.N+=newRev;}
+    if(h.infCred!==null&&rating&&rating<3){h.R=Math.max(1,h.R-.25);notes.push('infBad');}
+    let fine=0,fakeCost=0,caught=false;
+    if(h.fake){fakeCost=COST.fake;h.R=(h.R*h.N+5*6)/(h.N+6);h.N+=6;if(rng()<.25){caught=true;h.R=Math.max(1,h.R-.7);fine=COST.fine;h.otaBan=3;h.fakeCaught++;notes.push('caught');}}
+    else if(h.otaBan>0)h.otaBan--;
+    const load=h.staff.length?sold/h.staff.length:0;const bonusPer=h.staff.length?h.bonus/h.staff.length:0;
+    h.staff.forEach(s=>{s.sat=clamp(s.sat+2-Math.max(0,load-15)*1.2+bonusPer/100-E.staffHit,0,100);});
+    const teamSat=h.staff.length?h.staff.reduce((a,s)=>a+s.sat,0)/h.staff.length:0;const quits=[];
+    if(h.staff.length&&teamSat<40){h.staff=h.staff.filter(s=>{if(rng()<.15){quits.push(s.name||'พนักงาน');return false;}return true;});}
+    const team={};['app','serv','exp','prof','lang'].forEach(k=>team[k]=h.staff.length?h.staff.reduce((a,s)=>a+s[k],0)/h.staff.length:0);
+    const revenue=r.rev.wd+r.rev.we,commission=r.otaRev*OTA_COMMISSION,infCost=h.inf!=='none'?INFLUENCER[h.inf].cost:0;
+    const costs={severance:h.severance||0,fixed:COST.fixed*E.cost,variable:COST.perRoomNight*sold,salaries:h.staff.reduce((a,s)=>a+s.salary,0),bonus:h.bonus,marketing:h.mk.billboard+h.mk.online+infCost,commission,fake:fakeCost,fine,crisis:extra,interest:h.cash<0?-h.cash*COST.interest:0};
+    h.severance=0;const costTotal=Object.values(costs).reduce((a,b)=>a+b,0);const profit=revenue-costTotal;h.cash+=profit;h.profitCum+=profit;
+    // eWOM: review distribution
+    const dist=[0,0,0,0,0];for(let i=0;i<newRev;i++){const v=clamp(Math.round(rating+(rng()+rng()+rng()-1.5)*1.1),1,5);dist[v-1]++;}
+    let awAvg=0;SEGMENTS.forEach(s=>awAvg+=r.aw[s.id]/4);
+    const rec={sold,soldP:r.sold,occ:sold/(ROOMS*7),occP:{wd:r.sold.wd/(ROOMS*5),we:r.sold.we/(ROOMS*2)},revenue,adr:sold?revenue/sold:0,revpar:revenue/(ROOMS*7),
+      price:Object.assign({},h.price),Q,E:Ex,rating,R:h.R,N:h.N,teamSat,team,load,adequacy,lang,quits,costs,costTotal,profit,cash:h.cash,awAvg,aw:r.aw,segQ,dist,newRev,
+      commission,otaRev:r.otaRev,caught,notes,crises,inf:h.inf,infCred:h.infCred,fake:h.fake,otaBan:h.otaBan,seg:r.seg,staffN:h.staff.length,closed:h.closed};
+    h.history.push(rec);out.hotels[h.id]=rec;h.inf='none';
+    if(!h.isPlayer)crises.forEach(cr=>out.news.push(`${h.name}: ${cr.name}${cr.detail?` (${cr.detail})`:''}`));
+  });
+  const bots=g.hotels.filter(h=>!h.isPlayer).map(h=>out.hotels[h.id]);
+  const cSold=bots.reduce((a,b)=>a+b.sold,0),cRev=bots.reduce((a,b)=>a+b.revenue,0),cAvail=bots.length*ROOMS*7;
+  out.comp={occ:cSold/cAvail,adr:cSold?cRev/cSold:0,revpar:cRev/cAvail,aw:{},R:bots.reduce((a,b)=>a+b.R,0)/bots.length,Q:bots.reduce((a,b)=>a+b.Q,0)/bots.length};
+  SEGMENTS.forEach(s=>out.comp.aw[s.id]=bots.reduce((a,b)=>a+b.aw[s.id],0)/bots.length);
+  const y=out.hotels.you;out.idx={mpi:out.comp.occ?y.occ/out.comp.occ*100:0,ari:out.comp.adr&&y.adr?y.adr/out.comp.adr*100:0,rgi:out.comp.revpar?y.revpar/out.comp.revpar*100:0};
+  out.marketOcc=g.hotels.reduce((a,h)=>a+out.hotels[h.id].sold,0)/(g.hotels.length*ROOMS*7);
+  g.news.push(...out.news.map(t=>({week:w+1,text:t})));
+  g.week++;return out;}
+function finalScores(g){
+  const maxPos=Math.max(0,...g.hotels.map(h=>h.profitCum));
+  return g.hotels.map(h=>{const fin=h.profitCum<=0||maxPos===0?0:h.profitCum/maxPos*100;const rep=(h.R-1)/4*100;
+    const sats=h.history.map(x=>x.teamSat);const staff=sats.length?sats.reduce((a,b)=>a+b,0)/sats.length:0;
+    return {id:h.id,name:h.name,fin,rep,staff,score:SCORE_W.fin*fin+SCORE_W.rep*rep+SCORE_W.staff*staff,profit:h.profitCum,cash:h.cash,R:h.R};}).sort((a,b)=>((b.profit>0)-(a.profit>0))||(b.score-a.score));}
+if(typeof module!=='undefined')module.exports={COOLDOWN_INFO:4,newGame,simulateWeek,finalScores,seasonMult,weekInfo,tmdSeason,buildTimeline,CITIES,MAPS,SHOCKS,CHAOS,SEGMENTS,ARCH,SKILL,WEEKS,mulberry32,hashSeed};
+
+const $=s=>document.querySelector(s);
+const fmt=n=>Math.round(n).toLocaleString('th-TH');
+const pct=x=>(x*100).toFixed(1)+'%';
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const STAT={app:'รูปลักษณ์',serv:'จิตใจบริการ',exp:'ประสบการณ์',prof:'ความเป็นมืออาชีพ',lang:'ภาษาต่างประเทศ'};
+const SQ={app:'Tangibles',serv:'Empathy + Responsiveness',exp:'Reliability',prof:'Assurance',lang:'สื่อสารกับแขกต่างชาติ'};
+const SEG_FOCUS={bp:'จิตใจบริการ',fam:'จิตใจบริการ',cpl:'รูปลักษณ์ + จิตใจบริการ',biz:'ความเป็นมืออาชีพ'};
+const SEG_COLOR={bp:'#E0A23A',fam:'#3E8E7E',cpl:'#C8577A',biz:'#4F6FB0'};
+const PAL={y:'#E8B730',w:'#F4EFE2',k:'#3A3A44',t:'#8C5A3C',b:'#3E8DB5',c:'#E8F0F2',g:'#6BA55A',G:'#A8D58A',d:'#3F7A4A',m:'#7D8FA0',r:'#C0473A',o:'#B5643C',p:'#C8577A'};
+const SRC={
+ str:'https://str.com/resourcesglossary/revpar-indexrevenue-generating-index-rgi',ehl:'https://insights.ehl.edu/hotel-industry-performance',ehl2:'https://insights.ehl.edu/what-is-revpar',
+ chekin:'https://chekin.com/en/blog/str-report-for-hotels/',rpgRev:'https://roompricegenie.com/revenue-per-available-room-revpar',rpgAdr:'https://roompricegenie.com/glossary/average-daily-rate-adr',
+ axis:'https://blog.axisrooms.com/revenue-management-glossary/',akia:'https://www.akia.com/glossary/r',raft:'https://www.raftlabs.com/tools/revpar-calculator',
+ crookall:'https://ideas.repec.org/a/sae/simgam/v41y2010i6p898-920.html',ftc:'https://www.ftc.gov/news-events/news/press-releases/2024/08/federal-trade-commission-announces-final-rule-banning-fake-reviews-testimonials',
+ nso:'https://www.nso.go.th/nsoweb/downloadFile/stat_main_nso/FgpN/file_th',servqual:'https://en.wikipedia.org/wiki/SERVQUAL',
+ tmd:'https://www.nso.go.th/public/e-book/Statistical-Yearbook/SYB-2023/621/',phuket:'https://www.phuketferry.com/th/the-weather-and-climate-of-phuket.html',
+ phuket2:'https://www.nomadotravel.app/th/guides/best-time-to-visit-phuket',ranong:'https://www.silpa-mag.com/history/article_159902',festival:'https://www.byklo.rent/th/blog/when-to-visit-phuket-weather/',
+ litvin:'https://pure.psu.edu/en/publications/electronic-word-of-mouth-in-hospitality-and-tourism-management/',faulkner:'https://1library.net/article/key-terms-discussion-assessment-literature.yexrev0q',
+ faulknerPhases:'https://dspace.angliss.edu.au/handle/20.500.12270/350',ne:'https://github.com/nvkelso/natural-earth-vector'
+};
+const src=(k,t)=>`<a href="${SRC[k]}" target="_blank" rel="noopener">${t}</a>`;
+const PROMPTS=['สัปดาห์นี้อะไรกำหนดยอดขายของคุณมากที่สุด ระหว่างราคา ชื่อเสียง และการรับรู้ของลูกค้า?','MPI กับ ARI ของคุณบอกอะไรเกี่ยวกับกลยุทธ์ราคาของคุณ?','เหตุการณ์สัปดาห์นี้กระทบทุกโรงแรมเท่ากัน ทำไมบางโรงแรมยังทำ RGI ได้ดีกว่า?','พนักงานของคุณรับภาระงานไหวไหม และส่งผลต่อคะแนนรีวิวอย่างไร?','เซกเมนต์ไหนพักกับคุณมากที่สุด ตรงกับกลยุทธ์ที่ตั้งใจไว้ไหม?','ถ้าย้อนกลับไปต้นสัปดาห์ได้ คุณจะเปลี่ยนการตัดสินใจข้อไหน และคาดว่าตัวชี้วัดไหนจะเปลี่ยน?','คุณใช้ปฏิทินอีเวนต์ตั้งราคาล่วงหน้าแล้วหรือยัง ได้ผลอย่างไร?','งบการตลาดสัปดาห์นี้คุ้มไหม ดูจากการรับรู้และ RevPAR ที่เพิ่มขึ้น'];
+let G=null,LAST=null,LOG=[],TAB='decide',REVEAL=false,SETUP={map:'town',city:'pbi',chaos:'mid',allowFake:true,startMonth:10};
+const P=()=>G.hotels[0];
+const phaseName=(k,d,perm)=>perm?'ถาวร':d<=1?'ฉุกเฉิน':k===0?'ฉุกเฉิน':k===d-1?'ฟื้นตัว':'ช่วงกลาง';
+function effText(f){const out=[];const pc=m=>(m>1?'+':'−')+Math.round(Math.abs(m-1)*100)+'%';
+  if(f.all)out.push('ดีมานด์ทุกกลุ่ม '+pc(f.all));SEGMENTS.forEach(s=>{if(f[s.id])out.push(s.name+' '+pc(f[s.id]));});
+  if(f.foreign)out.push('ต่างชาติ '+pc(f.foreign));if(f.domestic)out.push('คนไทย '+pc(f.domestic));if(f.cost)out.push('ต้นทุนคงที่ '+pc(f.cost));
+  if(f.A0)out.push('ทางเลือกนอกเกม '+pc(f.A0));if(f.wtp)out.push('งบต่อคืนของลูกค้า '+pc(f.wtp));if(f.staffHit)out.push('ความพึงพอใจพนักงาน −'+f.staffHit);return out.join(', ');}
+function schedText(e){const f={};if(e.mult)Object.assign(f,e.mult);if(e.foreign)f.foreign=e.foreign;return effText(f);}
+
+/* ---------- pixel art ---------- */
+function pixelSVG(rows,label){let r='';rows.forEach((row,y)=>{let x=0;while(x<row.length){const ch=row[x];let n=1;while(x+n<row.length&&row[x+n]===ch)n++;if(ch!=='.')r+=`<rect x="${x}" y="${y}" width="${n}" height="1" fill="${PAL[ch]}"/>`;x+=n;}});
+  return `<svg viewBox="0 0 20 16" class="lm" role="img" aria-label="${esc(label)}" shape-rendering="crispEdges"><rect width="20" height="16" fill="#BFE0EA"/>${r}</svg>`;}
+function avatarSVG(look,label){const rng=mulberry32(look||1);const skins=['#F1C9A5','#E0AC82','#C68B5E','#9A6644'];const hairs=['#2B2222','#4A3426','#7A4E2D','#1E2430','#B6542F'];const unis=['#1F7A65','#4F6FB0','#C8577A','#B5643C','#3E8E7E'];
+  const sk=skins[Math.floor(rng()*4)],hr=hairs[Math.floor(rng()*5)],un=unis[Math.floor(rng()*5)],style=Math.floor(rng()*3);let r='';const px=(x,y,c,w=1,h=1)=>r+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/>`;
+  px(3,2,hr,6,2);px(2,3,hr,1,style===1?6:3);px(9,3,hr,1,style===1?6:3);if(style===2)px(5,0,hr,2,2);
+  px(3,4,sk,6,4);px(4,5,'#1D2B34');px(7,5,'#1D2B34');px(5,7,'#B05A4A',2,1);px(3,8,sk,6,1);
+  px(2,9,un,8,3);px(5,9,'#F4EFE2',2,1);px(5,10,'#F2B33D',2,1);
+  return `<svg viewBox="0 0 12 12" class="avatar" role="img" aria-label="${esc(label)}" shape-rendering="crispEdges">${r}</svg>`;}
+function mapSVG(sel){const M=THMAP;let r='';M.rows.forEach((row,y)=>{let x=0;while(x<row.length){const ch=row[x];let n=1;while(x+n<row.length&&row[x+n]===ch)n++;if(ch!=='.')r+=`<rect x="${x}" y="${y}" width="${n}" height="1" fill="${ch==='T'?'var(--land)':'var(--nb)'}"/>`;x+=n;}});
+  const pins=Object.entries(CITIES).map(([id,c])=>{const x=(c.lon-M.lon0)/M.step,y=(M.lat1-c.lat)/M.step;const on=id===sel;
+    return `<g data-city="${id}" tabindex="0" role="button" aria-label="${c.name}" aria-pressed="${on}"><rect class="pin" x="${(x-1).toFixed(1)}" y="${(y-1).toFixed(1)}" width="2" height="2" fill="${on?'var(--lamp)':'var(--pin)'}" stroke="var(--line)" stroke-width=".4"/>${on?`<text x="${(x+1.8).toFixed(1)}" y="${(y+.9).toFixed(1)}" font-size="2.6" font-weight="700" fill="var(--ink)" stroke="var(--surface)" stroke-width=".5" paint-order="stroke">${c.name}</text>`:''}</g>`;}).join('');
+  return `<svg viewBox="0 0 ${M.W} ${M.H}" class="thmap" role="img" aria-label="แผนที่ประเทศไทยแบบพิกเซล" shape-rendering="crispEdges"><rect width="${M.W}" height="${M.H}" fill="var(--sea)"/>${r}${pins}</svg>`;}
+function buildingSVG(occ,closed){const lit=Math.round(clamp(occ||0,0,1)*8);let w='',k=0;
+  for(const y of [36,70])for(const x of [20,52,84,116]){const isClosed=closed&&k>=8-closed;const on=!isClosed&&k<lit;w+=`<rect x="${x}" y="${y}" width="22" height="20" class="win${on?' on':''}"/>`;if(on)w+=`<rect x="${x+2}" y="${y+2}" width="5" height="5" class="glint"/>`;if(isClosed)w+=`<rect x="${x}" y="${y+8}" width="22" height="4" fill="#C0473A"/>`;k++;}
+  const stars=[[14,10],[40,6],[118,8],[140,18],[96,4],[24,22]].map(([x,y])=>`<rect x="${x}" y="${y}" width="2" height="2" class="star"/>`).join('');
+  return `<svg viewBox="0 0 154 150" class="bld" role="img" aria-label="ภาพตัดตึกโฮสเทล ไฟเปิด ${lit} จาก 8 ห้อง" shape-rendering="crispEdges"><rect x="0" y="0" width="154" height="150" class="sky"/>${stars}<rect x="0" y="138" width="154" height="12" class="ground"/>
+  <rect x="6" y="24" width="142" height="8" class="roof"/><rect x="18" y="16" width="118" height="8" class="roof"/><rect x="34" y="8" width="86" height="8" class="roof"/><rect x="10" y="32" width="134" height="106" class="wall"/>
+  <rect x="10" y="62" width="134" height="4" class="beam"/><rect x="10" y="96" width="134" height="4" class="beam"/>${w}
+  <rect x="16" y="106" width="64" height="16" class="sign"/><text x="48" y="118" text-anchor="middle" class="signtxt">HOSTEL</text><rect x="98" y="106" width="30" height="32" class="door"/><rect x="122" y="120" width="3" height="3" class="glint"/></svg>`;}
+function monthBars(city){const a=CITIES[city].monthly;const mx=Math.max(...a);
+  return `<div class="mbars" aria-label="ดีมานด์รายเดือน">${a.map((v,i)=>`<span class="" style="height:${Math.round(v/mx*100)}%;background:var(--${seasonLabel(v)==='high'?'hi':seasonLabel(v)==='low'?'lo':'sh'})" title="${TH_MONTH[i]} ${SEASON_NAME[seasonLabel(v)]}"></span>`).join('')}</div><div class="mlabels">${TH_MONTH.map(m=>`<span>${m}</span>`).join('')}</div>
+  <p class="small muted"><span class="chip high">ไฮซีซั่น</span><span class="chip shoulder">กึ่งไฮซีซั่น</span><span class="chip low">โลว์ซีซั่น</span></p>`;}
+function cityCard(id){const c=CITIES[id];const tot=SEGMENTS.reduce((a,s)=>a+c.demand[s.id],0);
+  return `<div class="citycard">${pixelSVG(LANDMARK[id],c.lm)}<div><h2 style="margin-bottom:2px">${c.name}</h2><p class="small muted" style="margin-bottom:6px">${MAPS[c.map].name} · ภาพประกอบ: ${c.lm}</p><p>${c.story}</p>
+  <p class="small">ต่างชาติราว ${Math.round(c.foreign*100)}% · ลูกค้าหลัก: ${SEGMENTS.slice().sort((a,b)=>c.demand[b.id]-c.demand[a.id]).slice(0,2).map(s=>s.name+' '+Math.round(c.demand[s.id]/tot*100)+'%').join(', ')}</p></div></div>
+  <h3>ฤดูท่องเที่ยวรายเดือนของ${c.name}</h3>${monthBars(id)}`;}
+
+/* ---------- setup ---------- */
+function renderSetup(){
+  const maps=Object.entries(MAPS).map(([k,m])=>`<button type="button" data-set="map" data-v="${k}" aria-pressed="${SETUP.map===k}">${m.name}</button>`).join('');
+  const cities=MAPS[SETUP.map].cities.map(id=>`<button type="button" data-set="city" data-v="${id}" aria-pressed="${SETUP.city===id}">${CITIES[id].name}</button>`).join('');
+  const ch=Object.entries(CHAOS).map(([k,c])=>`<button type="button" data-set="chaos" data-v="${k}" aria-pressed="${SETUP.chaos===k}">${c.name}</button>`).join('');
+  const months=TH_MONTH_FULL.map((m,i)=>`<option value="${i}" ${SETUP.startMonth===i?'selected':''}>${m}</option>`).join('');
+  $('#app').innerHTML=`<div class="panel"><h1>เครื่องจำลองเศรษฐกิจโรงแรม (ต้นแบบ P0 v0.3)</h1>
+  <p class="muted">บริหารโฮสเทล 8 ห้อง 12 สัปดาห์ แข่งกับโรงแรมบอท 3 แห่งในเมืองเดียวกัน เลือกเมืองจากแผนที่หรือปุ่มด้านขวา</p>
+  <div class="setup2"><div>${mapSVG(SETUP.city)}<p class="note" style="text-align:center">แผนที่พิกเซลจากเส้นเขตแดนจริง (${src('ne','Natural Earth')})</p></div>
+  <div><fieldset><legend>ประเภทแมพ</legend><div class="seg">${maps}</div></fieldset>
+  <fieldset><legend>เมือง</legend><div class="seg">${cities}</div></fieldset>
+  ${cityCard(SETUP.city)}
+  <fieldset style="margin-top:12px"><legend>ชื่อโรงแรมของคุณ</legend><input type="text" id="hname" maxlength="30" value="${esc($('#hname')?$('#hname').value:'โฮสเทลของฉัน')}"></fieldset>
+  <h3>ตั้งค่าห้องเรียน (สำหรับผู้สอน)</h3>
+  <fieldset><legend>เริ่มเกมเดือน</legend><select id="smonth">${months}</select><p class="small muted">12 สัปดาห์ ≈ 3 เดือน เลือกเดือนเพื่อกำหนดว่าเกมจะอยู่ในไฮซีซั่นหรือโลว์ซีซั่นของเมืองนี้</p></fieldset>
+  <fieldset><legend>ระดับเหตุการณ์สุ่ม</legend><div class="seg">${ch}</div></fieldset>
+  <fieldset><label class="row" style="justify-content:flex-start"><input type="checkbox" id="allowfake" ${SETUP.allowFake?'checked':''}> เปิดให้ใช้กลยุทธ์รีวิวปลอม (มีความเสี่ยงถูกจับ)</label></fieldset>
+  <fieldset><legend>รหัสเกม (seed)</legend><input type="text" id="seed" value="${esc($('#seed')?$('#seed').value:'class-'+Math.floor(Math.random()*9000+1000))}" maxlength="24"><p class="small muted">ใช้รหัสเดียวกันทั้งห้อง ทุกคนจะได้บอท ปฏิทินอีเวนต์ และเหตุการณ์สุ่มชุดเดียวกัน</p></fieldset>
+  <button class="btn" id="start" type="button">เริ่มสัปดาห์แรก</button></div></div></div>`;}
+/* ---------- game shell ---------- */
+function weekCtx(w){const wi=weekInfo(G,Math.min(w,WEEKS-1));const s=seasonMult(G,Math.min(w,WEEKS-1));return {wi,tmd:tmdSeason(wi.month,wi.day),lab:seasonLabel(s),s};}
+function topbar(){const h=P();const x=weekCtx(G.week);const teamSat=h.staff.length?h.staff.reduce((a,s)=>a+s.sat,0)/h.staff.length:0;
+  return `<div class="topbar"><div class="stat"><span class="k">สัปดาห์</span><span class="v">${Math.min(G.week+1,WEEKS)}/${WEEKS}</span></div>
+  <div class="stat"><span class="k">${CITIES[G.city].name}</span><span style="font-size:.95rem">${x.wi.label}</span><br><span class="chip ${x.tmd}">${TMD_NAME[x.tmd]}</span><span class="chip ${x.lab}">${SEASON_NAME[x.lab]}</span></div>
+  <div class="stat"><span class="k">เงินสด (บาท)</span><span class="v ${h.cash<0?'down':''}">${fmt(h.cash)}</span></div>
+  <div class="stat"><span class="k">ดาวรีวิว</span><span class="v">${h.R.toFixed(2)}</span></div>
+  <div class="stat"><span class="k">ความพึงพอใจพนักงาน</span><span class="v">${h.staff.length?Math.round(teamSat):'–'}</span></div>
+  <button type="button" class="infobtn" data-act="info" aria-label="ข้อมูลเหตุการณ์และวิธีสุ่ม" title="ข้อมูลเหตุการณ์และวิธีสุ่ม">i</button></div>`;}
+const TABS=[['market','ตลาดและปฏิทิน'],['decide','ตัดสินใจ'],['staff','พนักงาน'],['customer','ลูกค้า'],['report','รายงานผล']];
+let INFO_OPEN=false;
+function infoModal(){return `<div class="overlay" data-overlay="1"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="infotitle"><div class="modal-head"><h2 id="infotitle">ข้อมูล: คลังเหตุการณ์และวิธีสุ่ม</h2><button type="button" class="btn ghost" data-act="closeinfo" aria-label="ปิดหน้าต่างข้อมูล">ปิด ✕</button></div><div class="modal-body">${tabEvents()}</div></div></div>`;}
+function renderGame(){
+  const tabs=`<div class="tabs" role="tablist">${TABS.map(([k,n])=>`<button type="button" role="tab" data-tab="${k}" aria-selected="${TAB===k}">${n}</button>`).join('')}</div>`;
+  const body={market:tabMarket,decide:tabDecide,staff:tabStaff,customer:tabCustomer,report:tabReport}[TAB]();
+  $('#app').innerHTML=topbar()+tabs+`<div id="tabbody">${body}</div>`+endBar()+(INFO_OPEN?infoModal():'');
+  document.body.style.overflow=INFO_OPEN?'hidden':'';}
+function plannedSpend(){const h=P();const sal=h.staff.reduce((a,s)=>a+s.salary,0);return {sal,total:sal+h.bonus+h.mk.billboard+h.mk.online+(h.inf!=='none'?INFLUENCER[h.inf].cost:0)+(h.fake?COST.fake:0)+COST.fixed};}
+function endBar(){const h=P();if(G.week>=WEEKS)return `<div class="endbar"><button class="btn" data-act="final" type="button">ดูผลสรุป 12 สัปดาห์</button></div>`;
+  const sp=plannedSpend();return `<div class="endbar"><p class="small" id="spend" style="margin:0 0 6px">รายจ่ายที่แน่นอนสัปดาห์นี้ ≈ <b>${fmt(sp.total)} ฿</b> <span class="muted">(ยังไม่รวมต้นทุนต่อห้อง-คืนและค่าคอมมิชชัน)</span></p>
+  <button class="btn" id="endweek" type="button" ${h.staff.length?'':'disabled'}>${h.staff.length?`จบสัปดาห์ที่ ${G.week+1}`:'จ้างพนักงานอย่างน้อย 1 คนก่อน (แท็บพนักงาน)'}</button></div>`;}
+/* ---------- market tab ---------- */
+function seasonBand(){let wk='',tour='',tmd='',ev='';for(let w=0;w<WEEKS;w++){const x=weekCtx(w);const cur=w===G.week?' cur':'';const sch=G.timeline[w].scheduled;
+  wk+=`<div class="cell ev${cur}"><b>ส.${w+1}</b><br>${x.wi.label}</div>`;
+  tour+=`<div class="cell ${x.lab}${cur}">${SEASON_NAME[x.lab]}</div>`;
+  tmd+=`<div class="cell ${x.tmd}${cur}">${TMD_NAME[x.tmd]}</div>`;
+  ev+=`<div class="cell ev${cur}">${sch.length?sch.map(e=>'★ '+e.name).join('<br>'):'–'}</div>`;}
+  return `<div class="bandwrap"><div class="band2"><div class="lab">สัปดาห์</div>${wk}<div class="lab">ฤดูท่องเที่ยว</div>${tour}<div class="lab">ฤดูกาลไทย</div>${tmd}<div class="lab">อีเวนต์</div>${ev}</div></div>
+  <div class="bandlegend"><span class="chip high">ไฮซีซั่น</span><span class="chip shoulder">กึ่งไฮซีซั่น</span><span class="chip low">โลว์ซีซั่น</span><span class="chip summer">ฤดูร้อน</span><span class="chip rainy">ฤดูฝน</span><span class="chip winter">ฤดูหนาว</span></div>`;}
+function calendarTable(){let rows='';for(let w=0;w<WEEKS;w++){const x=weekCtx(w);const t=G.timeline[w];const past=w<G.week;
+  const sch=t.scheduled.map(e=>`<b>${e.name}</b>${e.kind==='national'?' (เทศกาลประจำปี)':' (ประกาศล่วงหน้า)'}<br><span class="small muted">${schedText(e)}</span>${past&&e.cancelled?'<br><span class="down">ถูกยกเลิก</span>':''}`).join('<br>')||'<span class="muted">–</span>';
+  const sh=past?(t.shocks.length?t.shocks.map(s=>`${s.ev.positive?'▲':'▼'} ${s.ev.name} <span class="small muted">(${phaseName(s.k,s.d,s.perm)})</span>`).join('<br>'):'<span class="muted">ไม่มี</span>'):(REVEAL?t.shocks.map(s=>`<span class="muted">${s.ev.name}</span>`).join('<br>')||'–':'<span class="muted">?</span>');
+  rows+=`<tr class="${w===G.week?'now':''}"><td>ส.${w+1}<br><span class="small muted">${x.wi.label}</span></td><td><span class="chip ${x.lab}">${SEASON_NAME[x.lab]}</span><br><span class="chip ${x.tmd}">${TMD_NAME[x.tmd]}</span></td><td>${sch}</td><td>${sh}</td></tr>`;}
+  return `<div class="tablewrap"><table class="cal"><thead><tr><th>สัปดาห์</th><th>ฤดู</th><th>อีเวนต์ที่รู้ล่วงหน้า</th><th>เหตุการณ์ฉุกเฉิน</th></tr></thead><tbody>${rows}</tbody></table></div>`;}
+function tabMarket(){const news=G.news.slice(-8).reverse();
+  return `<div class="two"><div class="panel">${cityCard(G.city)}</div><div class="panel"><h2>ข่าวในตลาด</h2>${news.length?`<ul class="list">${news.map(n=>`<li>ส.${n.week}: ${esc(n.text)}</li>`).join('')}</ul>`:'<p class="muted small">ยังไม่มีข่าว ข่าวปัญหาของโรงแรมคู่แข่งจะแสดงที่นี่</p>'}</div></div>
+  <div class="panel"><h2>ฤดูกาล 12 สัปดาห์ของเกมนี้</h2>${seasonBand()}</div>
+  <div class="panel"><h2>ปฏิทินอีเวนต์</h2><p class="small">อีเวนต์ที่มีกำหนดการ (เทศกาล คอนเสิร์ต งานประชุม) ประกาศล่วงหน้า ใช้วางแผนราคาได้ ส่วนเหตุการณ์ฉุกเฉิน (สภาพอากาศ ภัยพิบัติ การเมือง) รู้หลังเกิดเท่านั้น อีเวนต์ที่ประกาศแล้วมีโอกาสถูกยกเลิก ${Math.round(CANCEL_P*100)}%</p>${calendarTable()}</div>`;}
+/* ---------- decide tab ---------- */
+function segmentTable(){const c=CITIES[G.city];const tot=SEGMENTS.reduce((a,s)=>a+c.demand[s.id],0);
+  return `<div class="tablewrap"><table class="compact"><thead><tr><th>กลุ่มลูกค้า</th><th>งบต่อคืน (บาท)</th><th>สัดส่วนดีมานด์</th><th>ในกลุ่มนี้เป็นต่างชาติ</th><th>วันที่มักพัก</th></tr></thead><tbody>
+  ${SEGMENTS.map(s=>`<tr><td><span style="color:${SEG_COLOR[s.id]}">■</span> <b>${s.name}</b><span class="focus">ให้น้ำหนัก: ${SEG_FOCUS[s.id]}</span></td><td>≈ ${fmt(s.wtp)}</td><td>${Math.round(c.demand[s.id]/tot*100)}%</td><td>${Math.round(clamp(c.foreign*s.fb,0,.95)*100)}%</td><td>${s.wdShare>.6?'วันธรรมดา':s.wdShare<.4?'สุดสัปดาห์':'ทั้งสองช่วง'}</td></tr>`).join('')}
+  </tbody></table></div><p class="note">งบต่อคืนคือราคาที่ลูกค้ากลุ่มนั้นยินดีจ่ายโดยเฉลี่ย ตั้งราคาสูงกว่านี้มาก ลูกค้ากลุ่มนั้นจะเลือกที่อื่น และจะคาดหวังบริการสูงขึ้นตามราคา</p>`;}
+function weekBox(){const x=weekCtx(G.week);const t=G.timeline[G.week];const next=G.week+1<WEEKS?G.timeline[G.week+1]:null;
+  const ev=t.scheduled.map(e=>`<li><b>${e.name}</b>: ${schedText(e)}</li>`).join('');const nx=next?next.scheduled.map(e=>`<li>สัปดาห์หน้า: ${e.name}</li>`).join(''):'';
+  return `<div class="weekbox"><b>สัปดาห์นี้ (${x.wi.label})</b> <span class="chip ${x.tmd}">${TMD_NAME[x.tmd]}</span><span class="chip ${x.lab}">${SEASON_NAME[x.lab]}</span> ดีมานด์ตามฤดู ×${x.s.toFixed(2)}
+  ${ev||nx?`<ul class="list" style="margin-top:6px">${ev}${nx}</ul>`:'<p class="small muted" style="margin:4px 0 0">ไม่มีอีเวนต์ที่ประกาศล่วงหน้า เหตุการณ์ฉุกเฉินจะรู้หลังจบสัปดาห์</p>'}</div>`;}
+function rangeCtl(k,label,val,min,max,step,big,sub){const p=((val-min)/(max-min)*100).toFixed(1);const isPrice=k.startsWith('price');
+  return `<div class="ctl"><label class="row"><span>${label}${sub?`<br><span class="small muted">${sub}</span>`:''}</span>${isPrice?`<input type="number" class="num" min="${min}" max="${max}" step="${step}" value="${val}" data-k="${k}" aria-label="${label}">`:`<b data-show="${k}">${fmt(val)} ฿</b>`}</label>
+  <div class="rangerow"><button type="button" class="stepbtn" data-step="${k}:${-big}" aria-label="ลด ${big} บาท">−</button><input type="range" min="${min}" max="${max}" step="${step}" value="${val}" data-k="${k}" aria-label="${label}" style="--p:${p}%"><button type="button" class="stepbtn" data-step="${k}:${big}" aria-label="เพิ่ม ${big} บาท">+</button></div></div>`;}
+function tabDecide(){const h=P();
+  const inf=Object.entries(INFLUENCER).map(([k,v])=>`<option value="${k}" ${h.inf===k?'selected':''}>${v.name}${v.cost?` – ${fmt(v.cost)} ฿`:''}</option>`).join('');
+  if(G.week>=WEEKS)return `<div class="panel"><h2>ครบ 12 สัปดาห์แล้ว</h2><p>อ่านรายงานสัปดาห์สุดท้าย แล้วกดดูผลสรุปด้านล่าง</p></div>`;
+  return `<div class="panel"><h2>การตัดสินใจสัปดาห์ที่ ${G.week+1}</h2>${weekBox()}<h3>รู้จักลูกค้าใน${CITIES[G.city].name}</h3>${segmentTable()}</div>
+  <div class="two"><div class="panel"><h3 style="margin-top:0">ราคาห้องต่อคืน</h3>
+   ${rangeCtl('price.wd','วันธรรมดา (อา–พฤ, 5 คืน)',h.price.wd,200,4000,10,50)}
+   ${rangeCtl('price.we','ศุกร์–เสาร์ (2 คืน)',h.price.we,200,4000,10,50)}
+   <p class="note">ปุ่ม − / + ปรับครั้งละ 50 บาท หรือคลิกแถบแล้วใช้ปุ่มลูกศรบนคีย์บอร์ดปรับทีละ 10 บาท ราคาเฉลี่ยตามดีมานด์ของเมืองนี้ ≈ ${fmt(G.refP)} บาท</p>
+   <p class="small">ทีมตอนนี้: ${h.staff.length} คน · เงินเดือนรวม ${fmt(plannedSpend().sal)} ฿/สัปดาห์ <button class="btn ghost" type="button" data-tab="staff" style="padding:2px 10px;box-shadow:none">ไปแท็บพนักงาน</button></p>
+   ${h.closed?`<div class="warn">ปิดซ่อม ${h.closed} ห้อง อีก ${h.closedWeeks} สัปดาห์</div>`:''}</div>
+  <div class="panel"><h3 style="margin-top:0">การตลาด</h3>
+   ${rangeCtl('mk.billboard','ป้ายโฆษณา',h.mk.billboard,0,4000,100,100,'ผลค่อยๆ ขึ้น อยู่นาน')}
+   ${rangeCtl('mk.online','โฆษณาออนไลน์',h.mk.online,0,4000,100,100,'ผลเร็ว หยุดจ่ายแล้วหายเร็ว')}
+   <label class="row"><span>อินฟลูเอนเซอร์ (สัปดาห์นี้)</span><select data-k="inf">${inf}</select></label>
+   <p class="note">ผลของอินฟลูเอนเซอร์ไม่แน่นอน ถ้าบริการจริงแย่ ชื่อเสียงจะลดลง</p>
+   <label class="row" style="justify-content:flex-start"><input type="checkbox" data-k="ota" ${h.ota?'checked':''} ${h.otaBan>0?'disabled':''}> ขายผ่าน OTA (คนเห็นมากขึ้น เสียค่าคอมมิชชัน ${OTA_COMMISSION*100}% ของยอดจองผ่าน OTA)</label>
+   ${h.otaBan>0?`<div class="warn">ถูกระงับจาก OTA อีก ${h.otaBan} สัปดาห์ เพราะตรวจพบรีวิวปลอม</div>`:''}
+   ${G.allowFake?`<label class="row" style="justify-content:flex-start"><input type="checkbox" data-k="fake" ${h.fake?'checked':''}> ซื้อรีวิวปลอม (${fmt(COST.fake)} ฿/สัปดาห์)</label>
+   <p class="note">ดาวขึ้นเร็ว แต่มีโอกาสถูกจับทุกสัปดาห์: ปรับ ${fmt(COST.fine)} ฿ ดาวลด และถูกระงับจาก OTA 3 สัปดาห์ ในโลกจริง ${src('ftc','กฎของ FTC สหรัฐฯ (2024)')} ห้ามซื้อขายรีวิวปลอม</p>`:''}</div></div>`;}
+/* ---------- staff tab ---------- */
+function hbar(label,v,mark,max=100,right){return `<div class="hbar"><span>${label}</span><span class="track"><b style="width:${clamp(v/max*100,0,100)}%"></b>${mark!=null?`<i style="left:${clamp(mark/max*100,0,100)}%"></i>`:''}</span><span>${right!=null?right:Math.round(v)}</span></div>`;}
+function staffCard(c,hired){const bars=['app','serv','exp','prof','lang'].map(k=>`<div class="bar"><span>${STAT[k]}</span><i><b style="width:${c[k]}%"></b></i><span>${c[k]}</span></div>`).join('');const h=P();
+  return `<div class="card${hired?' hired':''}"><div class="head">${avatarSVG(c.look,c.name)}<div class="nm" style="flex:1"><span>${c.name}</span><span class="small">${fmt(c.salary)} ฿/สัปดาห์</span></div></div>${bars}
+  ${hired?`<div class="small">ความพึงพอใจ</div><div class="meter"><b style="width:${Math.round(c.sat)}%;background:${c.sat<40?'var(--chili)':'var(--jade)'}"></b></div>`:''}
+  ${G.week<WEEKS?`<button type="button" class="btn ${hired?'ghost':''}" data-staff="${c.id}" ${!hired&&h.staff.length>=4?'disabled':''}>${hired?'ให้ออก (ชดเชย 1 สัปดาห์)':'จ้าง'}</button>`:''}</div>`;}
+function tabStaff(){const h=P();const last=h.history[h.history.length-1];const hiredIds=new Set(h.staff.map(s=>s.id));
+  const team={};['app','serv','exp','prof','lang'].forEach(k=>team[k]=h.staff.length?h.staff.reduce((a,s)=>a+s[k],0)/h.staff.length:0);
+  const bots=G.hotels.filter(x=>!x.isPlayer);const comp={};['app','serv','exp','prof','lang'].forEach(k=>comp[k]=bots.reduce((a,b)=>a+b.staff.reduce((x,s)=>x+s[k],0)/Math.max(1,b.staff.length),0)/bots.length);
+  const qChart=LOG.length?lineChart([{name:'คุณภาพที่ส่งมอบ (ทีมคุณ)',color:'var(--jade)',values:LOG.map(r=>r.Q)},{name:'ความคาดหวังของแขก',color:'var(--chili)',values:LOG.map(r=>r.E)},{name:'คู่แข่งเฉลี่ย (ส่งมอบ)',color:'var(--muted)',values:LOG.map(r=>r.cQ)}],LOG.map(r=>'ส.'+r.week),{aria:'คุณภาพบริการรายสัปดาห์',min:0}):'<p class="muted small">กราฟจะแสดงหลังจบสัปดาห์แรก</p>';
+  return `<div class="two"><div class="panel"><h2>คุณภาพบริการของทีม</h2>
+  <p class="small">ค่าเฉลี่ยของทีมคุณ (แถบสี) เทียบค่าเฉลี่ยทีมคู่แข่ง (เส้นดำ) แต่ละสเตตัสแมปกับมิติของ ${src('servqual','SERVQUAL')}</p>
+  ${['app','serv','exp','prof','lang'].map(k=>hbar(`${STAT[k]}<br><span class="small muted">${SQ[k]}</span>`,team[k],comp[k])).join('')}
+  ${last?`<h3>สัปดาห์ที่แล้ว</h3>${hbar('คุณภาพที่ส่งมอบ',last.Q,last.E,100,`${Math.round(last.Q)}`)}<p class="note">เส้นดำ = ความคาดหวังเฉลี่ยของแขก (${Math.round(last.E)}) ถ้าแถบสั้นกว่าเส้น รีวิวจะต่ำกว่า 3.4 ดาว</p>
+   ${hbar('ความพอของพนักงาน',last.adequacy*100,null,100,pct(last.adequacy))}${hbar('ภาระงาน (ห้อง-คืน/คน)',last.load,15,30,Math.round(last.load))}<p class="note">เกิน 15 ห้อง-คืนต่อคนต่อสัปดาห์ ความพึงพอใจพนักงานจะลดลง</p>`:''}
+  <h3>คุณภาพบริการรายสัปดาห์</h3><div class="chart">${qChart}</div>
+  ${G.week<WEEKS?rangeCtl('bonus','โบนัสพนักงานรวมต่อสัปดาห์',h.bonus,0,4000,100,100):''}</div>
+  <div class="panel"><h2>ทีมของคุณ (${h.staff.length}/4)</h2><div class="staff">${h.staff.map(s=>staffCard(s,true)).join('')||'<p class="muted">ยังไม่มีพนักงาน</p>'}</div>
+  <h3>ผู้สมัคร</h3><div class="staff">${G.candidates.filter(c=>!c.gone&&!hiredIds.has(c.id)).map(c=>staffCard(c,false)).join('')}</div>
+  <p class="note">ภาพตัวละครเป็นภาพชั่วคราวที่สร้างจากรหัส รอแทนด้วยดีไซน์จริง</p></div></div>`;}
+
+/* ---------- customer tab ---------- */
+const REV={pos:{serv:'พนักงานใส่ใจ ช่วยแนะนำที่เที่ยวดีมาก',value:'คุ้มค่ากับราคา ไว้จะกลับมาพักอีก',app:'พนักงานแต่งกายเรียบร้อย ล็อบบี้ดูดี',lang:'Staff speak good English, very helpful!',prof:'เช็กอินรวดเร็ว เป็นมืออาชีพ เหมาะกับการมาทำงาน',exp:'ห้องพร้อมตามที่จอง ไม่มีปัญหาเลย'},
+ neg:{adequacy:'รอเช็กอินนานมาก พนักงานดูไม่พอ',price:'ราคาแพงเกินไปเมื่อเทียบกับบริการ',lang:'Hard to communicate, staff barely speak English.',serv:'พนักงานไม่ค่อยยิ้ม ดูไม่อยากบริการ',prof:'ไม่เหมาะกับการมาทำงาน ข้อมูลการจองผิดพลาด',exp:'ห้องไม่พร้อมตอนเช็กอิน ต้องรอทำความสะอาด'},neu:'โดยรวมโอเค สมราคา'};
+function reviewsFor(r,week){const rng=mulberry32(week*977+13);const out=[];const avgP=r.adr||0;
+  SEGMENTS.slice().sort((a,b)=>(r.seg[b.id]||0)-(r.seg[a.id]||0)).forEach(s=>{const sq=r.segQ[s.id];if(!sq||sq.n<1)return;const t=r.team;const fs=clamp(CITIES[G.city].foreign*s.fb,0,.95);let text,kind;
+    if(sq.rating>=4){const c=[];if(t.serv>=70)c.push('serv');if(avgP<=s.wtp*.9)c.push('value');if(t.app>=70)c.push('app');if(t.lang>=70&&fs>.3)c.push('lang');if(t.prof>=70&&s.id==='biz')c.push('prof');if(t.exp>=70)c.push('exp');if(!c.length)c.push('value');text=REV.pos[c[Math.floor(rng()*c.length)]];kind='pos';}
+    else if(sq.rating<=2.6){const c=[];if(r.adequacy<.8)c.push('adequacy');if(avgP>s.wtp*1.2)c.push('price');if(t.lang<45&&fs>.3)c.push('lang');if(t.serv<50)c.push('serv');if(t.prof<50&&s.id==='biz')c.push('prof');if(t.exp<50)c.push('exp');if(!c.length)c.push('price');text=REV.neg[c[Math.floor(rng()*c.length)]];kind='neg';}
+    else{text=REV.neu;kind='neu';}
+    out.push({seg:s,stars:Math.round(sq.rating),text,kind});});
+  (r.crises||[]).filter(c=>c.id==='pr').forEach(c=>out.unshift({seg:null,stars:1,text:`โพสต์ไวรัล: ${c.detail}`,kind:'neg'}));
+  return out.slice(0,5);}
+function tabCustomer(){if(!LAST)return `<div class="panel"><h2>ข้อมูลลูกค้าจะแสดงหลังจบสัปดาห์แรก</h2><p>หน้านี้จะแสดงการรับรู้ ความคาดหวัง ความพึงพอใจ และรีวิวออนไลน์ (eWOM) ของลูกค้าแต่ละกลุ่ม</p></div>`;
+  const o=LAST,y=o.hotels.you;const d=y.dist;const tot=d.reduce((a,b)=>a+b,0)||1;const pos=(d[3]+d[4])/tot,neu=d[2]/tot,neg=(d[0]+d[1])/tot;
+  const rvs=reviewsFor(y,o.week);
+  return `<div class="grid4">
+  <div class="panel"><h2>การรับรู้ของลูกค้า</h2><p class="small">สัดส่วนลูกค้าแต่ละกลุ่มที่รู้จักโรงแรมคุณ (แถบสี) เทียบค่าเฉลี่ยคู่แข่ง (เส้นดำ) มาจากงบการตลาดสะสมและ OTA</p>
+   ${SEGMENTS.map(s=>hbar(s.name,y.aw[s.id]*100,o.comp.aw[s.id]*100,100,Math.round(y.aw[s.id]*100)+'%')).join('')}</div>
+  <div class="panel"><h2>ความคาดหวัง กับ สิ่งที่ได้รับ</h2><p class="small">แถบสี = คุณภาพบริการที่ส่งมอบให้แต่ละกลุ่ม เส้นดำ = ความคาดหวัง ช่องว่างระหว่างสองค่านี้คือแนวคิดหลักของ ${src('servqual','SERVQUAL')} ราคายิ่งสูง ความคาดหวังยิ่งสูง</p>
+   ${SEGMENTS.map(s=>{const q=y.segQ[s.id];return hbar(`${s.name}<br><span class="small muted">${Math.round(q.n)} ห้อง-คืน</span>`,q.q,q.e,100,`${q.rating.toFixed(1)}★`);}).join('')}</div>
+  <div class="panel"><h2>ความพึงพอใจและรีวิว</h2><p>รีวิวใหม่สัปดาห์นี้ <b>${y.newRev}</b> รีวิว · คะแนนเฉลี่ยสัปดาห์นี้ <b>${y.rating?y.rating.toFixed(2):'–'}</b> · ดาวสะสม <b>${y.R.toFixed(2)}</b> จาก ${fmt(y.N)} รีวิว</p>
+   ${[5,4,3,2,1].map(k=>hbar('★'.repeat(k),d[k-1],null,Math.max(1,...d),d[k-1])).join('')}
+   <div class="segbar" style="margin-top:10px"><span style="width:${pos*100}%;background:var(--jade)"></span><span style="width:${neu*100}%;background:var(--sh)"></span><span style="width:${neg*100}%;background:var(--chili)"></span></div>
+   <div class="legend"><span style="--c:var(--jade)">บวก ${Math.round(pos*100)}%</span><span style="--c:var(--sh)">กลาง ${Math.round(neu*100)}%</span><span style="--c:var(--chili)">ลบ ${Math.round(neg*100)}%</span></div>
+   <div class="chart" style="margin-top:8px">${lineChart([{name:'คะแนนรีวิวรายสัปดาห์',color:'var(--lamp)',values:LOG.map(r=>r.rating)},{name:'ดาวสะสม',color:'var(--jade)',values:LOG.map(r=>r.R)}],LOG.map(r=>'ส.'+r.week),{aria:'คะแนนรีวิว',min:0,h:160})}</div></div>
+  <div class="panel"><h2>รีวิวออนไลน์ (eWOM)</h2><p class="small">eWOM คือการบอกต่อผ่านอินเทอร์เน็ต สำคัญมากในธุรกิจโรงแรมเพราะลูกค้าประเมินบริการก่อนเข้าพักไม่ได้ (${src('litvin','Litvin et al., 2008')}) ตัวอย่างรีวิวด้านล่างสร้างจากสาเหตุจริงในเกม</p>
+   ${rvs.map(r=>`<div class="review"><span class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</span> <span class="small muted">${r.seg?r.seg.name:'โซเชียลมีเดีย'}</span><br>${esc(r.text)}</div>`).join('')||'<p class="muted small">ยังไม่มีรีวิว</p>'}
+   ${y.fake?'<p class="warn">มีรีวิวปลอมปนอยู่ ดาวสะสมจึงสูงกว่าความพึงพอใจจริง</p>':''}</div></div>`;}
+/* ---------- report tab ---------- */
+function arrow(v,ref){if(!ref)return '';return v>=ref?'<span class="up">▲</span>':'<span class="down">▼</span>';}
+function kpiCards(o){const y=o.hotels.you,c=o.comp,i=o.idx;const avail=8*7;
+ return `<div class="kpis">
+ <div class="kpi"><div class="name">Occupancy (อัตราเข้าพัก)</div><div class="num">${pct(y.occ)}</div><div class="vs">${arrow(y.occ,c.occ)} คู่แข่งเฉลี่ย ${pct(c.occ)} · วันธรรมดา ${pct(y.occP.wd)} / สุดสัปดาห์ ${pct(y.occP.we)}</div>
+  <details><summary>อ่านค่านี้อย่างไร</summary><p><b>ความหมาย:</b> สัดส่วนห้อง-คืนที่ขายได้ จากห้อง-คืนทั้งหมดที่เปิดขาย</p><p><b>คำนวณสัปดาห์นี้:</b> <span class="calc">${y.sold} ÷ ${avail} × 100 = ${pct(y.occ)}</span></p>
+  <p><b>ทำไมสำคัญ:</b> บอกว่าดีมานด์มาถึงโรงแรมคุณแค่ไหน และกำหนดภาระงานของพนักงานกับต้นทุนต่อห้อง</p><p><b>ข้อควรระวัง:</b> ไม่ได้คำนึงถึงราคาเลย ลดราคาจนห้องเต็มก็ได้ค่าสูง ถ้าดีมานด์ตลาดต่ำแต่ห้องคุณเต็ม อาจแปลว่าตั้งราคาต่ำเกินไป${y.closed?` สัปดาห์นี้ปิดซ่อม ${y.closed} ห้องแต่ยังนับเป็นห้องที่มีขาย`:''}</p>
+  <p class="small muted">ที่มา: ${src('chekin','Chekin (สูตร)')}, ${src('raft','RaftLabs')}, ${src('rpgRev','RoomPriceGenie')}</p></details></div>
+ <div class="kpi"><div class="name">ADR (ราคาเฉลี่ยที่ขายได้)</div><div class="num">${y.sold?fmt(y.adr):'–'}</div><div class="vs">${arrow(y.adr,c.adr)} คู่แข่งเฉลี่ย ${fmt(c.adr)} ฿ · ราคาที่ตั้ง ${fmt(y.price.wd)} / ${fmt(y.price.we)} ฿</div>
+  <details><summary>อ่านค่านี้อย่างไร</summary><p><b>ความหมาย:</b> ราคาเฉลี่ยที่ขายได้จริงต่อห้องที่ขายได้ ไม่ใช่ราคาที่ตั้งไว้ ในเกมนี้ ADR อยู่ระหว่างราคาวันธรรมดากับสุดสัปดาห์ ขึ้นกับว่าขายช่วงไหนได้มากกว่า</p>
+  <p><b>คำนวณสัปดาห์นี้:</b> <span class="calc">${fmt(y.revenue)} ÷ ${y.sold} = ${y.sold?fmt(y.adr):'–'}</span></p><p><b>ทำไมสำคัญ:</b> วัดอำนาจการตั้งราคา ต้องอ่านคู่กับ Occupancy เสมอ</p><p><b>ข้อควรระวัง:</b> นับเฉพาะห้องที่ขายได้ สัปดาห์ที่ขายได้น้อยแต่ราคาสูงจึงดูดีเกินจริง</p>
+  <p class="small muted">ที่มา: ${src('rpgAdr','RoomPriceGenie (สูตร)')}, ${src('axis','AxisRooms')}, ${src('akia','Akia')}</p></details></div>
+ <div class="kpi"><div class="name">RevPAR (รายได้ต่อห้องที่มีขาย)</div><div class="num">${fmt(y.revpar)}</div><div class="vs">${arrow(y.revpar,c.revpar)} คู่แข่งเฉลี่ย ${fmt(c.revpar)} ฿</div>
+  <details><summary>อ่านค่านี้อย่างไร</summary><p><b>ความหมาย:</b> รายได้ห้องพักเฉลี่ยต่อห้องที่เปิดขายทั้งหมด รวมห้องที่ว่างด้วย</p><p><b>คำนวณสัปดาห์นี้:</b> <span class="calc">${fmt(y.revenue)} ÷ ${avail} = ${fmt(y.revpar)}</span> หรือ <span class="calc">ADR ${y.sold?fmt(y.adr):0} × Occ ${pct(y.occ)}</span></p>
+  <p><b>ทำไมสำคัญ:</b> รวมราคาและยอดขายไว้ในตัวเลขเดียว จึงตอบได้ว่าการลดราคาเพื่อเพิ่มคนพักคุ้มหรือไม่</p><p><b>ข้อควรระวัง:</b> ไม่ใช่ตัววัดกำไร และนับเฉพาะรายได้ห้องพัก ดูกำไรในส่วนการเงินด้านล่าง</p>
+  <p class="small muted">ที่มา: ${src('rpgRev','RoomPriceGenie (สูตร)')}, ${src('akia','Akia')}</p></details></div>
+ <div class="kpi"><div class="name">RGI (ดัชนี RevPAR เทียบคู่แข่ง)</div><div class="num ${i.rgi>=100?'up':'down'}">${Math.round(i.rgi)}</div><div class="vs">MPI ${Math.round(i.mpi)} · ARI ${Math.round(i.ari)} · 100 = ได้ส่วนแบ่งตามที่ควรได้</div>
+  <details><summary>อ่านค่านี้อย่างไร</summary><p><b>ความหมาย:</b> RevPAR ของคุณหารด้วย RevPAR เฉลี่ยของกลุ่มคู่แข่ง × 100 ค่า 100 คือได้ส่วนแบ่งรายได้ตามที่ควรได้ (fair share) มากกว่า 100 คือได้มากกว่าที่คาด น้อยกว่า 100 คือน้อยกว่าที่คาด</p>
+  <p><b>คำนวณสัปดาห์นี้:</b> <span class="calc">${fmt(y.revpar)} ÷ ${fmt(c.revpar)} × 100 = ${Math.round(i.rgi)}</span></p>
+  <p><b>แยกดูสาเหตุ:</b> MPI = Occupancy เทียบคู่แข่ง, ARI = ADR เทียบคู่แข่ง และ RGI = MPI × ARI ÷ 100 <span class="calc">${Math.round(i.mpi)} × ${Math.round(i.ari)} ÷ 100 ≈ ${Math.round(i.mpi*i.ari/100)}</span></p>
+  <p><b>ทำไมสำคัญ:</b> ทุกโรงแรมในเมืองเจอฤดูกาลและเหตุการณ์ชุดเดียวกัน RGI จึงวัดฝีมือการบริหาร ไม่ใช่ดวง</p><p><b>ข้อควรระวัง:</b> ค่าที่ถือว่าดีขึ้นกับว่าเทียบกับคู่แข่งกลุ่มไหน ในเกมนี้คือโรงแรมบอท 3 แห่ง</p>
+  <p class="small muted">ที่มา: ${src('str','STR Glossary')}, ${src('ehl','EHL Insights')}, ${src('chekin','Chekin')}, ${src('ehl2','EHL: RevPAR')}</p></details></div></div>`;}
+function quadrantSVG(){const W=380,H=300,pl=58,pb=58,pt=12,pr=12;
+  const X=v=>pl+(clamp(v,40,160)-40)/120*(W-pl-pr),Y=v=>pt+(1-(clamp(v,40,160)-40)/120)*(H-pt-pb);const pts=LOG.map(r=>[X(r.mpi),Y(r.ari)]);
+  const trail=pts.length>1?`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3 3"/>`:'';
+  const dots=pts.map((p,k)=>`<circle cx="${p[0]}" cy="${p[1]}" r="${k===pts.length-1?7:3}" fill="${k===pts.length-1?'var(--lamp)':'var(--muted)'}" stroke="var(--line)" stroke-width="${k===pts.length-1?2:0}"/>`).join('');
+  const ticks=[60,100,140].map(v=>`<text x="${X(v)}" y="${H-pb+14}" text-anchor="middle" class="lbl">${v}</text><text x="${pl-6}" y="${Y(v)+4}" text-anchor="end" class="lbl">${v}</text>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="ตำแหน่ง MPI และ ARI ของคุณ"><rect x="${pl}" y="${pt}" width="${W-pl-pr}" height="${H-pt-pb}" fill="none" stroke="var(--soft)"/>
+  <line x1="${X(100)}" x2="${X(100)}" y1="${pt}" y2="${H-pb}" stroke="var(--line)"/><line x1="${pl}" x2="${W-pr}" y1="${Y(100)}" y2="${Y(100)}" stroke="var(--line)"/>
+  <text x="${X(130)}" y="${Y(152)}" text-anchor="middle" class="lbl">ชนะทั้งราคาและยอดขาย</text><text x="${X(130)}" y="${Y(45)}" text-anchor="middle" class="lbl">ขายได้มาก แต่ราคาต่ำ</text>
+  <text x="${X(70)}" y="${Y(152)}" text-anchor="middle" class="lbl">ราคาสูง แต่ขายได้น้อย</text><text x="${X(70)}" y="${Y(45)}" text-anchor="middle" class="lbl">ตามหลังทั้งสองด้าน</text>${ticks}
+  <text x="${(pl+W-pr)/2}" y="${H-26}" text-anchor="middle" class="lbl" style="font-weight:700;fill:var(--ink)">แกน X: MPI ดัชนีส่วนแบ่งการเข้าพัก →</text>
+  <text x="${(pl+W-pr)/2}" y="${H-10}" text-anchor="middle" class="lbl">Occupancy ของคุณ ÷ คู่แข่ง × 100</text>
+  <text transform="translate(16 ${(pt+H-pb)/2}) rotate(-90)" text-anchor="middle" class="lbl" style="font-weight:700;fill:var(--ink)">แกน Y: ARI ดัชนีราคาเฉลี่ย →</text>
+  <text transform="translate(30 ${(pt+H-pb)/2}) rotate(-90)" text-anchor="middle" class="lbl">ADR ของคุณ ÷ คู่แข่ง × 100</text>${trail}${dots}</svg>`;}
+function quadLegend(){return `<div class="legendbox"><b>MPI</b> (Market Penetration Index) ดัชนีส่วนแบ่งการเข้าพัก: Occupancy ของคุณเทียบคู่แข่ง × 100 เกิน 100 = ขายห้องได้มากกว่าส่วนแบ่งที่ควรได้<br>
+  <b>ARI</b> (Average Rate Index) ดัชนีราคาเฉลี่ย: ADR ของคุณเทียบคู่แข่ง × 100 เกิน 100 = ขายได้ราคาเฉลี่ยสูงกว่าคู่แข่ง<br>
+  จุดใหญ่สีเหลือง = สัปดาห์นี้ เส้นประ = เส้นทางสัปดาห์ก่อนๆ เส้นตรงกลาง = 100 <span class="muted">(ที่มา: ${src('ehl','EHL Insights')}, ${src('chekin','Chekin')})</span></div>`;}
+function diagnose(o){const y=o.hotels.you,c=o.comp,i=o.idx,out=[];
+  if(i.mpi>=100&&i.ari>=100)out.push(`ชนะคู่แข่งทั้งยอดขาย (MPI ${Math.round(i.mpi)}) และราคา (ARI ${Math.round(i.ari)}) รักษาสมดุลนี้ไว้ และดูว่าพนักงานรับภาระไหวหรือไม่`);
+  else if(i.mpi>=100)out.push(`ขายห้องได้มากกว่าคู่แข่ง (MPI ${Math.round(i.mpi)}) แต่ราคาเฉลี่ยต่ำกว่า (ARI ${Math.round(i.ari)}) แปลว่ากำลังใช้ราคาซื้อยอดขาย ลองขึ้นราคาทีละน้อยแล้วดูว่า RGI ดีขึ้นไหม (${src('chekin','ที่มา')})`);
+  else if(i.ari>=100)out.push(`ราคาเฉลี่ยสูงกว่าคู่แข่ง (ARI ${Math.round(i.ari)}) แต่ขายได้น้อยกว่า (MPI ${Math.round(i.mpi)}) ตรวจว่าราคาเกินงบของกลุ่มลูกค้าหลักหรือไม่ หรือการรับรู้และดาวรีวิวยังไม่พอ (${src('rpgRev','ที่มา')})`);
+  else out.push(`ตามหลังคู่แข่งทั้งยอดขาย (MPI ${Math.round(i.mpi)}) และราคา (ARI ${Math.round(i.ari)}) ปัญหามักอยู่ที่การรับรู้ของลูกค้าหรือชื่อเสียง มากกว่าราคา`);
+  if(y.occ>.9)out.push(`ห้องแทบเต็มทั้งสัปดาห์ (${pct(y.occ)}) มักเป็นสัญญาณว่ายังขึ้นราคาได้ (${src('rpgRev','ที่มา')})`);
+  if(y.occP.we>.93&&y.occP.wd<.6)out.push(`สุดสัปดาห์เต็ม (${pct(y.occP.we)}) แต่วันธรรมดาว่าง (${pct(y.occP.wd)}) ลองตั้งราคาสุดสัปดาห์สูงขึ้น และหาลูกค้าวันธรรมดา เช่น นักธุรกิจ`);
+  const nx=G.week<WEEKS?G.timeline[G.week].scheduled:[];if(nx.length)out.push(`สัปดาห์หน้ามี ${nx.map(e=>e.name).join(', ')} ที่ประกาศล่วงหน้า ลองปรับราคาก่อนคู่แข่ง แต่ระวังข่าวยกเลิก`);
+  if(y.adequacy<.8&&y.sold>0)out.push('พนักงานไม่พอกับจำนวนแขก บริการจึงลดลง');
+  if(y.lang<45&&CITIES[G.city].foreign>.3)out.push(`ทีมพูดภาษาต่างประเทศได้น้อย (เฉลี่ย ${Math.round(y.lang)}) ในเมืองที่มีแขกต่างชาติมาก`);
+  if(y.revenue>0&&y.commission/y.revenue>.08)out.push(`ค่าคอมมิชชัน OTA กิน ${pct(y.commission/y.revenue)} ของรายได้ห้องพัก`);
+  if(y.teamSat<50&&y.staffN)out.push(`ความพึงพอใจพนักงานต่ำ (${Math.round(y.teamSat)}) ถ้าต่ำกว่า 40 จะเริ่มมีคนลาออก`);
+  if(y.cash<0)out.push('เงินสดติดลบ เสียดอกเบี้ย 1% ต่อสัปดาห์ และโรงแรมที่ขาดทุนสะสมจะถูกจัดอันดับต่อท้ายโรงแรมที่มีกำไร');return out;}
+function causeEffect(o){const y=o.hotels.you,out=[];const bots=G.hotels.filter(h=>!h.isPlayer).map(h=>o.hotels[h.id]);const x={tmd:tmdSeason(o.info.month,o.info.day),lab:seasonLabel(o.season)};
+  out.push(`ฤดูกาล: ${TMD_NAME[x.tmd]} / ${SEASON_NAME[x.lab]}ของ${CITIES[G.city].name} ดีมานด์ ×${o.season.toFixed(2)}`);
+  o.tl.scheduled.forEach(e=>out.push(e.cancelled?`อีเวนต์ "${e.name}" ถูกยกเลิกกะทันหัน ดีมานด์ที่คาดไว้ไม่เกิดขึ้น (โรงแรมที่ขึ้นราคารอไว้เสียเปรียบ)`:`อีเวนต์ที่ประกาศล่วงหน้า "${e.name}": ${schedText(e)}`));
+  o.tl.shocks.forEach(s=>out.push(`${s.ev.positive?'▲':'▼'} เหตุการณ์ "${s.ev.name}" (${CATS[s.ev.cat]}, ${phaseName(s.k,s.d,s.perm)}${s.perm?'':` สัปดาห์ ${s.k+1}/${s.d}`}): ${s.ev.text} ผลเต็มที่: ${effText(s.ev.eff)} (เกิดกับทุกโรงแรมในเมือง)`));
+  if(!o.tl.shocks.length&&!o.tl.scheduled.length)out.push('ไม่มีอีเวนต์หรือเหตุการณ์ฉุกเฉินสัปดาห์นี้');
+  y.crises.forEach(c=>out.push(`▼ วิกฤตภายในโรงแรมคุณ: ${c.name} (${c.detail})`));
+  const cP=bots.reduce((a,b)=>a+(b.price.wd*5+b.price.we*2)/7,0)/bots.length,yP=(y.price.wd*5+y.price.we*2)/7;
+  out.push(`ราคาเฉลี่ยที่ตั้ง ${fmt(yP)} ฿ เทียบคู่แข่ง ${fmt(cP)} ฿ (${yP>=cP?'สูงกว่า':'ต่ำกว่า'} ${Math.abs(Math.round((yP/cP-1)*100))}%)`);
+  const cAw=bots.reduce((a,b)=>a+b.awAvg,0)/bots.length;out.push(`การรับรู้ของลูกค้า ${Math.round(y.awAvg*100)}% เทียบคู่แข่ง ${Math.round(cAw*100)}%`);
+  if(y.sold>0)out.push(`บริการที่ส่งมอบ ${Math.round(y.Q)} เทียบความคาดหวัง ${Math.round(y.E)} → รีวิวสัปดาห์นี้ ${y.rating.toFixed(1)} ดาว ดาวสะสม ${y.R.toFixed(2)}`);
+  if(y.inf!=='none')out.push(`อินฟลูเอนเซอร์: ความน่าเชื่อถือที่ได้จริง ${y.infCred.toFixed(2)} เท่า${y.notes.includes('infBad')?' แต่รีวิวจากแขกต่ำกว่า 3 ดาว ดาวลด 0.25':''}`);
+  if(y.fake)out.push(y.caught?`รีวิวปลอมถูกตรวจพบ: ปรับ ${fmt(COST.fine)} ฿ ดาวลด 0.7 และถูกระงับจาก OTA 3 สัปดาห์`:'รีวิวปลอมยังไม่ถูกตรวจพบ แต่ความเสี่ยงมีทุกสัปดาห์');
+  out.push(`พนักงาน ${y.staffN} คน รับแขกเฉลี่ย ${y.staffN?Math.round(y.load):0} ห้อง-คืนต่อคน ความพึงพอใจ ${Math.round(y.teamSat)}${y.quits.length?` ลาออก: ${y.quits.join(', ')}`:''}`);
+  o.news.forEach(n=>out.push('ข่าวคู่แข่ง: '+esc(n)));return out;}
+function lineChart(series,labels,opt={}){const W=600,H=opt.h||190,pl=48,pr=12,pt=12,pb=26;const all=series.flatMap(s=>s.values).concat(opt.ref!=null?[opt.ref]:[]);
+  const mn=opt.min!=null?opt.min:0,mx=Math.max(...all,1)*1.12;const X=i=>pl+(labels.length<=1?(W-pl-pr)/2:i/(labels.length-1)*(W-pl-pr)),Y=v=>pt+(1-(v-mn)/(mx-mn))*(H-pt-pb);
+  let g='';for(let k=0;k<=4;k++){const v=mn+(mx-mn)*k/4;g+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" class="ax"/><text x="${pl-6}" y="${Y(v)+4}" text-anchor="end" class="lbl">${mx<10?v.toFixed(1):fmt(v)}</text>`;}
+  labels.forEach((l,i)=>g+=`<text x="${X(i)}" y="${H-8}" text-anchor="middle" class="lbl">${l}</text>`);
+  if(opt.ref!=null)g+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(opt.ref)}" y2="${Y(opt.ref)}" stroke="var(--line)" stroke-dasharray="5 4"/><text x="${W-pr}" y="${Y(opt.ref)-5}" text-anchor="end" class="lbl">${opt.refLabel||''}</text>`;
+  series.forEach(s=>{g+=`<polyline points="${s.values.map((v,i)=>`${X(i)},${Y(v)}`).join(' ')}" fill="none" stroke="${s.color}" stroke-width="2.5"/>`+s.values.map((v,i)=>`<circle cx="${X(i)}" cy="${Y(v)}" r="3.5" fill="${s.color}"/>`).join('');});
+  return `<div class="legend">${series.map(s=>`<span style="--c:${s.color}">${s.name}</span>`).join('')}</div><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${opt.aria||''}">${g}</svg>`;}
+function compTable(o){const rows=G.hotels.map(h=>{const r=o.hotels[h.id];return `<tr class="${h.isPlayer?'you':''}"><td>${esc(h.name)}${h.isPlayer?' (คุณ)':''}</td><td>${fmt(r.price.wd)} / ${fmt(r.price.we)}</td><td>${pct(r.occ)}</td><td>${r.sold?fmt(r.adr):'–'}</td><td>${fmt(r.revpar)}</td><td>${r.R.toFixed(2)}</td></tr>`;}).join('');
+  return `<div class="tablewrap"><table><thead><tr><th>โรงแรม</th><th>ราคา ธรรมดา/สุดสัปดาห์</th><th>Occ</th><th>ADR</th><th>RevPAR</th><th>ดาว</th></tr></thead><tbody>${rows}<tr><td class="muted">ค่าเฉลี่ยคู่แข่ง</td><td></td><td>${pct(o.comp.occ)}</td><td>${fmt(o.comp.adr)}</td><td>${fmt(o.comp.revpar)}</td><td></td></tr></tbody></table></div>`;}
+function segMix(y){const tot=SEGMENTS.reduce((a,s)=>a+(y.seg[s.id]||0),0)||1;return `<div class="segbar">${SEGMENTS.map(s=>`<span style="width:${(y.seg[s.id]||0)/tot*100}%;background:${SEG_COLOR[s.id]}"></span>`).join('')}</div><div class="legend">${SEGMENTS.map(s=>`<span style="--c:${SEG_COLOR[s.id]}">${s.name} ${Math.round((y.seg[s.id]||0)/tot*100)}%</span>`).join('')}</div>`;}
+function tabReport(){if(!LAST)return `<div class="panel"><h2>รายงานผลจะแสดงที่นี่</h2><p>ตั้งราคา จ้างพนักงานอย่างน้อย 1 คน เลือกการตลาด แล้วกด "จบสัปดาห์" ระบบจะคำนวณการจองของทุกโรงแรมพร้อมกันและอธิบายผลด้วยตัวชี้วัด 4 ตัว</p></div>`;
+  const o=LAST,y=o.hotels.you,i=o.idx;const labels=LOG.map(r=>'ส.'+r.week);const c=y.costs;
+  const headline=`สัปดาห์ที่ ${o.week} (${o.info.label}): RGI ${Math.round(i.rgi)} คุณทำรายได้ต่อห้อง${i.rgi>=100?'มากกว่า':'น้อยกว่า'}ค่าเฉลี่ยคู่แข่ง ${Math.abs(Math.round(i.rgi-100))}%`;
+  const costRows=[['ต้นทุนคงที่ (ค่าเช่า ค่าน้ำไฟ)',c.fixed],['ต้นทุนต่อห้อง-คืน',c.variable],['เงินเดือน',c.salaries],['โบนัส',c.bonus],['ชดเชยให้ออก',c.severance],['การตลาด',c.marketing],['ค่าคอมมิชชัน OTA',c.commission],['รีวิวปลอม',c.fake],['ค่าปรับ',c.fine],['ค่าซ่อม/ชดเชยแขก',c.crisis],['ดอกเบี้ย',c.interest]].filter(r=>r[1]>0).map(r=>`<tr><td>${r[0]}</td><td>${fmt(r[1])}</td></tr>`).join('');
+  return `<div class="panel"><div class="headline">${headline}</div><div style="display:grid;grid-template-columns:minmax(120px,200px) 1fr;gap:14px;align-items:center;margin-bottom:10px">${buildingSVG(y.occ,y.closed)}<div>${segMix(y)}<p class="note">ไฟในตึกเปิดตาม Occupancy สัปดาห์นี้ สีแดง = ห้องปิดซ่อม</p></div></div>${kpiCards(o)}</div>
+  <div class="two"><div class="panel"><h2>ตำแหน่งของคุณ: ยอดขาย × ราคา เทียบคู่แข่ง</h2><div class="chart" style="max-width:460px">${quadrantSVG()}</div>${quadLegend()}</div>
+  <div class="panel"><h2>ผลวิเคราะห์</h2><ul class="list">${diagnose(o).map(t=>`<li>${t}</li>`).join('')}</ul><h2 style="margin-top:14px">เหตุ → ผล สัปดาห์นี้</h2><ul class="list">${causeEffect(o).map(t=>`<li>${t}</li>`).join('')}</ul></div></div>
+  <div class="two"><div class="panel"><h2>เทียบกับคู่แข่ง</h2>${compTable(o)}<h3>RevPAR รายสัปดาห์</h3><div class="chart">${lineChart([{name:'คุณ',color:'var(--jade)',values:LOG.map(r=>r.revpar)},{name:'ค่าเฉลี่ยคู่แข่ง',color:'var(--muted)',values:LOG.map(r=>r.cRevpar)}],labels,{aria:'RevPAR รายสัปดาห์'})}</div>
+   <h3>RGI รายสัปดาห์</h3><div class="chart">${lineChart([{name:'RGI ของคุณ',color:'var(--lamp)',values:LOG.map(r=>r.rgi)}],labels,{ref:100,refLabel:'100 = ส่วนแบ่งที่ควรได้',aria:'RGI รายสัปดาห์'})}</div></div>
+  <div class="panel"><h2>การเงินสัปดาห์นี้</h2><div class="tablewrap"><table><tbody><tr><td><b>รายได้ห้องพัก</b></td><td><b>${fmt(y.revenue)}</b></td></tr>${costRows}<tr><td><b>กำไรสัปดาห์นี้</b></td><td class="${y.profit>=0?'up':'down'}"><b>${fmt(y.profit)}</b></td></tr><tr><td>เงินสดคงเหลือ</td><td>${fmt(y.cash)}</td></tr></tbody></table></div>
+   <p class="note">RevPAR วัดรายได้ห้องพัก ไม่ใช่กำไร โรงแรมที่ RevPAR สูงอาจขาดทุนได้ถ้าต้นทุนสูง</p>
+   <h2 style="margin-top:14px">คำถามชวนคิดก่อนสัปดาห์หน้า</h2><p>${PROMPTS[(o.week-1)%PROMPTS.length]}</p><p class="note">การเรียนรู้จากเกมจำลองเกิดมากในช่วงสรุปบทเรียนหลังเล่น (${src('crookall','Crookall, 2010')})</p></div></div>`;}
+
+/* ---------- events library tab ---------- */
+let FREQ=null;
+function citiesFor(s){const ids=Object.keys(CITIES).filter(id=>s.where(CITIES[id]));return ids.length===9?'ทุกเมือง':ids.map(id=>CITIES[id].name).join(', ');}
+function shockRows(cat){const ch=CHAOS[G.chaos];return SHOCKS.filter(s=>s.cat===cat).map(s=>{const wt=s.w*ch.sevW[s.sev]*(s.wf?s.wf(CITIES[G.city]):1);const here=s.where(CITIES[G.city]);
+  return `<tr><td>${s.positive?'▲':'▼'} <b>${s.name}</b><br><span class="small muted">${s.text}</span></td><td>${SEV[s.sev]}</td><td class="small">${citiesFor(s)}${s.months?`<br>เฉพาะ ${s.months.map(m=>TH_MONTH[m]).join(' ')}`:''}</td><td>${s.perm?'ถาวร':s.dur[0]===s.dur[1]?s.dur[0]+' สัปดาห์':s.dur[0]+'–'+s.dur[1]+' สัปดาห์'}${s.repeat?'<br><span class="small muted">เกิดซ้ำได้ เว้น 4 สัปดาห์</span>':''}</td><td class="small">${effText(s.eff)}</td><td>${here&&wt>0?wt.toFixed(2):'<span class="muted">0</span>'}</td></tr>`;}).join('');}
+function runFreq(){const n=300,cnt={},cat={macro:0,political:0,industry:0};let tot=0,neg=0,pos=0;
+  for(let i=0;i<n;i++){const g={city:G.city,startMonth:G.startMonth,chaos:G.chaos};const tl=buildTimeline(g,mulberry32(hashSeed('freq'+i)));
+    tl.forEach(t=>t.shocks.filter(x=>x.k===0).forEach(x=>{cnt[x.ev.id]=(cnt[x.ev.id]||0)+1;cat[x.ev.cat]++;tot++;x.ev.positive?pos++:neg++;}));}
+  FREQ={n,tot,cat,pos,neg,top:Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([id,c])=>({s:SHOCKS.find(x=>x.id===id),c}))};}
+function tabEvents(){const ch=CHAOS[G.chaos];
+  const nat=NATIONAL.filter(e=>!e.city||e.city===G.city).map(e=>`<tr><td><b>${e.name}</b><br><span class="small muted">${e.text}</span></td><td>${e.d} ${TH_MONTH[e.m]}${e.id==='loykrathong'||e.id==='cny'?' (โดยประมาณ)':''}</td><td class="small">${schedText(e)}</td></tr>`).join('');
+  const seeded=SEEDED.map(e=>`<tr><td><b>${e.name}</b><br><span class="small muted">${e.text}</span></td><td class="small">${schedText(e)}</td></tr>`).join('');
+  const freq=FREQ?`<p>จำลองเกม ${FREQ.n} เกมใน${CITIES[G.city].name} เริ่มเดือน${TH_MONTH_FULL[G.startMonth]} ระดับ${ch.name}: เกิดเหตุการณ์ใหม่เฉลี่ย <b>${(FREQ.tot/FREQ.n).toFixed(1)}</b> ครั้งต่อเกม (ร้าย ${(FREQ.neg/FREQ.n).toFixed(1)} · ดี ${(FREQ.pos/FREQ.n).toFixed(1)})</p>
+   <p class="small">ตามหมวด: ${Object.entries(FREQ.cat).map(([k,v])=>`${CATS[k]} ${(v/FREQ.n).toFixed(2)}`).join(' · ')} ครั้ง/เกม · ปัญหาภายในที่พักคำนวณแยกระหว่างเล่น</p>
+   ${FREQ.top.slice(0,12).map(t=>hbar(t.s.name,t.c/FREQ.n*100,null,Math.max(...FREQ.top.map(x=>x.c/FREQ.n*100)),(t.c/FREQ.n*100).toFixed(0)+'%')).join('')}<p class="note">แถบ = โอกาสที่เหตุการณ์นั้นจะเกิดอย่างน้อยหนึ่งครั้งในเกม (โดยประมาณ)</p>`:'';
+  return `<div class="panel"><h2>คลังเหตุการณ์และวิธีสุ่ม</h2>
+  <p>เหตุการณ์แบ่งตามกรอบการจัดการภาวะวิกฤตการท่องเที่ยวของ Faulkner (2001): <b>ภัยพิบัติ (disaster)</b> คือการเปลี่ยนแปลงฉับพลันที่ธุรกิจควบคุมไม่ได้ ส่วน <b>วิกฤต (crisis)</b> มีสาเหตุส่วนหนึ่งจากการบริหารของธุรกิจเอง (${src('faulkner','ที่มา')}) เหตุการณ์หลายสัปดาห์ในเกมจะแรงสุดในสัปดาห์แรก (ฉุกเฉิน) แล้วค่อยๆ ฟื้นตัว ตามแนวคิดระยะของภัยพิบัติ (${src('faulknerPhases','ที่มา')})</p>
+  <h3>วิธีสุ่ม (ระดับ${ch.name})</h3><ul class="list">
+   <li>สุ่มตารางเหตุการณ์ทั้งเกมครั้งเดียวตอนเริ่มจากรหัสเกม ทุกโรงแรมในเมืองเจอชุดเดียวกัน</li>
+   <li>แต่ละสัปดาห์มีโอกาส ${Math.round(ch.p*100)}% ที่จะเกิดเหตุการณ์ใหม่ (สุ่มได้สูงสุด ${ch.max} ครั้งต่อสัปดาห์)</li>
+   <li>เลือกเหตุการณ์จากคลังแบบถ่วงน้ำหนัก กรองตามเมืองและเดือน น้ำหนักตามความรุนแรงที่ระดับนี้: เล็ก ×${ch.sevW.minor}, ใหญ่ ×${ch.sevW.major}, รุนแรงมาก ×${ch.sevW.cat}</li>
+   <li>เหตุการณ์ใหญ่และรุนแรงมากเกิดได้ครั้งเดียวต่อเกม เหตุการณ์เล็กบางอย่างเกิดซ้ำได้แต่ต้องเว้น 4 สัปดาห์ และจะไม่สุ่มซ้ำขณะยังมีผลอยู่</li>
+   <li>ผลกระทบคูณด้วยตัวคูณความรุนแรงของระดับนี้ (×${ch.scale}) และลดลงตามระยะฟื้นตัว</li>
+   <li>ปัญหาภายในที่พักสุ่มแยกรายโรงแรมทุกสัปดาห์ โอกาสสูงขึ้นตามการบริหารของโรงแรมนั้นเอง</li></ul>
+  <button class="btn ghost" type="button" data-act="freq">จำลองความถี่ 300 เกม</button>${freq}
+  <details style="margin-top:12px"><summary>เฉลยตารางเหตุการณ์ของเกมนี้ (สำหรับผู้สอน)</summary><label class="row" style="justify-content:flex-start"><input type="checkbox" data-act="reveal" ${REVEAL?'checked':''}> แสดงเหตุการณ์ฉุกเฉินที่จะเกิดในปฏิทิน (ผู้เล่นจะเห็นคำตอบล่วงหน้า)</label></details></div>
+  <div class="panel"><h2>ที่มาของฤดูกาลในเกม</h2><p class="small">ฤดูกาลไทยแบ่งตาม ${src('tmd','สสช./กรมอุตุนิยมวิทยา')} ช่วงไฮซีซั่น กึ่งไฮซีซั่น และโลว์ซีซั่นของแต่ละเมืองเป็นค่าออกแบบที่อิงข้อมูลสภาพอากาศท่องเที่ยว เช่น ${src('phuket','ภูเก็ต')}, ${src('ranong','ระนอง')} เมืองอื่นเป็นค่าประมาณ ควรปรับด้วยสถิติรายเดือนภายหลัง</p></div>
+  <div class="panel evcat"><h2>อีเวนต์ที่รู้ล่วงหน้า</h2><h3>เทศกาลประจำปี (ตามวันที่จริง)</h3><div class="tablewrap"><table><thead><tr><th>อีเวนต์</th><th>วันที่</th><th>ผลต่อดีมานด์</th></tr></thead><tbody>${nat}</tbody></table></div>
+  <p class="note">วันที่เทศกาลอ้างอิง ${src('festival','ปฏิทินเทศกาลภูเก็ต')} ลอยกระทงและตรุษจีนเปลี่ยนทุกปี เกมใช้วันโดยประมาณ</p>
+  <h3>อีเวนต์ของเมือง (สุ่มสัปดาห์ ประกาศตั้งแต่ต้นเกม 2–3 งาน มีโอกาสถูกยกเลิก ${Math.round(CANCEL_P*100)}%)</h3><div class="tablewrap"><table><thead><tr><th>อีเวนต์</th><th>ผลต่อดีมานด์</th></tr></thead><tbody>${seeded}</tbody></table></div></div>
+  ${['macro','political','industry'].map(k=>`<div class="panel evcat"><h2>เหตุการณ์ฉุกเฉิน: ${CATS[k]}</h2><div class="tablewrap"><table><thead><tr><th>เหตุการณ์</th><th>ความรุนแรง</th><th>เกิดที่</th><th>ระยะเวลา</th><th>ผลเต็มที่</th><th>น้ำหนักใน${CITIES[G.city].name}</th></tr></thead><tbody>${shockRows(k)}</tbody></table></div></div>`).join('')}
+  <div class="panel evcat"><h2>ปัญหาภายในที่พัก (วิกฤตที่เกิดจากการบริหาร)</h2><div class="tablewrap"><table><thead><tr><th>เหตุการณ์</th><th>โอกาสเกิดต่อสัปดาห์</th><th>ผล</th></tr></thead><tbody>
+   <tr><td><b>${INTERNAL[0].name}</b><br><span class="small muted">${INTERNAL[0].variants.join(' / ')}</span></td><td>2% + 8% ถ้ารีวิวสัปดาห์ก่อนต่ำกว่า 3 ดาว + 4% ถ้าพนักงานไม่พอ</td><td>ดาวลด 0.45 ทันที</td></tr>
+   <tr><td><b>${INTERNAL[1].name}</b></td><td>15% ถ้า Occupancy สัปดาห์ก่อนเกิน 92%</td><td>ชดเชยแขก ${fmt(COST.overbook)} ฿ ดาวลด 0.2</td></tr>
+   <tr><td><b>${INTERNAL[2].name}</b></td><td>3%</td><td>ค่าซ่อม ${fmt(COST.repair)} ฿ ขายได้ 6 ห้อง นาน 2 สัปดาห์</td></tr>
+   <tr><td><b>${INTERNAL[3].name}</b></td><td>30% ถ้าราคาเฉลี่ยเกินคู่แข่ง 60% ในสัปดาห์ที่มีอีเวนต์</td><td>ดาวลด 0.25</td></tr></tbody></table></div>
+   <p class="note">ช่วงโลว์ซีซั่นไม่ได้อยู่ในการสุ่ม เพราะเป็นไปตามฤดูกาลจริงของเมืองในแท็บตลาดและปฏิทิน ค่าผลกระทบทั้งหมดเป็นค่าออกแบบเพื่อการเรียนรู้ ไม่ได้ประมาณจากข้อมูลจริง</p></div>`;}
+/* ---------- final ---------- */
+function finalHTML(){const fs=finalScores(G);const rank=fs.findIndex(f=>f.id==='you')+1;const avg=k=>LOG.reduce((a,r)=>a+r[k],0)/LOG.length;
+  const rows=fs.map((f,k)=>{const h=G.hotels.find(x=>x.id===f.id);return `<tr class="${f.id==='you'?'you':''}"><td>${k+1}. ${esc(f.name)}${f.id==='you'?' (คุณ)':''}</td><td>${Math.round(f.score)}</td><td>${Math.round(f.fin)}</td><td>${Math.round(f.rep)}</td><td>${Math.round(f.staff)}</td><td class="${f.profit>0?'up':'down'}">${fmt(f.profit)}</td><td>${h.isPlayer?'–':`${ARCH[h.arch].name} · ฝีมือ${SKILL[h.skill].name}`}</td></tr>`;}).join('');
+  const csv=['week,date,price_wd,price_we,staff,bonus,billboard,online,influencer,ota,fake,occ,adr,revpar,mpi,ari,rgi,rating,profit'].concat(LOG.map(r=>[r.week,'"'+r.date+'"',r.pwd,r.pwe,r.staff,r.bonus,r.bill,r.online,r.inf,r.ota?1:0,r.fake?1:0,(r.occ*100).toFixed(1),Math.round(r.adr),Math.round(r.revpar),Math.round(r.mpi),Math.round(r.ari),Math.round(r.rgi),r.rating.toFixed(2),Math.round(r.profit)].join(','))).join('\n');
+  return `<div class="panel"><h1>จบ 12 สัปดาห์ที่${CITIES[G.city].name}: คุณได้อันดับ ${rank} จาก ${fs.length}</h1>
+  <p>เฉลี่ยตลอดเกม: Occupancy ${pct(avg('occ'))} · ADR ${fmt(avg('adr'))} ฿ · RevPAR ${fmt(avg('revpar'))} ฿ · RGI ${Math.round(avg('rgi'))}</p>
+  <div class="tablewrap"><table><thead><tr><th>อันดับ</th><th>คะแนนรวม</th><th>การเงิน (50%)</th><th>ชื่อเสียง (35%)</th><th>พนักงาน (15%)</th><th>กำไรสะสม</th><th>เฉลยบอท</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <p class="note">กติกา: (1) โรงแรมที่ขาดทุนสะสมจัดอันดับต่อท้ายโรงแรมที่มีกำไรเสมอ (2) คะแนนการเงิน = กำไรสะสม ÷ กำไรสูงสุดในเมือง × 100 ถ้าขาดทุนได้ 0 (3) ชื่อเสียงจากดาวรีวิว (4) พนักงานจากความพึงพอใจเฉลี่ย</p></div>
+  <div class="two"><div class="panel"><h2>เส้นทางของคุณ</h2><div class="chart" style="max-width:460px">${quadrantSVG()}</div>${quadLegend()}</div>
+  <div class="panel"><h2>คำถามสำหรับสรุปบทเรียน</h2><ul class="list"><li>สัปดาห์ไหน RGI ของคุณสูงสุดและต่ำสุด เกิดจาก MPI หรือ ARI?</li><li>คุณใช้ปฏิทินอีเวนต์และฤดูกาลตั้งราคาล่วงหน้าได้ดีแค่ไหน มีครั้งไหนที่อีเวนต์ถูกยกเลิกแล้วเสียหาย?</li>
+   <li>เหตุการณ์ฉุกเฉินครั้งไหนกระทบคุณมากที่สุด คุณรับมือในช่วงฉุกเฉินและช่วงฟื้นตัวอย่างไร?</li><li>บอทสายไหนทำได้ดีที่สุดในเมืองนี้ เพราะเมืองนี้มีลูกค้ากลุ่มไหนมาก?</li><li>ถ้าดูแค่ Occupancy อย่างเดียว คุณจะตัดสินผลงานตัวเองผิดตรงไหน?</li></ul>
+   <p class="note">การเรียนรู้จากเกมจำลองเกิดมากในช่วงสรุปบทเรียน (${src('crookall','Crookall, 2010')})</p>
+   <div class="chart">${lineChart([{name:'RGI ของคุณ',color:'var(--lamp)',values:LOG.map(r=>r.rgi)}],LOG.map(r=>'ส.'+r.week),{ref:100,refLabel:'100 = ส่วนแบ่งที่ควรได้',aria:'RGI ตลอดเกม'})}</div></div></div>
+  <div class="panel"><h2>บันทึกการตัดสินใจ (CSV)</h2><p class="note">คัดลอกไปวางใน Excel หรือ Google Sheets เพื่อใช้ตอนสรุปบทเรียน</p><textarea readonly aria-label="บันทึกการตัดสินใจ CSV">${csv}</textarea>
+  <p style="margin-top:12px"><button class="btn" id="restart" type="button">เริ่มเกมใหม่</button></p></div>`;}
+/* ---------- actions ---------- */
+function endWeek(){const h=P();const x=weekCtx(G.week);
+  const dec={week:G.week+1,date:x.wi.label,pwd:h.price.wd,pwe:h.price.we,staff:h.staff.length,bonus:h.bonus,bill:h.mk.billboard,online:h.mk.online,inf:h.inf,ota:h.ota&&h.otaBan===0,fake:h.fake};
+  const o=simulateWeek(G);o.hotels.you.quits.forEach(n=>{const c=G.candidates.find(z=>z.name===n);if(c)c.gone=true;});const y=o.hotels.you;
+  LOG.push(Object.assign(dec,{occ:y.occ,adr:y.adr,revpar:y.revpar,cRevpar:o.comp.revpar,mpi:o.idx.mpi,ari:o.idx.ari,rgi:o.idx.rgi,rating:y.rating,R:y.R,profit:y.profit,Q:y.Q,E:y.E,cQ:o.comp.Q}));
+  LAST=o;TAB='report';renderGame();window.scrollTo(0,0);}
+function setPath(obj,path,val){const k=path.split('.');let t=obj;for(let i=0;i<k.length-1;i++)t=t[k[i]];t[k[k.length-1]]=val;}
+function rerender(keepScroll){const y=window.scrollY;renderGame();if(keepScroll)window.scrollTo(0,y);}
+document.addEventListener('click',e=>{
+  const cityEl=e.target.closest('[data-city]');if(cityEl&&!G){const id=cityEl.dataset.city;SETUP.city=id;SETUP.map=CITIES[id].map;SETUP.startMonth=+($('#smonth')?$('#smonth').value:SETUP.startMonth);SETUP.allowFake=$('#allowfake')?$('#allowfake').checked:SETUP.allowFake;renderSetup();return;}
+  if(e.target.dataset&&e.target.dataset.overlay){closeInfo();return;}
+  const t=e.target.closest('button');if(!t)return;
+  if(t.dataset.tab){TAB=t.dataset.tab;renderGame();return;}
+  if(t.dataset.act==='info'){INFO_OPEN=true;renderGame();const c=document.querySelector('[data-act="closeinfo"]');if(c)c.focus();return;}
+  if(t.dataset.act==='closeinfo'){closeInfo();return;}
+  if(t.dataset.step){const [k,d]=t.dataset.step.split(':');const r=document.querySelector(`input[type=range][data-k="${k}"]`);const h=P();
+    const cur=k.split('.').reduce((o,x)=>o[x],h);const v=clamp(cur+Number(d),Number(r.min),Number(r.max));setPath(h,k,v);syncCtl(k,v);updateSpend();return;}
+  if(t.dataset.set){SETUP.startMonth=+($('#smonth')?$('#smonth').value:SETUP.startMonth);SETUP.allowFake=$('#allowfake')?$('#allowfake').checked:SETUP.allowFake;
+    SETUP[t.dataset.set]=t.dataset.v;if(t.dataset.set==='map')SETUP.city=MAPS[t.dataset.v].cities[0];renderSetup();return;}
+  if(t.id==='start'){G=newGame({seed:$('#seed').value||'class',city:SETUP.city,startMonth:+$('#smonth').value,chaos:SETUP.chaos,allowFake:$('#allowfake').checked,hotelName:($('#hname').value||'โฮสเทลของฉัน').trim()});
+    LAST=null;LOG=[];FREQ=null;REVEAL=false;TAB='market';renderGame();window.scrollTo(0,0);return;}
+  if(t.dataset.staff){const h=P();const id=t.dataset.staff;const idx=h.staff.findIndex(s=>s.id===id);
+    if(idx>=0){h.severance=(h.severance||0)+h.staff[idx].salary;h.staff.splice(idx,1);}else if(h.staff.length<4){const c=G.candidates.find(z=>z.id===id);c.sat=70;h.staff.push(c);}
+    rerender(true);return;}
+  if(t.id==='endweek'){if(G.week<WEEKS)endWeek();return;}
+  if(t.dataset.act==='freq'){runFreq();const mb=document.querySelector('.modal-body');if(mb){const y=mb.scrollTop;mb.innerHTML=tabEvents();mb.scrollTop=y;}else rerender(true);return;}
+  if(t.dataset.act==='final'){$('#app').innerHTML=finalHTML();window.scrollTo(0,0);return;}
+  if(t.id==='restart'){G=null;LAST=null;LOG=[];renderSetup();window.scrollTo(0,0);return;}
+});
+function closeInfo(){INFO_OPEN=false;renderGame();const b=document.querySelector('[data-act="info"]');if(b)b.focus();}
+function syncCtl(k,v){document.querySelectorAll(`[data-k="${k}"]`).forEach(n=>{if(n.type==='range'||n.type==='number'){if(n!==document.activeElement||n.type==='range')n.value=v;}if(n.type==='range')n.style.setProperty('--p',((v-n.min)/(n.max-n.min)*100).toFixed(1)+'%');});document.querySelectorAll(`[data-show="${k}"]`).forEach(b=>b.textContent=fmt(v)+' ฿');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&INFO_OPEN){closeInfo();return;}if((e.key==='Enter'||e.key===' ')&&e.target.closest&&e.target.closest('[data-city]')&&!G){e.preventDefault();e.target.closest('[data-city]').dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
+document.addEventListener('input',e=>{const el=e.target;
+  if(el.dataset&&el.dataset.act==='reveal'){REVEAL=el.checked;return;}
+  if(!el.dataset||!el.dataset.k||!G)return;const k=el.dataset.k;const h=P();
+  if(el.type==='checkbox'){setPath(h,k,el.checked);rerender(true);return;}
+  if(k==='inf'){h.inf=el.value;updateSpend();return;}
+  let v=Number(el.value);if(!isFinite(v))return;if(k.startsWith('price'))v=clamp(Math.round(v/10)*10,200,4000);setPath(h,k,v);
+  syncCtl(k,v);updateSpend();});
+document.addEventListener('change',e=>{const el=e.target;if(el.type==='number'&&el.dataset&&el.dataset.k&&G){const v=el.dataset.k.split('.').reduce((o,x)=>o[x],P());el.value=v;}if(el.dataset&&el.dataset.k==='inf'&&G){P().inf=el.value;updateSpend();}if(el.id==='smonth')SETUP.startMonth=+el.value;});
+function updateSpend(){const b=document.querySelector('#spend b');if(b)b.textContent=fmt(plannedSpend().total)+' ฿';}
+renderSetup();
+
+</script>
+</body>
+</html>

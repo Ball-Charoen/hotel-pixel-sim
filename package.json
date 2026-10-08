@@ -1,0 +1,10 @@
+{
+  "name": "hotel-pixel-sim",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "Educational hotel-management web game set in Thailand (pixel art). P0 prototype done; P1 in progress.",
+  "scripts": {
+    "test": "node --test"
+  }
+}
