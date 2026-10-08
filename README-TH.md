@@ -19,7 +19,7 @@
 8. ตรวจว่า Claude อ่านคำสั่งประจำโปรเจกต์แล้ว: พิมพ์ `/context` แล้วดูว่ามี CLAUDE.md อยู่ในรายการ
 
 ## ไม่บังคับ แต่แนะนำ
-- ส่งออกเอกสาร System Design ฉบับเต็มเป็น Markdown จาก claude.ai แล้วบันทึกเป็น `docs/system-design-v0.3.md` (ลิงก์อยู่ใน `docs/design-doc.md`)
+- ✅ เอกสาร System Design ฉบับเต็มส่งออกแล้ว อยู่ที่ `docs/system-design-v0.3.md`
 - ให้ Claude ตั้ง Git ให้ตั้งแต่วันแรก จะย้อนกลับเวอร์ชันได้ถ้าแก้พลาด
 - สำรองโฟลเดอร์นี้ไว้ที่ Google Drive เป็นระยะ
 

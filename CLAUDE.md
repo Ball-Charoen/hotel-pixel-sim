@@ -12,7 +12,7 @@ Educational web game: students run a hotel in Thailand, from an 8-room hostel to
 ## Status
 - P0 (economy prototype) is DONE: `prototype/hotel-sim-p0-v0.3.html` is the playable reference; its split sources are in `prototype/src/`.
 - Current phase: **P1 single-player game** (see scope below). Gate to P2: the owner playtests 12 weeks on desktop and on a phone in landscape with no blockers, and `npm test` passes.
-- Full design rationale: `docs/spec-summary.md` (read when you need rules or numbers). Original living doc: link in `docs/design-doc.md`.
+- Full design rationale: `docs/spec-summary.md` (read when you need rules or numbers). Full exported doc: `docs/system-design-v0.3.md` (its §7 Tech stack is outdated; see `docs/design-doc.md`).
 
 ## Commands
 - `npm test` — runs `tests/*.test.mjs` (node:test) against `src/sim/core.js` and `src/ui/session.js`. Must stay green.
