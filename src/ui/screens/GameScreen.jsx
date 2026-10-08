@@ -32,7 +32,7 @@ function TopBar({ G, onInfo }) {
   );
 }
 
-function EndBar({ G, onEndWeek, onFinal }) {
+function EndBar({ G, saveOk, onEndWeek, onFinal }) {
   if (isOver(G)) {
     return <div class="endbar"><button class="btn" type="button" onClick={onFinal}>{t('end.final')}</button></div>;
   }
@@ -42,9 +42,11 @@ function EndBar({ G, onEndWeek, onFinal }) {
       <p class="small" style="margin:0 0 6px">
         {tx('end.spend', { amount: <b>{baht(plannedSpend(G).total)}</b> })} <span class="muted">{t('end.spendNote')}</span>
       </p>
+      {!saveOk && <div class="warn" style="margin:0 0 6px">{t('save.failed')}</div>}
       <button class="btn" type="button" disabled={!hasStaff} onClick={onEndWeek}>
         {hasStaff ? t('end.endWeek', { n: G.week + 1 }) : t('end.needStaff')}
       </button>
+      {saveOk && <p class="small muted" style="margin:4px 0 0;text-align:right">{t('save.status')}</p>}
     </div>
   );
 }
@@ -71,14 +73,14 @@ function InfoModal({ onClose, children }) {
   );
 }
 
-export function GameScreen({ s, update, onFinal }) {
-  const [tab, setTab] = useState('market');
+export function GameScreen({ s, update, saveOk, onFinal, initialTab = 'market' }) {
+  const [tab, setTab] = useState(initialTab);
   const [info, setInfo] = useState(false);
   const infoBtnFocus = () => document.querySelector('.infobtn')?.focus();
 
   const doEndWeek = () => {
     if (isOver(s.G)) return;
-    update(endWeek);
+    update(endWeek, true);
     setTab('report');
     window.scrollTo(0, 0);
   };
@@ -98,7 +100,7 @@ export function GameScreen({ s, update, onFinal }) {
         {tab === 'customer' && <CustomerTab s={s} />}
         {tab === 'report' && <ReportTab s={s} />}
       </div>
-      <EndBar G={s.G} onEndWeek={doEndWeek} onFinal={onFinal} />
+      <EndBar G={s.G} saveOk={saveOk} onEndWeek={doEndWeek} onFinal={onFinal} />
       {info && (
         <InfoModal onClose={() => { setInfo(false); infoBtnFocus(); }}>
           <EventsLibrary s={s} update={update} />

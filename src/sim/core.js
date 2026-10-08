@@ -1,6 +1,8 @@
 /* Hotel Pixel Simulation - economy core (from prototype P0 v0.3).
    Pure + deterministic: same seed -> same game. No DOM access. */
-function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+/* Seeded RNG. rng.state() exposes the internal counter so a saved game can resume with mulberry32(state)
+   and get exactly the same next numbers (see src/sim/save.js). */
+function mulberry32(a){const rng=function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};rng.state=()=>a|0;return rng;}
 function hashSeed(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19;}return h>>>0;}
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const r100=x=>Math.round(x/100)*100, r10=x=>Math.round(x/10)*10;

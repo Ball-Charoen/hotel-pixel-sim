@@ -1,29 +1,74 @@
 import { useState, useRef, useReducer, useEffect } from 'preact/hooks';
 import { startSession } from './session.js';
+import { writeSave, readSave, clearSave } from './saveStore.js';
 import { SetupScreen } from './screens/SetupScreen.jsx';
 import { GameScreen } from './screens/GameScreen.jsx';
 import { FinalScreen } from './screens/FinalScreen.jsx';
+import { t } from '../i18n/index.js';
 
 /* The sim core mutates the game object in place, so the session lives in a ref
-   and update(fn) runs the change then forces a re-render. */
+   and update(fn) runs the change then forces a re-render.
+   Every change is autosaved to this browser (one slot); see saveStore.js. */
 export function App() {
   const [screen, setScreen] = useState('setup');
+  const [resume, setResume] = useState(() => readSave());
+  const [saveOk, setSaveOk] = useState(true);
   const session = useRef(null);
+  const screenRef = useRef(screen);
+  screenRef.current = screen;
+  const timer = useRef(0);
   const [, rerender] = useReducer(x => x + 1, 0);
-  const update = fn => { fn(session.current); rerender(); };
 
-  const start = opts => { session.current = startSession(opts); setScreen('game'); window.scrollTo(0, 0); };
-  const restart = () => { session.current = null; setScreen('setup'); window.scrollTo(0, 0); };
+  const saveNow = (scr = screenRef.current) => {
+    clearTimeout(timer.current);
+    timer.current = 0;
+    if (session.current && scr !== 'setup') setSaveOk(writeSave(session.current, scr));
+  };
+  // Sliders fire many events; save shortly after the last one.
+  const saveSoon = () => { clearTimeout(timer.current); timer.current = setTimeout(() => saveNow(), 300); };
+  const update = (fn, now) => { fn(session.current); rerender(); if (now) saveNow(); else saveSoon(); };
 
-  // While a game is open, ask before the page is left or reloaded (the game is not saved yet).
+  const go = scr => { setScreen(scr); window.scrollTo(0, 0); };
+  const start = opts => {
+    if (resume && !window.confirm(t('save.overwriteConfirm'))) return;
+    session.current = startSession(opts);
+    saveNow('game');
+    go('game');
+  };
+  const continueGame = () => {
+    const d = readSave();
+    if (!d) { setResume(null); return; }
+    session.current = d.session;
+    go(d.screen === 'final' ? 'final' : 'game');
+  };
+  const deleteSave = () => {
+    if (!window.confirm(t('save.deleteConfirm'))) return;
+    clearSave();
+    setResume(null);
+  };
+  const restart = () => { clearSave(); setResume(null); session.current = null; go('setup'); };
+  const showFinal = () => { saveNow('final'); go('final'); };
+
+  // Write any pending save when the page is hidden or closed.
   useEffect(() => {
-    if (screen === 'setup') return undefined;
+    const flush = () => { if (timer.current) saveNow(); };
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', flush);
+    return () => { window.removeEventListener('pagehide', flush); document.removeEventListener('visibilitychange', flush); };
+  }, []);
+
+  // Only if saving fails (e.g. private window): ask before the page is left, since the game would be lost.
+  useEffect(() => {
+    if (screen === 'setup' || saveOk) return undefined;
     const warn = e => { e.preventDefault(); e.returnValue = ''; };
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
-  }, [screen]);
+  }, [screen, saveOk]);
 
-  if (screen === 'setup') return <SetupScreen onStart={start} />;
+  if (screen === 'setup') return <SetupScreen onStart={start} resume={resume} onContinue={continueGame} onDeleteSave={deleteSave} />;
   if (screen === 'final') return <FinalScreen s={session.current} onRestart={restart} />;
-  return <GameScreen s={session.current} update={update} onFinal={() => { setScreen('final'); window.scrollTo(0, 0); }} />;
+  return (
+    <GameScreen s={session.current} update={update} saveOk={saveOk} onFinal={showFinal}
+      initialTab={session.current.last ? 'report' : 'market'} />
+  );
 }

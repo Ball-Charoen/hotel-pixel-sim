@@ -170,3 +170,5 @@ table.compact .focus{font-size:.72rem;color:var(--muted);line-height:1.3;display
 .band2 .summer{background:#F2B33D;color:#1D2B34}.band2 .rainy{background:#5C8FB8;color:#fff}.band2 .winter{background:#D8E6EE;color:#1D2B34}
 .band2 .ev{background:var(--surface2);color:var(--ink)}
 .bandlegend{display:flex;flex-wrap:wrap;gap:6px 4px;margin-top:10px}
+/* P1: resume-saved-game card */
+.panel.resume{border-color:var(--jade);box-shadow:3px 3px 0 var(--jade)}

@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks';
-import { CITIES, MAPS, CHAOS, TH_MONTH_FULL } from '../../sim/core.js';
+import { CITIES, MAPS, CHAOS, TH_MONTH_FULL, WEEKS } from '../../sim/core.js';
 import { ThaiMap } from '../components/pixels.jsx';
 import { CityCard } from '../components/CityCard.jsx';
 import { Src } from '../components/widgets.jsx';
@@ -13,7 +13,26 @@ const SegButtons = ({ items, value, onPick }) => (
   </div>
 );
 
-export function SetupScreen({ onStart }) {
+/* Shown when this browser has an autosaved game. */
+function ResumeCard({ resume, onContinue, onDelete }) {
+  const G = resume.session.G;
+  const vars = { hotel: G.hotels[0].name, city: CITIES[G.city].name, week: Math.min(G.week + 1, WEEKS), weeks: WEEKS };
+  const time = new Date(resume.savedAt).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+  return (
+    <div class="panel resume">
+      <h2>{t('save.resumeTitle')}</h2>
+      <p><b>{resume.screen === 'final' ? t('save.resumeFinal', vars) : t('save.resumeLine', vars)}</b><br />
+        <span class="small muted">{t('save.savedAt', { time })}</span></p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn" type="button" onClick={onContinue}>{t('save.continue')}</button>
+        <button class="btn ghost" type="button" onClick={onDelete}>{t('save.delete')}</button>
+      </div>
+      <p class="note" style="margin:10px 0 0">{t('save.note')}</p>
+    </div>
+  );
+}
+
+export function SetupScreen({ onStart, resume, onContinue, onDeleteSave }) {
   const [s, setS] = useState(() => ({
     map: 'town', city: 'pbi', chaos: 'mid', allowFake: true, startMonth: 10,
     hotelName: t('setup.defaultHotelName'), seed: 'class-' + Math.floor(Math.random() * 9000 + 1000),
@@ -27,6 +46,8 @@ export function SetupScreen({ onStart }) {
   });
 
   return (
+    <>
+    {resume && <ResumeCard resume={resume} onContinue={onContinue} onDelete={onDeleteSave} />}
     <div class="panel">
       <h1>{t('app.title')} <span class="chip shoulder" style="vertical-align:middle">{t('app.phase')}</span></h1>
       <p class="muted">{t('setup.intro')}</p>
@@ -77,5 +98,6 @@ export function SetupScreen({ onStart }) {
         </div>
       </div>
     </div>
+    </>
   );
 }

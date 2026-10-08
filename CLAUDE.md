@@ -15,14 +15,15 @@ Educational web game: students run a hotel in Thailand, from an 8-room hostel to
 - Full design rationale: `docs/spec-summary.md` (read when you need rules or numbers). Full exported doc: `docs/system-design-v0.3.md` (its §7 Tech stack is outdated; see `docs/design-doc.md`).
 
 ## Commands
-- `npm test` — runs `tests/*.test.mjs` (node:test) against `src/sim/core.js` and `src/ui/session.js`. Must stay green.
+- `npm test` — runs `tests/*.test.mjs` (node:test): sim core, `src/sim/save.js`, `src/ui/session.js`, text files. Must stay green.
 - `npm run dev` — Vite dev server on port 5173 (Preview config "game" in `.claude/launch.json`). `npm run build` → `dist/`.
 - Stack (owner-approved 8 Oct 2026): Vite 8 + Preact 10 (not 11, too new) + `@preact/preset-vite`. Node 24 LTS.
 
 ## Layout
 - `src/sim/core.js` — economy core, ES module, pure and deterministic (seeded RNG). No DOM. All balance constants live here.
-- `src/ui/` — Preact UI: `App.jsx`, `screens/`, `tabs/`, `components/`, `styles/game.css` (ported from prototype). `session.js` = pure glue (decision log, hire/fire, end week).
-- `src/i18n/` — `t(key, vars)` / `tx(key, {name: <jsx/>})`; every UI string goes in `th.json` (EN added in P1 step 2).
+- `src/ui/` — Preact UI: `App.jsx`, `screens/`, `tabs/`, `components/`, `styles/game.css` (ported from prototype). `session.js` = pure glue (decision log, hire/fire, end week). `saveStore.js` = one autosave slot in localStorage.
+- `src/sim/save.js` — game ↔ JSON (RNG state + shock ids as markers). A resumed game must replay identically (tests/save.test.mjs). Bump `SAVE_VERSION` in `src/ui/saveStore.js` when rules or the save format change.
+- `src/i18n/` — `t(key, vars)` / `tx(key, {name: <jsx/>})`; every UI string goes in `th.json` (EN + zh-Hant added in P1 step 2).
 - `src/data/` — `thmap.json` (pixel map of Thailand rasterised from Natural Earth, public domain), `landmarks.json` (9 original 20×16 pixel vignettes).
 - `prototype/` — P0 v0.3 single-file game + its source pieces (UI patterns to port).
 - `assets/art-templates/` — palette (`hotel-pixel-32.gpl/.hex`), real-size canvases, layout guides. Owner's finished PNGs go to `assets/sprites/`.
@@ -35,16 +36,16 @@ Educational web game: students run a hotel in Thailand, from an 8-room hostel to
 - Events: scheduled events announced ahead (may be cancelled, 12%) + 21 shock events + 4 internal crises; same timeline for every hotel in a room; instructor sets chaos level and can disable fake reviews.
 - Bots: rule-based, 3 skill levels × 4 personalities. LLM strategy explanations only in P3.
 - UI: tabs (ตลาดและปฏิทิน, ตัดสินใจ, พนักงาน, ลูกค้า, รายงานผล); event library behind an "i" button top-right; KPI cards explain Occupancy/ADR/RevPAR/RGI with live calculation + sources; MPI/ARI 2×2 with labelled axes; sliders with −/+ steppers.
-- Fonts: IBM Plex Sans Thai for text, VT323 for numbers. Thai + English (all strings in locale files from the start of P1). Mobile = landscape.
+- Fonts: IBM Plex Sans Thai for text, VT323 for numbers. 3 languages: Thai, English, Traditional Chinese (owner decision 8 Oct 2026; all strings in locale files). Mobile = landscape.
 - Hosting: classroom hosting is NOT confirmed. Recommended: GitHub Pages (static) + Supabase free tier for P2 multiplayer. Ask the owner before setting either up.
 
 ## P1 scope (tick in docs/spec-summary.md as done)
 1. Building grows T0 → T2: apply for Type-1 hotel licence, then open a restaurant (Type 2).
 2. Staff in 3 positions: front office, housekeeping, F&B.
 3. Real pixel art from the owner; staff sprites walk inside the building (placeholders until PNGs arrive).
-4. Thai / English switch.
+4. Language switch: Thai / English / Traditional Chinese.
 5. Phone landscape layout.
-6. [ข้อเสนอ] Save game in the browser to continue later (confirm with owner).
+6. Save game in the browser to continue later (owner confirmed 8 Oct 2026; autosave, one slot).
 
 ## Working rules
 - Keep the sim core free of UI code; UI calls `newGame` / `simulateWeek` / `finalScores`.
