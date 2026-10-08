@@ -96,6 +96,10 @@ const CHANNELS={
 const INFLUENCER={none:{cost:0},micro:{cost:3000,cred:[.5,1.1]},macro:{cost:9000,cred:[.7,1.4]}};
 const OTA_BOOST={bp:.45,fam:.2,cpl:.35,biz:.3},OTA_COMMISSION=.15;
 const BASE_AW=.12,AW_K=.25,A0_BASE=.9;
+/* Whole-class market (owner decision 9 Oct 2026): city demand and the 'stay nowhere' option both scale with
+   hotels/MARKET_UNIT, so n hotels share a market like n/4 copies of the 4-hotel game. 4 hotels => x1 (single player unchanged). */
+const MARKET_UNIT=4;
+const marketScale=g=>g.hotels.length/MARKET_UNIT;
 const COST={fixed:12000,perRoomNight:200,fake:1500,fine:5000,interest:.01,repair:8000,overbook:3000};
 const START_CASH=60000;
 const SCORE_W={fin:.5,rep:.35,staff:.15};
@@ -231,12 +235,12 @@ function startProject(h,kind){if(!canStart(h,kind))return false;
 const maxStaff=h=>TIERS[h.tier].maxStaff;
 function simulateWeek(g){
   const w=g.week,c=CITIES[g.city],rng=g.rng;g.hotels.forEach(h=>{if(!h.isPlayer)botDecide(g,h);});
-  const E=weekEffects(g,w);const season=seasonMult(g,w);const segDemand={};
-  SEGMENTS.forEach(s=>{const fs=clamp(c.foreign*s.fb,0,.95);const d=c.demand[s.id]*season*E.seg[s.id]*((1-fs)*E.domestic+fs*E.foreign)*(0.92+rng()*0.16);segDemand[s.id]={total:d,fs};});
+  const E=weekEffects(g,w);const season=seasonMult(g,w);const segDemand={};const K=marketScale(g);
+  SEGMENTS.forEach(s=>{const fs=clamp(c.foreign*s.fb,0,.95);const d=c.demand[s.id]*K*season*E.seg[s.id]*((1-fs)*E.domestic+fs*E.foreign)*(0.92+rng()*0.16);segDemand[s.id]={total:d,fs};});
   g.hotels.forEach(h=>{h.stock.billboard=h.stock.billboard*CHANNELS.billboard.decay+h.mk.billboard/1000;h.stock.online=h.stock.online*CHANNELS.online.decay+h.mk.online/1000;
     let add=0;h.infCred=null;if(h.inf!=='none'){const I=INFLUENCER[h.inf];h.infCred=I.cred[0]+rng()*(I.cred[1]-I.cred[0]);add=I.cost/1000*h.infCred;}
     h.stock.influencer=h.stock.influencer*CHANNELS.influencer.decay+add;});
-  const A0=A0_BASE*E.A0;const res={};g.hotels.forEach(h=>res[h.id]={sold:{wd:0,we:0},rev:{wd:0,we:0},otaRev:0,seg:{},aw:{}});
+  const A0=A0_BASE*E.A0*K;const res={};g.hotels.forEach(h=>res[h.id]={sold:{wd:0,we:0},rev:{wd:0,we:0},otaRev:0,seg:{},aw:{}});
   g.hotels.forEach(h=>SEGMENTS.forEach(s=>res[h.id].aw[s.id]=awareness(h,s).aw));
   ['wd','we'].forEach(p=>{const want={},segBook={};g.hotels.forEach(h=>want[h.id]=0);
     SEGMENTS.forEach(s=>{const D=segDemand[s.id].total*(p==='wd'?s.wdShare:1-s.wdShare);const A={};let sum=0;const wtp=s.wtp*E.wtp;
@@ -248,7 +252,7 @@ function simulateWeek(g){
     g.hotels.forEach(h=>{const scale=want[h.id]>0?filled[h.id]/want[h.id]:0;const sold=Math.round(filled[h.id]);res[h.id].sold[p]=sold;res[h.id].rev[p]=sold*h.price[p];
       SEGMENTS.forEach(s=>{const sb=segBook[h.id+s.id];const n=sb.b*scale;res[h.id].seg[s.id]=(res[h.id].seg[s.id]||0)+n;res[h.id].otaRev+=n*h.price[p]*sb.ota;});});});
   const out={week:w+1,info:weekInfo(g,w),season,tl:g.timeline[w],E,hotels:{},news:[]};
-  const compAvgPrice=g.hotels.filter(h=>!h.isPlayer).reduce((a,h)=>a+(h.price.wd*5+h.price.we*2)/7,0)/3;
+  const others=g.hotels.filter(h=>!h.isPlayer);const compAvgPrice=others.reduce((a,h)=>a+(h.price.wd*5+h.price.we*2)/7,0)/others.length;
   const eventWeek=g.timeline[w].scheduled.some(e=>!e.cancelled);
   g.hotels.forEach(h=>{
     const r=res[h.id];const sold=r.sold.wd+r.sold.we;const occRooms=sold/7;const avgP=(r.rev.wd+r.rev.we)/(sold||1);
@@ -309,4 +313,4 @@ function finalScores(g){
     const sats=h.history.map(x=>x.teamSat);const staff=sats.length?sats.reduce((a,b)=>a+b,0)/sats.length:0;
     return {id:h.id,name:h.name,fin,rep,staff,score:SCORE_W.fin*fin+SCORE_W.rep*rep+SCORE_W.staff*staff,profit:h.profitCum,cash:h.cash,R:h.R};}).sort((a,b)=>((b.profit>0)-(a.profit>0))||(b.score-a.score));}
 
-export {TIERS, GROWTH, FNB, startProject, canStart, maxStaff, MAX_STAFF, ROLES, HK_COVER, LOAD_HIT, CAND_ROLES, LANG_RANGE, teamQuality, newGame, simulateWeek, finalScores, seasonMult, seasonLabel, weekInfo, tmdSeason, buildTimeline, weekEffects, refPrice, salaryOf, mulberry32, hashSeed, clamp, ROOMS, NIGHTS, WEEKS, SEGMENTS, MAPS, CITIES, NATIONAL, SEEDED, CANCEL_P, SHOCKS, INTERNAL, CHAOS, CHANNELS, INFLUENCER, OTA_BOOST, OTA_COMMISSION, COST, START_CASH, SCORE_W, ARCH, SKILL};
+export {MARKET_UNIT, marketScale, TIERS, GROWTH, FNB, startProject, canStart, maxStaff, MAX_STAFF, ROLES, HK_COVER, LOAD_HIT, CAND_ROLES, LANG_RANGE, teamQuality, newGame, simulateWeek, finalScores, seasonMult, seasonLabel, weekInfo, tmdSeason, buildTimeline, weekEffects, refPrice, salaryOf, mulberry32, hashSeed, clamp, ROOMS, NIGHTS, WEEKS, SEGMENTS, MAPS, CITIES, NATIONAL, SEEDED, CANCEL_P, SHOCKS, INTERNAL, CHAOS, CHANNELS, INFLUENCER, OTA_BOOST, OTA_COMMISSION, COST, START_CASH, SCORE_W, ARCH, SKILL};

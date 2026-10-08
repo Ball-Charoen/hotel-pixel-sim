@@ -12,7 +12,7 @@ Educational web game: students run a hotel in Thailand, from an 8-room hostel to
 ## Status
 - P0 (economy prototype) is DONE: `prototype/hotel-sim-p0-v0.3.html` is the playable reference; its split sources are in `prototype/src/`.
 - P1 single-player game: DONE (owner playtest passed 8 Oct 2026; all pixel art in place 9 Oct 2026: 9 city vignettes, buildings T0/T1/T2, staff sprites, staff portraits).
-- Next: **P2 multiplayer classroom** — hosting (GitHub Pages + Supabase recommended) and login model (instructor login + room code + name recommended) still need the owner's decision.
+- Current phase: **P2 multiplayer classroom** (decisions below in Locked decisions; checklist in docs/spec-summary.md §13).
 - Full design rationale: `docs/spec-summary.md` (read when you need rules or numbers). Full exported doc: `docs/system-design-v0.3.md` (its §7 Tech stack is outdated; see `docs/design-doc.md`).
 
 ## Commands
@@ -44,7 +44,7 @@ Educational web game: students run a hotel in Thailand, from an 8-room hostel to
 - Bots: rule-based, 3 skill levels × 4 personalities. LLM strategy explanations only in P3.
 - UI: tabs (ตลาดและปฏิทิน, ตัดสินใจ, พนักงาน, ลูกค้า, รายงานผล); event library behind an "i" button top-right; KPI cards explain Occupancy/ADR/RevPAR/RGI with live calculation + sources; MPI/ARI 2×2 with labelled axes; sliders with −/+ steppers.
 - Fonts: IBM Plex Sans Thai for text, VT323 for numbers. 3 languages: Thai, English, Traditional Chinese (owner decision 8 Oct 2026; all strings in locale files). Mobile = landscape.
-- Hosting: classroom hosting is NOT confirmed. Recommended: GitHub Pages (static) + Supabase free tier for P2 multiplayer. Ask the owner before setting either up.
+- P2 (owner decisions 9 Oct 2026): GitHub Pages (public repo) + Supabase free; instructor login, students join with room code + name (+ optional owner name), no student accounts (Supabase anonymous sign-in); the whole class is ONE market (`marketScale`: demand and A0 × hotels/4, single player unchanged); instructor can add 0–3 bots; weeks advance by instructor button or timer. Results computed server-side only. The owner creates the accounts; Claude never signs in for them.
 
 ## P1 scope (tick in docs/spec-summary.md as done)
 1. Building grows T0 → T2: apply for Type-1 hotel licence, then open a restaurant (Type 2).
