@@ -47,64 +47,58 @@ Reply only with the image. If something in my request is impossible, tell me bri
 
 ---
 
-## 1. อาคารโฮสเทลเริ่มต้น T0 → `building-t0.png` (ขนาดจริง 320×300)
+## 1–3. อาคาร: ใช้วิธี "วาดทับภาพบล็อก"
 
-แนบไฟล์: `assets/art-templates/guide-building-320x300-x2.png`
+ลองครั้งแรกแล้ว (9 ต.ค. 2569) ถ้าสั่งด้วยตัวเลขอย่างเดียว ChatGPT จะวาดตึกสวยแต่ผิดผัง เช่น เพิ่มตึกที่สอง หลังคาสูงเกิน หรือหน้าต่างเล็กและอยู่ผิดที่ ทำให้ไฟห้องในเกมไม่ตรงกับหน้าต่าง
+
+**อัปเดต 9 ต.ค. 2569: T0 เสร็จแล้ว** ChatGPT ไม่ได้วางตามภาพบล็อกเป๊ะ แต่ได้โครงสร้างถูก (ตึกเดียว ชั้นละ 4 หน้าต่าง ล็อบบี้ บันไดขวา) Claude จึง**วัดตำแหน่งหน้าต่างและพื้นจากภาพจริง แล้วปรับเกมให้ตรงกับภาพ**แทน สำหรับ T1/T2 จึงขอแค่โครงสร้างถูก: ตึกเดียว 4 ชั้น ชั้นละ 4 หน้าต่างขนาดเท่ากัน มีเคาน์เตอร์ ประตู บันไดขวา (T2 เพิ่มห้องอาหาร) ไม่ต้องตรงทุกจุด และให้แนบภาพ T0 (`assets/sprites/building-t0.png`) ไปด้วยเสมอ ตึกจะได้ดูเป็นหลังเดียวกัน
+
+วิธีที่ได้ผลกว่าคือแนบ **ภาพบล็อก** ขนาด 1024×1024 ซึ่งวางทุกอย่างไว้ตรงตำแหน่งในเกมแล้ว จากนั้นสั่งให้ ChatGPT "แต่งภาพนี้ให้เป็นภาพพิกเซลสวยๆ โดยไม่ขยับอะไร"
+
+| ภาพ | แนบไฟล์ | ชื่อไฟล์ในเกม |
+|---|---|---|
+| T1 โรงแรม 16 ห้อง | `assets/art-templates/blockout-t1.png` + ภาพ T0 ที่ได้ | `building-t1.png` |
+| T2 โรงแรม + ห้องอาหาร | `assets/art-templates/blockout-t2.png` + ภาพ T1 ที่ได้ | `building-t2.png` |
+
+(สร้างภาพบล็อกใหม่ได้ด้วย `python3 tools/blockout.py assets/art-templates`)
+
+### T0 (แนบ blockout-t0.png)
 
 ```text
-Draw the hotel building for stage T0: a small 3-storey Thai hostel, shown as a side-view facade.
-Image size: square 1024x1024. The design grid below is 320 wide x 300 tall, drawn at 3.2x so it fills 1024x960; put 64 px of plain sky #bfe0ea at the very top to fill the square. Final art will be scaled down to 320x300.
-Use the attached guide image for the layout. Follow its boxes exactly, but do NOT draw the guide lines or labels.
-
-Layout, measured on a 320 x 300 grid (x from left, y from top):
-- Sky background #bfe0ea everywhere above the ground. Grass/pavement strip at the bottom: y 286 to 300.
-- Roof: x 12-308, y 16-66. Stepped Thai-style roof in #7a4b32 with a teak #8c5a3c trim. [proposal]
-- Facade wall: x 20-299, from y 66 down to the ground at y 286, wall beige #e9d9bf with teak #8c5a3c floor beams between storeys.
-- Floor 2 (top guest floor): y 66-128. Four windows, each exactly 46 wide x 41 tall, at x = 41, 108, 174, 241, top edge y = 74.
-- Floor 1: y 137-198. Four windows, same size, same x positions, top edge y = 145.
-- Every window: a simple teak frame 2 px thick around plain flat window-grey #9db3b8 glass, one vertical mullion in the middle. Nothing inside the glass (no curtains, people or lights) - the game lights the windows itself.
-- Lobby (ground floor): y 207-286. A flat sign box at the top-left (x 30-90, y 214-232), in jade #1f7a65, with the word HOSTEL in cream blocky pixel letters. A teak reception desk on the left (x 44-96, sitting on the floor at y 286, 18 px tall). A dark wood #5b3724 double door at x 228-258, 52 px tall, with a small lamp. A potted plant at about x 166-186.
-- A narrow staircase column on the far right edge (x 286-300) running from the ground up to the top floor.
-- Each storey has a clear, flat floor line at its bottom edge (y 128, 198 and 286): staff characters 32 px tall will walk on these lines, so keep the space just above each line free of furniture except the desk and plant.
-- Style: warm, friendly Thai shophouse feeling, teak wood and beige plaster. [proposal]
+The attached image is a BLOCKOUT of my game's hostel building (side-view facade). Repaint it as detailed pixel art in the style rules above.
+STRICT: keep the exact same composition. Every shape must stay in the same position and the same size:
+- the roof outline, the facade wall edges, the 8 windows (2 rows x 4), the brown floor beams, the HOSTEL sign, the reception desk, the potted plant, the door, the small staircase marks on the right edge, the grass line at the bottom.
+- Do NOT add any other building, tower, emblem, tree in front of the facade, or extra floor. Do NOT move, resize, add or remove windows.
+- Windows: keep the teak frame and the middle bar, glass stays flat window-grey #9db3b8 with nothing inside (the game lights them).
+- Keep the floor area just above each brown beam and the lobby floor clear: staff characters walk there.
+You may add: wood grain on beams, roof tiles and a Thai-style roof trim inside the roof shape, plaster texture with 2 shades, window sills, a lamp above the door, details on the desk and plant, a few tiles on the ground. Sky stays plain #bfe0ea (a couple of small pixel clouds above the roof is fine).
+Output: square 1024x1024, same framing as the blockout.
 ```
 
-## 2. โรงแรมประเภท 1 T1 → `building-t1.png` (16 ห้อง 4 ชั้น)
-
-แนบไฟล์:
-- `assets/art-templates/guide-building-t1-t2-320x300-x2.png`
-- ภาพ T0 ที่ได้จากข้อ 1 (ให้ตึกต่อเติมแล้วยังดูเป็นตึกเดิม)
+### T1 (แนบ blockout-t1.png และภาพ T0 ที่ได้)
 
 ```text
-Now draw the same building after it has been extended to a 5-storey Type-1 hotel (stage T1). Keep exactly the same style, colours, materials and roof design as the T0 image I attached, so it clearly looks like the same building grown taller.
-Image size: square 1024x1024, same framing as the T0 image (320 x 300 design grid at 3.2x, plus 64 px of plain sky at the very top). Follow the attached guide (T1/T2) for the layout, without drawing its guide lines or labels.
-
-Layout on a 320 x 300 grid:
-- Sky #bfe0ea background, ground strip y 286-300.
-- Roof: x 12-308, y 16-50 (lower and flatter than T0).
-- Facade wall x 20-299 from y 50 to y 286, with teak floor beams between storeys.
-- Four guest floors, each with four windows 46 wide x 30 tall at x = 41, 108, 174, 241:
-  floor 4: band y 50-94, window top y 55
-  floor 3: band y 98-142, window top y 103
-  floor 2: band y 146-190, window top y 151
-  floor 1: band y 194-238, window top y 199
-- Windows: teak frame 2 px, flat #9db3b8 glass, one middle mullion, nothing inside.
-- Lobby: y 242-286. Jade sign box at top-left (x 30-82, y 249-267) with the word HOTEL in cream blocky pixel letters. Teak reception desk on the left (x 44-96, 18 px tall, on the floor at y 286). Dark wood door at x 228-258, 38 px tall, plant at about x 166-186.
-- Narrow staircase column on the far right edge (x 286-300) from the ground to the top floor.
-- Clear flat floor lines at y 94, 142, 190, 238 and 286 for 32-px-tall staff to walk on.
+Image 1 is the BLOCKOUT for the same hostel after it grew into a 5-storey hotel. Image 2 is the finished T0 art.
+Repaint image 1 as pixel art in exactly the same style, colours and materials as image 2, so it is clearly the same building made taller.
+STRICT: keep every shape of the blockout in the same position and size: roof outline, wall edges, 16 windows (4 rows x 4), floor beams, HOTEL sign, desk, door, staircase marks, grass line. No extra buildings or objects, no moved or resized windows, glass flat #9db3b8 with nothing inside, floors clear for walking staff.
+Output: square 1024x1024, same framing as the blockout.
 ```
 
-## 3. โรงแรมประเภท 2 T2 (มีห้องอาหาร) → `building-t2.png`
-
-แนบไฟล์: ภาพ T1 ที่ได้จากข้อ 2
+### T2 (แนบ blockout-t2.png และภาพ T1 ที่ได้)
 
 ```text
-Take the T1 hotel image I attached and change ONLY the lobby (y 242-286 on the 320 x 300 grid). Everything above the lobby must stay pixel-for-pixel identical.
-- Keep the HOTEL sign and the reception desk on the left.
-- Move the entrance door to x 132-156 (dark wood, 38 px tall).
-- Remove the plant and the old door on the right. In their place add a small Thai restaurant area from x 178 to 262: a brick-red #b5643c sign box (x 178-222, y 249-267) with the word FOOD in cream blocky letters, and two small teak tables with chairs on each side, standing on the floor line y 286, with tiny cream plates on the tables.
-- Keep the floor line at y 286 clear between the tables, because waiters walk there.
-Same size and framing as before (1024x1024).
+Image 1 is the BLOCKOUT for the same hotel with a small restaurant in the lobby. Image 2 is the finished T1 art.
+Repaint image 1 so that everything above the lobby is identical to image 2, and the lobby follows the blockout: HOTEL sign and desk on the left, the door in the middle, the brick-red FOOD sign and two small teak tables with chairs on the right.
+STRICT: same positions and sizes as the blockout, nothing added, floor clear between the tables for waiters.
+Output: square 1024x1024, same framing as the blockout.
+```
+
+### ถ้าภาพออกมายังผิดผัง
+
+พิมพ์ต่อในแชตเดิม:
+
+```text
+This does not match the blockout. Put the blockout back as the base and only change surface details: same outline, same window positions and sizes, no extra building. Try again.
 ```
 
 ---

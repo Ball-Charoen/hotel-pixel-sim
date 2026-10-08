@@ -1,6 +1,6 @@
 /* Placeholder art drawn in code with the game palette (assets/art-templates/hotel-pixel-32.hex).
    Replaced automatically when the owner's PNGs are in assets/sprites/ (see sprites.js). */
-import { W, H, WALL_X, WALL_W, GROUND_Y, LAYOUT_T0, STAIRS_X, DESK_X, REST_X, SPRITE } from './layout.js';
+import { W, H, GROUND_Y, LAYOUT_T0, SPRITE } from './layout.js';
 
 export const C = {
   ink: '#1d2b34', dark: '#3a3a44', slate: '#7d8fa0', cream: '#f4efe2', wall: '#e9d9bf', sky: '#bfe0ea', mist: '#e8f0f2',
@@ -32,7 +32,8 @@ function pixelText(ctx, text, x, y, color, scale = 2) {
    L = layout (T0 hostel or T1/T2 hotel); restaurant = Type 2 dining area in the lobby. */
 export function drawBuilding(L = LAYOUT_T0, { restaurant = false } = {}) {
   const c = canvas(W, H), g = c.getContext('2d');
-  const R = L.roof, F = L.floors, lobby = F[0];
+  const R = L.roof, F = L.floors, lobby = F[0], { x: WALL_X, w: WALL_W } = L.wall;
+  const STAIRS_X = L.stairsX, DESK_X = L.deskX, REST_X = L.restX;
   g.fillStyle = C.sky; g.fillRect(0, 0, W, H);
   g.fillStyle = C.grass; g.fillRect(0, GROUND_Y, W, H - GROUND_Y);
   // stepped roof
