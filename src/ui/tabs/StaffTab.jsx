@@ -1,5 +1,5 @@
 import { WEEKS, ROLES } from '../../sim/core.js';
-import { player, toggleStaff, openCandidates, roleOpen, MAX_STAFF } from '../session.js';
+import { player, toggleStaff, openCandidates, roleOpen, staffLimit } from '../session.js';
 import { Avatar } from '../components/pixels.jsx';
 import { N } from '../names.js';
 import { HBar, RangeCtl, LineChart, Src } from '../components/widgets.jsx';
@@ -9,7 +9,7 @@ import { t, tx } from '../../i18n/index.js';
 
 const POSITIONS = ['fo', 'hk', 'fb'];
 /* Skills each position actually uses in the quality formula (core.js teamQuality); shown in bold. */
-const KEY_SKILLS = { fo: ['app', 'serv', 'prof', 'lang'], hk: ['exp', 'serv'], fb: [] };
+const KEY_SKILLS = { fo: ['app', 'serv', 'prof', 'lang'], hk: ['exp', 'serv'], fb: ['serv', 'exp', 'app'] };
 
 function StaffCard({ c, hired, canHire, locked, onToggle, playing }) {
   return (
@@ -55,7 +55,8 @@ export function StaffTab({ s, update }) {
     comp[k] = bots.reduce((a, b) => a + b.staff.reduce((x, st) => x + st[k], 0) / Math.max(1, b.staff.length), 0) / bots.length;
   });
   const toggle = id => update(() => toggleStaff(G, id));
-  const canHire = h.staff.length < MAX_STAFF;
+  const max = staffLimit(G);
+  const canHire = h.staff.length < max;
   const count = role => h.staff.filter(x => x.role === role).length;
   const open = openCandidates(G);
   const cap = ROLES.fo.cap;
@@ -76,6 +77,7 @@ export function StaffTab({ s, update }) {
             <HBar label={t('staff.adequacy')} v={last.adequacy * 100} right={pct(last.adequacy)} />
             <HBar label={t('staff.loadFO')} v={last.loadFO || 0} mark={cap} max={cap * 2} right={Math.round(last.loadFO || 0)} />
             <HBar label={t('staff.loadHK')} v={last.loadHK || 0} mark={cap} max={cap * 2} right={Math.round(last.loadHK || 0)} />
+            {h.restaurant && <HBar label={t('staff.loadFB')} v={last.loadFB || 0} mark={cap} max={cap * 2} right={Math.round(last.loadFB || 0)} />}
             <p class="note">{t('staff.loadNote')}</p>
           </>
         )}
@@ -95,8 +97,8 @@ export function StaffTab({ s, update }) {
         )}
       </div>
       <div class="panel">
-        <h2>{t('staff.team', { n: h.staff.length, max: MAX_STAFF })}</h2>
-        <p class="small">{t('staff.teamRoles', { fo: count('fo'), hk: count('hk') })}</p>
+        <h2>{t('staff.team', { n: h.staff.length, max })}</h2>
+        <p class="small">{t('staff.teamRoles', { fo: count('fo'), hk: count('hk') })}{count('fb') ? ` · ${t('role.fb')} ${count('fb')}` : ''}</p>
         {count('fo') > 0 && count('hk') === 0 && <div class="warn">{t('staff.noHK')}</div>}
         <div class="staff">
           {h.staff.length

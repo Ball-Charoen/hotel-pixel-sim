@@ -2,7 +2,7 @@
    Pure (no DOM) so it can be tested with node. Logic ported unchanged from prototype/src/ui3b.js + ui3d.js. */
 import {
   newGame, simulateWeek, weekInfo, seasonMult, seasonLabel, tmdSeason, buildTimeline, mulberry32, hashSeed,
-  WEEKS, INFLUENCER, COST, SHOCKS, MAX_STAFF,
+  WEEKS, INFLUENCER, COST, SHOCKS, MAX_STAFF, GROWTH, maxStaff, startProject, canStart,
 } from '../sim/core.js';
 
 export { MAX_STAFF };
@@ -24,13 +24,19 @@ export function weekCtx(G, w) {
 export function plannedSpend(G) {
   const h = player(G);
   const sal = h.staff.reduce((a, s) => a + s.salary, 0);
+  const fixed = COST.fixed + (h.rooms - 8) * GROWTH.fixedPerExtraRoom + (h.restaurant ? GROWTH.restFixed : 0);
   const total = sal + h.bonus + h.mk.billboard + h.mk.online
-    + (h.inf !== 'none' ? INFLUENCER[h.inf].cost : 0) + (h.fake ? COST.fake : 0) + COST.fixed;
+    + (h.inf !== 'none' ? INFLUENCER[h.inf].cost : 0) + (h.fake ? COST.fake : 0) + fixed + (h.invest || 0);
   return { sal, total };
 }
 
-/* F&B staff only have work once the hotel has a restaurant (Type 2, P1 step 6). */
-export const roleOpen = (G, role) => role !== 'fb';
+/* F&B staff can be hired once the restaurant is being fitted out or open (Type 2). */
+export const roleOpen = (G, role) => role !== 'fb' || player(G).restaurant || !!player(G).proj.rest;
+export const staffLimit = G => maxStaff(player(G));
+
+/* Growth actions for the player's hotel: 'licence' (Type 1 + build to 16 rooms) or 'restaurant' (Type 2). */
+export const canGrow = (G, kind) => canStart(player(G), kind);
+export const grow = (G, kind) => startProject(player(G), kind);
 export const hasFrontOffice = G => player(G).staff.some(s => s.role === 'fo');
 
 /* Hire a candidate, or fire them if already on the team (pays 1 week severance). */
@@ -40,7 +46,7 @@ export function toggleStaff(G, id) {
   if (idx >= 0) {
     h.severance = (h.severance || 0) + h.staff[idx].salary;
     h.staff.splice(idx, 1);
-  } else if (h.staff.length < MAX_STAFF) {
+  } else if (h.staff.length < maxStaff(h)) {
     const c = G.candidates.find(z => z.id === id);
     if (!roleOpen(G, c.role)) return;
     c.sat = 70;
@@ -67,7 +73,7 @@ export function endWeek(session) {
   const y = o.hotels.you;
   session.log.push(Object.assign(dec, {
     occ: y.occ, adr: y.adr, revpar: y.revpar, cRevpar: o.comp.revpar, mpi: o.idx.mpi, ari: o.idx.ari, rgi: o.idx.rgi,
-    rating: y.rating, R: y.R, profit: y.profit, Q: y.Q, E: y.E, cQ: o.comp.Q,
+    rating: y.rating, R: y.R, profit: y.profit, Q: y.Q, E: y.E, cQ: o.comp.Q, rooms: y.rooms, fnbRev: y.fnb.revenue,
   }));
   session.last = o;
   return o;
@@ -93,11 +99,11 @@ export function eventFrequency(G, n = 300) {
 
 /* Decision log as CSV for debriefing in Excel / Google Sheets. dateOf(week) gives the date label. */
 export function decisionCsv(log, dateOf) {
-  const head = 'week,date,price_wd,price_we,staff,bonus,billboard,online,influencer,ota,fake,occ,adr,revpar,mpi,ari,rgi,rating,profit';
+  const head = 'week,date,price_wd,price_we,staff,bonus,billboard,online,influencer,ota,fake,occ,adr,revpar,mpi,ari,rgi,rating,profit,rooms,fnb_revenue';
   const rows = log.map(r => [
     r.week, '"' + dateOf(r.week) + '"', r.pwd, r.pwe, r.staff, r.bonus, r.bill, r.online, r.inf, r.ota ? 1 : 0, r.fake ? 1 : 0,
     (r.occ * 100).toFixed(1), Math.round(r.adr), Math.round(r.revpar), Math.round(r.mpi), Math.round(r.ari), Math.round(r.rgi),
-    r.rating.toFixed(2), Math.round(r.profit),
+    r.rating.toFixed(2), Math.round(r.profit), r.rooms, Math.round(r.fnbRev),
   ].join(','));
   return [head].concat(rows).join('\n');
 }

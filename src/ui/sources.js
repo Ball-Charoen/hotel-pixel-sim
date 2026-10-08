@@ -22,4 +22,7 @@ export const SRC = {
   faulkner: 'https://1library.net/article/key-terms-discussion-assessment-literature.yexrev0q',
   faulknerPhases: 'https://dspace.angliss.edu.au/handle/20.500.12270/350',
   ne: 'https://github.com/nvkelso/natural-earth-vector',
+  hotelReg: 'https://download.asa.or.th/03media/04law/ha/mr51.pdf', // Royal Gazette, 23 May B.E. 2551 (copy hosted by the Architect Council)
+  hotelAct: 'https://report.dopa.go.th/laws/document/2/234.pdf', // Hotel Act B.E. 2547, Office of the Council of State translation
+  smallStay: 'https://www.thairath.co.th/news/politic/2649136',
 };

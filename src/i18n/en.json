@@ -188,12 +188,13 @@
     "rolesIntro": "Each applicant applies for one position. Service quality = 60% from the front office team + 40% from the housekeeping team. Skills used by each position are in bold.",
     "help_fo": "Check-in, information and talking to guests. Uses appearance, service mind, professionalism and languages (languages matter a lot in cities with many foreign guests).",
     "help_hk": "Rooms clean and ready as booked. Uses mainly experience, plus service mind. With no housekeeper, front office staff clean instead at 70% quality and twice the workload.",
-    "help_fb": "Runs the restaurant. Can be hired once the hotel has a restaurant (Type 2).",
+    "help_fb": "Runs the restaurant. Uses service mind, experience and appearance; about 150 diners per person per week. Can be hired once restaurant work starts (Type 2).",
     "fbLocked": "Opens with a restaurant (Type 2)",
     "noHK": "No housekeeper yet: front office staff must clean the rooms",
     "loadFO": "Front office workload (room-nights/person)",
     "loadHK": "Housekeeping workload (room-nights/person)",
-    "teamRoles": "Front office {fo} · Housekeeping {hk}"
+    "teamRoles": "Front office {fo} · Housekeeping {hk}",
+    "loadFB": "F&B workload (room-night equivalent/person)"
   },
   "customer": {
     "emptyTitle": "Customer data appears after the first week",
@@ -264,7 +265,8 @@
     "guideSummary": "Show thinking guide (try answering first, then open)",
     "guideWhy": "How this situation happens",
     "guideTodo": "What you could try",
-    "guideNote": "This guide is based on the game's rules; it is not the only correct answer."
+    "guideNote": "This guide is based on the game's rules; it is not the only correct answer.",
+    "fnbRevenue": "Restaurant revenue"
   },
   "cost": {
     "fixed": "Fixed costs (rent, utilities)",
@@ -277,7 +279,9 @@
     "fake": "Fake reviews",
     "fine": "Fine",
     "crisis": "Repairs / guest compensation",
-    "interest": "Interest"
+    "interest": "Interest",
+    "invest": "Investment (licence / building / restaurant)",
+    "food": "Food cost"
   },
   "comp": {
     "hotel": "Hotel",
@@ -898,11 +902,43 @@
     "staffFallback": "Staff member"
   },
   "scene": {
-    "aria": "Hostel cross-section: {lit} of {rooms} rooms lit, {n} staff at work"
+    "aria": "Building cross-section: {lit} of {rooms} rooms lit, {n} staff at work"
   },
   "role": {
     "fo": "Front office",
     "hk": "Housekeeping",
     "fb": "F&B"
+  },
+  "growth": {
+    "title": "Growing the hotel",
+    "tier0": "Small accommodation (no hotel licence needed) · {rooms} rooms",
+    "tier1": "Type 1 hotel (rooms only) · {rooms} rooms",
+    "tier2": "Type 2 hotel (rooms + restaurant) · {rooms} rooms",
+    "now": "Now: {tier}",
+    "law": "Under Thai law, places with more than 8 rooms or 30 guests need a hotel licence. Type 1 = rooms only, Type 2 = rooms + restaurant ({src}). The game compresses a process that really takes months.",
+    "srcLaw": "Ministerial Regulation on hotel types, B.E. 2551",
+    "step1": "1. Apply for a Type 1 hotel licence",
+    "step1Info": "{cost} ฿ paid this week · decision in {w} weeks",
+    "step2": "2. Extend to {rooms} rooms",
+    "step2Info": "{cost} ฿ paid when the licence arrives · takes {w} weeks · running cost +{fixed} ฿/week · staff limit {staff}",
+    "step3": "3. Open a restaurant (Type 2)",
+    "step3Info": "{cost} ฿ · takes {w} weeks · fixed cost +{fixed} ฿/week · needs F&B staff · staff limit {staff}",
+    "apply": "Apply for licence",
+    "openRest": "Start restaurant",
+    "confirmLicence": "Apply for a Type 1 hotel licence? You pay {cost} ฿ this week, and building starts as soon as the licence arrives ({build} ฿ more).",
+    "confirmRest": "Start the restaurant? You pay {cost} ฿ this week and {fixed} ฿ more fixed cost every week.",
+    "waiting": "Decision in {n} weeks",
+    "building": "Building, {n} weeks left",
+    "auto": "Starts automatically with the licence",
+    "fitting": "Fitting out, {n} weeks left",
+    "done": "✓ Done",
+    "needLicence": "Needs the licence first",
+    "noFB": "The restaurant is open but has no F&B staff, so there is no food revenue yet (hire in the Staff tab).",
+    "cashNote": "Negative cash costs 1% interest a week. Think first: will the extra rooms sell enough to pay back before the game ends?",
+    "fnb": "Restaurant: {g} meals for staying guests · {w} walk-in diners · revenue {rev} ฿"
+  },
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancel"
   }
 }

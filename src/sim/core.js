@@ -102,7 +102,15 @@ const SCORE_W={fin:.5,rep:.35,staff:.15};
 /* Staff positions (P1 step 5) [design values]. Each position serves every guest, so a person can
    handle `cap` room-nights a week before satisfaction drops; a team split evenly between front office
    and housekeeping behaves exactly like the old single team. `q` = share of service quality. */
-const MAX_STAFF=4;
+const MAX_STAFF=4; // T0 limit; see TIERS
+/* Growth path (P1 step 6) [design values]. Thai law: more than 8 rooms / 30 guests needs a hotel licence;
+   Type 1 = rooms only, Type 2 = rooms + restaurant (Ministerial Regulation B.E. 2551). Game time is compressed. */
+const TIERS=[{rooms:8,maxStaff:4},{rooms:16,maxStaff:6},{rooms:16,maxStaff:8}];
+// Owner approved set A (8 Oct 2026) after simulating 216 games per strategy; see docs/spec-summary.md.
+const GROWTH={licenceCost:25000,licenceWeeks:2,buildCost:60000,buildWeeks:2,restCost:30000,restWeeks:2,
+  fixedPerExtraRoom:600,restFixed:5000,
+  sizePow:1}; // demand attraction ∝ (rooms/8)^sizePow: "fair share" follows room supply (STR); 8 rooms -> unchanged
+const FNB={spend:{bp:120,fam:450,cpl:380,biz:300},capture:{bp:.25,fam:.6,cpl:.5,biz:.45},walkIn:50,walkInSpend:220,foodCost:.35,cap:150,qBoost:2};
 const ROLES={fo:{q:.6,cap:30},hk:{q:.4,cap:30},fb:{q:0,cap:30}};
 const HK_COVER=.7; // front office cleaning rooms when nobody is in housekeeping: 70% as good (owner approved 8 Oct 2026; tested .5 = too harsh)
 const LOAD_HIT=.6; // satisfaction lost per room-night above cap (old rule: 1.2 per room-night above 15 per person)
@@ -145,7 +153,7 @@ function buildTimeline(g,rng){
   return tl;
 }
 function newHotel(id,name,isPlayer){return {id,name,isPlayer,price:{wd:0,we:0},staff:[],bonus:0,mk:{billboard:0,online:0},inf:'none',ota:true,fake:false,
-  stock:{billboard:0,online:0,influencer:0},R:3.5,N:8,cash:START_CASH,otaBan:0,profitCum:0,history:[],fakeCaught:0,closed:0,closedWeeks:0,crises:[]};}
+  rooms:8,tier:0,proj:{},restaurant:false,invest:0,stock:{billboard:0,online:0,influencer:0},R:3.5,N:8,cash:START_CASH,otaBan:0,profitCum:0,history:[],fakeCaught:0,closed:0,closedWeeks:0,crises:[]};}
 function newGame(opts){
   const rng=mulberry32(hashSeed(String(opts.seed)));
   const g={hotelName:opts.hotelName,seed:opts.seed,city:opts.city,startMonth:opts.startMonth,chaos:opts.chaos,allowFake:!!opts.allowFake,week:0,rng,news:[]};
@@ -197,6 +205,30 @@ function weekEffects(g,w){
     if(f.foreign)E.foreign*=sc(f.foreign);if(f.domestic)E.domestic*=sc(f.domestic);if(f.cost)E.cost*=sc(f.cost);if(f.A0)E.A0*=f.A0;if(f.wtp)E.wtp*=sc(f.wtp);
     if(f.staffHit)E.staffHit+=f.staffHit*ch.scale*inten;});
   return E;}
+/* Restaurant (Type 2): meals for staying guests (by segment) + walk-in diners; needs at least one F&B staff. */
+function restaurantWeek(g,h,r,season,E,sold){
+  const fb=h.staff.filter(s=>s.role==='fb');
+  if(!h.restaurant||!fb.length){h.lastCovers=0;return {revenue:0,foodCost:0,covers:0,guests:0,walkIns:0,q:0};}
+  const q=avgOf(fb,s=>.4*s.serv+.3*s.exp+.3*s.app);
+  const qf=clamp(q/70,.5,1.2);
+  let guestRev=0,guests=0;SEGMENTS.forEach(sg=>{const n=(r.seg[sg.id]||0)*FNB.capture[sg.id]*qf;guests+=n;guestRev+=n*FNB.spend[sg.id];});
+  let aw=0;SEGMENTS.forEach(sg=>aw+=r.aw[sg.id]/4);
+  const walkIns=FNB.walkIn*season*E.domestic*qf*(0.5+aw);
+  const covers=guests+walkIns;const need=covers/FNB.cap;const ad=Math.min(1,fb.length/Math.max(.5,need));
+  const revenue=(guestRev+walkIns*FNB.walkInSpend)*(0.7+0.3*ad);
+  h.lastCovers=covers;
+  return {revenue,foodCost:revenue*FNB.foodCost,covers,guests,walkIns,q};}
+/* Weekly countdown of licence -> construction -> restaurant. */
+function advanceProjects(h){const p=h.proj;
+  if(p.licence){p.licence--;if(!p.licence){delete p.licence;h.tier=Math.max(h.tier,1);p.build=GROWTH.buildWeeks;h.invest+=GROWTH.buildCost;}}
+  else if(p.build){p.build--;if(!p.build){delete p.build;h.rooms=TIERS[1].rooms;}}
+  if(p.rest){p.rest--;if(!p.rest){delete p.rest;h.restaurant=true;h.tier=2;}}}
+/* Player actions. Costs are paid with the coming week. */
+function canStart(h,kind){return kind==='licence'?h.tier===0&&!h.proj.licence:kind==='restaurant'?h.tier>=1&&!h.restaurant&&!h.proj.rest:false;}
+function startProject(h,kind){if(!canStart(h,kind))return false;
+  if(kind==='licence'){h.proj.licence=GROWTH.licenceWeeks;h.invest+=GROWTH.licenceCost;}
+  else{h.proj.rest=GROWTH.restWeeks;h.invest+=GROWTH.restCost;}return true;}
+const maxStaff=h=>TIERS[h.tier].maxStaff;
 function simulateWeek(g){
   const w=g.week,c=CITIES[g.city],rng=g.rng;g.hotels.forEach(h=>{if(!h.isPlayer)botDecide(g,h);});
   const E=weekEffects(g,w);const season=seasonMult(g,w);const segDemand={};
@@ -208,10 +240,10 @@ function simulateWeek(g){
   g.hotels.forEach(h=>SEGMENTS.forEach(s=>res[h.id].aw[s.id]=awareness(h,s).aw));
   ['wd','we'].forEach(p=>{const want={},segBook={};g.hotels.forEach(h=>want[h.id]=0);
     SEGMENTS.forEach(s=>{const D=segDemand[s.id].total*(p==='wd'?s.wdShare:1-s.wdShare);const A={};let sum=0;const wtp=s.wtp*E.wtp;
-      g.hotels.forEach(h=>{const a=awareness(h,s);const U=s.bp*(1-h.price[p]/wtp)+0.9*(h.R-3.5);A[h.id]={v:a.aw*Math.exp(U),ota:a.otaShare};sum+=A[h.id].v;});
+      g.hotels.forEach(h=>{const a=awareness(h,s);const U=s.bp*(1-h.price[p]/wtp)+0.9*(h.R-3.5);A[h.id]={v:a.aw*Math.exp(U)*Math.pow(h.rooms/8,GROWTH.sizePow),ota:a.otaShare};sum+=A[h.id].v;});
       g.hotels.forEach(h=>{const b=D*A[h.id].v/(A0+sum);segBook[h.id+s.id]={b,ota:A[h.id].ota};want[h.id]+=b;});});
     const cap={},filled={};let spill=0;
-    g.hotels.forEach(h=>{cap[h.id]=(ROOMS-h.closed)*NIGHTS[p];filled[h.id]=Math.min(cap[h.id],want[h.id]);spill+=Math.max(0,want[h.id]-cap[h.id])*.5;});
+    g.hotels.forEach(h=>{cap[h.id]=(h.rooms-h.closed)*NIGHTS[p];filled[h.id]=Math.min(cap[h.id],want[h.id]);spill+=Math.max(0,want[h.id]-cap[h.id])*.5;});
     if(spill>0){const room=g.hotels.filter(h=>filled[h.id]<cap[h.id]);let tw=0;room.forEach(h=>tw+=want[h.id]+.01);room.forEach(h=>{filled[h.id]=Math.min(cap[h.id],filled[h.id]+spill*(want[h.id]+.01)/tw);});}
     g.hotels.forEach(h=>{const scale=want[h.id]>0?filled[h.id]/want[h.id]:0;const sold=Math.round(filled[h.id]);res[h.id].sold[p]=sold;res[h.id].rev[p]=sold*h.price[p];
       SEGMENTS.forEach(s=>{const sb=segBook[h.id+s.id];const n=sb.b*scale;res[h.id].seg[s.id]=(res[h.id].seg[s.id]||0)+n;res[h.id].otaRev+=n*h.price[p]*sb.ota;});});});
@@ -221,7 +253,7 @@ function simulateWeek(g){
   g.hotels.forEach(h=>{
     const r=res[h.id];const sold=r.sold.wd+r.sold.we;const occRooms=sold/7;const avgP=(r.rev.wd+r.rev.we)/(sold||1);
     const segQ={};let qS=0,eS=0,rS=0,nS=0,adequacy=0,lang=0;
-    SEGMENTS.forEach(s=>{const t=teamQuality(h,s,segDemand[s.id].fs,sold);adequacy=t.adequacy;lang=t.lang;const Ex=30+30*Math.min(avgP/s.wtp,1.6);const rating=clamp(3.4+(t.q-Ex)/12,1,5);
+    const fbOn=h.restaurant&&h.staff.some(x=>x.role==='fb');SEGMENTS.forEach(s=>{const t=teamQuality(h,s,segDemand[s.id].fs,sold);if(fbOn)t.q+=FNB.qBoost*FNB.capture[s.id]/.5;adequacy=t.adequacy;lang=t.lang;const Ex=30+30*Math.min(avgP/s.wtp,1.6);const rating=clamp(3.4+(t.q-Ex)/12,1,5);
       segQ[s.id]={q:t.q,e:Ex,rating,n:r.seg[s.id]||0};const n=r.seg[s.id]||0;if(n>0){qS+=t.q*n;eS+=Ex*n;rS+=rating*n;nS+=n;}});
     const Q=nS?qS/nS:0,Ex=nS?eS/nS:0;let rating=nS?rS/nS:0;const notes=[];const crises=[];
     // internal crises (Faulkner: self-inflicted crisis)
@@ -241,30 +273,34 @@ function simulateWeek(g){
     else if(h.otaBan>0)h.otaBan--;
     const nFO=h.staff.filter(s=>s.role==='fo').length,nHK=h.staff.filter(s=>s.role==='hk').length;
     // Room-nights each person handled: front office also cleans when there is no housekeeper.
-    const loadFO=nFO?(nHK?sold:2*sold)/nFO:0,loadHK=nHK?sold/nHK:0;const loadOf=s=>s.role==='fo'?loadFO:s.role==='hk'?loadHK:0;
+    const loadFO=nFO?(nHK?sold:2*sold)/nFO:0,loadHK=nHK?sold/nHK:0;const nFB=h.staff.filter(s=>s.role==='fb').length;
+    // F&B workload uses last week's diners, scaled so FNB.cap diners per person = the 30 room-night cap.
+    const loadFB=h.restaurant&&nFB?(h.lastCovers||0)/nFB*ROLES.fb.cap/FNB.cap:0;
+    const loadOf=s=>s.role==='fo'?loadFO:s.role==='hk'?loadHK:s.role==='fb'?loadFB:0;
     const load=h.staff.length?sold/h.staff.length:0;const bonusPer=h.staff.length?h.bonus/h.staff.length:0;
     h.staff.forEach(s=>{s.sat=clamp(s.sat+2-Math.max(0,loadOf(s)-ROLES[s.role].cap)*LOAD_HIT+bonusPer/100-E.staffHit,0,100);});
     const teamSat=h.staff.length?h.staff.reduce((a,s)=>a+s.sat,0)/h.staff.length:0;const quits=[];
     if(h.staff.length&&teamSat<40){h.staff=h.staff.filter(s=>{if(rng()<.15){quits.push(s.name||s.id);return false;}return true;});}
     const team={};['app','serv','exp','prof','lang'].forEach(k=>team[k]=h.staff.length?h.staff.reduce((a,s)=>a+s[k],0)/h.staff.length:0);
+    const fnb=restaurantWeek(g,h,r,season,E,sold);
     const revenue=r.rev.wd+r.rev.we,commission=r.otaRev*OTA_COMMISSION,infCost=h.inf!=='none'?INFLUENCER[h.inf].cost:0;
-    const costs={severance:h.severance||0,fixed:COST.fixed*E.cost,variable:COST.perRoomNight*sold,salaries:h.staff.reduce((a,s)=>a+s.salary,0),bonus:h.bonus,marketing:h.mk.billboard+h.mk.online+infCost,commission,fake:fakeCost,fine,crisis:extra,interest:h.cash<0?-h.cash*COST.interest:0};
-    h.severance=0;const costTotal=Object.values(costs).reduce((a,b)=>a+b,0);const profit=revenue-costTotal;h.cash+=profit;h.profitCum+=profit;
+    const costs={severance:h.severance||0,fixed:(COST.fixed+(h.rooms-8)*GROWTH.fixedPerExtraRoom+(h.restaurant?GROWTH.restFixed:0))*E.cost,invest:h.invest||0,food:fnb.foodCost,variable:COST.perRoomNight*sold,salaries:h.staff.reduce((a,s)=>a+s.salary,0),bonus:h.bonus,marketing:h.mk.billboard+h.mk.online+infCost,commission,fake:fakeCost,fine,crisis:extra,interest:h.cash<0?-h.cash*COST.interest:0};
+    h.severance=0;h.invest=0;const costTotal=Object.values(costs).reduce((a,b)=>a+b,0);const profit=revenue+fnb.revenue-costTotal;h.cash+=profit;h.profitCum+=profit;
     // eWOM: review distribution
     const dist=[0,0,0,0,0];for(let i=0;i<newRev;i++){const v=clamp(Math.round(rating+(rng()+rng()+rng()-1.5)*1.1),1,5);dist[v-1]++;}
     let awAvg=0;SEGMENTS.forEach(s=>awAvg+=r.aw[s.id]/4);
-    const rec={sold,soldP:r.sold,occ:sold/(ROOMS*7),occP:{wd:r.sold.wd/(ROOMS*5),we:r.sold.we/(ROOMS*2)},revenue,adr:sold?revenue/sold:0,revpar:revenue/(ROOMS*7),
-      price:Object.assign({},h.price),Q,E:Ex,rating,R:h.R,N:h.N,teamSat,team,load,loadFO,loadHK,roles:{fo:nFO,hk:nHK},adequacy,lang,quits,costs,costTotal,profit,cash:h.cash,awAvg,aw:r.aw,segQ,dist,newRev,
+    const rec={sold,soldP:r.sold,occ:sold/(h.rooms*7),occP:{wd:r.sold.wd/(h.rooms*5),we:r.sold.we/(h.rooms*2)},revenue,adr:sold?revenue/sold:0,revpar:revenue/(h.rooms*7),rooms:h.rooms,tier:h.tier,fnb,
+      price:Object.assign({},h.price),Q,E:Ex,rating,R:h.R,N:h.N,teamSat,team,load,loadFO,loadHK,loadFB,roles:{fo:nFO,hk:nHK,fb:nFB},adequacy,lang,quits,costs,costTotal,profit,cash:h.cash,awAvg,aw:r.aw,segQ,dist,newRev,
       commission,otaRev:r.otaRev,caught,notes,crises,inf:h.inf,infCred:h.infCred,fake:h.fake,otaBan:h.otaBan,seg:r.seg,staffN:h.staff.length,closed:h.closed};
-    h.history.push(rec);out.hotels[h.id]=rec;h.inf='none';
+    h.history.push(rec);out.hotels[h.id]=rec;h.inf='none';advanceProjects(h);
     if(!h.isPlayer)crises.forEach(cr=>out.news.push(Object.assign({hotel:h.id},cr)));
   });
   const bots=g.hotels.filter(h=>!h.isPlayer).map(h=>out.hotels[h.id]);
-  const cSold=bots.reduce((a,b)=>a+b.sold,0),cRev=bots.reduce((a,b)=>a+b.revenue,0),cAvail=bots.length*ROOMS*7;
+  const cSold=bots.reduce((a,b)=>a+b.sold,0),cRev=bots.reduce((a,b)=>a+b.revenue,0),cAvail=bots.reduce((a,b)=>a+b.rooms*7,0);
   out.comp={occ:cSold/cAvail,adr:cSold?cRev/cSold:0,revpar:cRev/cAvail,aw:{},R:bots.reduce((a,b)=>a+b.R,0)/bots.length,Q:bots.reduce((a,b)=>a+b.Q,0)/bots.length};
   SEGMENTS.forEach(s=>out.comp.aw[s.id]=bots.reduce((a,b)=>a+b.aw[s.id],0)/bots.length);
   const y=out.hotels.you;out.idx={mpi:out.comp.occ?y.occ/out.comp.occ*100:0,ari:out.comp.adr&&y.adr?y.adr/out.comp.adr*100:0,rgi:out.comp.revpar?y.revpar/out.comp.revpar*100:0};
-  out.marketOcc=g.hotels.reduce((a,h)=>a+out.hotels[h.id].sold,0)/(g.hotels.length*ROOMS*7);
+  out.marketOcc=g.hotels.reduce((a,h)=>a+out.hotels[h.id].sold,0)/g.hotels.reduce((a,h)=>a+h.rooms*7,0);
   g.news.push(...out.news.map(n=>Object.assign({week:w+1},n)));
   g.week++;return out;}
 function finalScores(g){
@@ -273,4 +309,4 @@ function finalScores(g){
     const sats=h.history.map(x=>x.teamSat);const staff=sats.length?sats.reduce((a,b)=>a+b,0)/sats.length:0;
     return {id:h.id,name:h.name,fin,rep,staff,score:SCORE_W.fin*fin+SCORE_W.rep*rep+SCORE_W.staff*staff,profit:h.profitCum,cash:h.cash,R:h.R};}).sort((a,b)=>((b.profit>0)-(a.profit>0))||(b.score-a.score));}
 
-export {MAX_STAFF, ROLES, HK_COVER, LOAD_HIT, CAND_ROLES, LANG_RANGE, teamQuality, newGame, simulateWeek, finalScores, seasonMult, seasonLabel, weekInfo, tmdSeason, buildTimeline, weekEffects, refPrice, salaryOf, mulberry32, hashSeed, clamp, ROOMS, NIGHTS, WEEKS, SEGMENTS, MAPS, CITIES, NATIONAL, SEEDED, CANCEL_P, SHOCKS, INTERNAL, CHAOS, CHANNELS, INFLUENCER, OTA_BOOST, OTA_COMMISSION, COST, START_CASH, SCORE_W, ARCH, SKILL};
+export {TIERS, GROWTH, FNB, startProject, canStart, maxStaff, MAX_STAFF, ROLES, HK_COVER, LOAD_HIT, CAND_ROLES, LANG_RANGE, teamQuality, newGame, simulateWeek, finalScores, seasonMult, seasonLabel, weekInfo, tmdSeason, buildTimeline, weekEffects, refPrice, salaryOf, mulberry32, hashSeed, clamp, ROOMS, NIGHTS, WEEKS, SEGMENTS, MAPS, CITIES, NATIONAL, SEEDED, CANCEL_P, SHOCKS, INTERNAL, CHAOS, CHANNELS, INFLUENCER, OTA_BOOST, OTA_COMMISSION, COST, START_CASH, SCORE_W, ARCH, SKILL};

@@ -262,3 +262,14 @@ img.lm{object-fit:cover}
 .bar.key span:first-child{color:var(--ink);font-weight:600}
 .rolegroup h3{margin:12px 0 2px}
 .rolegroup>p{margin:0 0 6px}
+
+/* ---------- P1 step 6: growth panel ---------- */
+.growstep{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-top:1px dashed var(--soft)}
+.growstep .btn{white-space:nowrap}
+.growstatus{text-align:right;font-size:.9rem;min-width:110px}
+
+/* In-game confirm dialog (window.confirm is silently blocked in some embedded browsers) */
+.overlay:has(.modal.confirm){align-items:center}
+.modal.confirm{max-width:440px}
+.modal.confirm p{margin:0 0 14px}
+.confirm-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}

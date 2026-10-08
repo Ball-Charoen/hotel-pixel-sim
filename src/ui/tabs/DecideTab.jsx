@@ -1,11 +1,12 @@
-import { CITIES, SEGMENTS, WEEKS, INFLUENCER, OTA_COMMISSION, COST, clamp } from '../../sim/core.js';
-import { player, weekCtx, plannedSpend } from '../session.js';
+import { CITIES, SEGMENTS, WEEKS, INFLUENCER, OTA_COMMISSION, COST, GROWTH, TIERS, clamp } from '../../sim/core.js';
+import { player, weekCtx, plannedSpend, canGrow, grow } from '../session.js';
 import { RangeCtl, SeasonChip, TmdChip, Src } from '../components/widgets.jsx';
 import { SEG_COLOR } from '../theme.js';
 import { N, weekLabel } from '../names.js';
 import { schedText } from '../eventText.jsx';
 import { fmt } from '../format.js';
 import { t, tx } from '../../i18n/index.js';
+import { confirmDialog } from '../confirm.jsx';
 
 function WeekBox({ G }) {
   const x = weekCtx(G, G.week);
@@ -57,6 +58,45 @@ function SegmentTable({ G }) {
       </div>
       <p class="note">{t('decide.wtpNote')}</p>
     </>
+  );
+}
+
+/* Growth path T0 -> T1 (licence + 16 rooms) -> T2 (restaurant), with progress and costs. */
+function GrowthPanel({ G, update, onGoStaff }) {
+  const h = player(G);
+  const p = h.proj || {};
+  const tierText = t(`growth.tier${h.tier}`, { rooms: h.rooms });
+  const step = (title, info, status, action) => (
+    <div class="growstep">
+      <div><b>{title}</b><br /><span class="small muted">{info}</span></div>
+      <div class="growstatus">{action || <span class={status === t('growth.done') ? 'up' : 'muted'}>{status}</span>}</div>
+    </div>
+  );
+  const ask = async (msg, kind) => { if (await confirmDialog(msg)) update(() => grow(G, kind)); };
+  const licenceStatus = h.tier >= 1 ? t('growth.done') : p.licence ? t('growth.waiting', { n: p.licence }) : null;
+  const buildStatus = h.rooms >= TIERS[1].rooms ? t('growth.done') : p.build ? t('growth.building', { n: p.build }) : t('growth.auto');
+  const restStatus = h.restaurant ? t('growth.done') : p.rest ? t('growth.fitting', { n: p.rest }) : h.tier < 1 ? t('growth.needLicence') : null;
+  return (
+    <div class="panel">
+      <h3 style="margin-top:0">{t('growth.title')}</h3>
+      <p><b>{t('growth.now', { tier: tierText })}</b></p>
+      {step(t('growth.step1'), t('growth.step1Info', { cost: fmt(GROWTH.licenceCost), w: GROWTH.licenceWeeks }), licenceStatus,
+        !licenceStatus && canGrow(G, 'licence') && (
+          <button class="btn" type="button" onClick={() => ask(t('growth.confirmLicence', { cost: fmt(GROWTH.licenceCost), build: fmt(GROWTH.buildCost) }), 'licence')}>{t('growth.apply')}</button>
+        ))}
+      {step(t('growth.step2', { rooms: TIERS[1].rooms }), t('growth.step2Info', {
+        cost: fmt(GROWTH.buildCost), w: GROWTH.buildWeeks, fixed: fmt((TIERS[1].rooms - 8) * GROWTH.fixedPerExtraRoom), staff: TIERS[1].maxStaff,
+      }), buildStatus)}
+      {step(t('growth.step3'), t('growth.step3Info', { cost: fmt(GROWTH.restCost), w: GROWTH.restWeeks, fixed: fmt(GROWTH.restFixed), staff: TIERS[2].maxStaff }), restStatus,
+        !restStatus && canGrow(G, 'restaurant') && (
+          <button class="btn" type="button" onClick={() => ask(t('growth.confirmRest', { cost: fmt(GROWTH.restCost), fixed: fmt(GROWTH.restFixed) }), 'restaurant')}>{t('growth.openRest')}</button>
+        ))}
+      {h.restaurant && !h.staff.some(x => x.role === 'fb') && (
+        <div class="warn">{t('growth.noFB')} <button class="btn ghost" type="button" style="padding:2px 10px;box-shadow:none" onClick={onGoStaff}>{t('decide.goStaff')}</button></div>
+      )}
+      <p class="note">{t('growth.cashNote')}</p>
+      <p class="note">{tx('growth.law', { src: <Src k="hotelReg">{t('growth.srcLaw')}</Src> })}</p>
+    </div>
   );
 }
 
@@ -121,6 +161,7 @@ export function DecideTab({ s, update, onGoStaff }) {
           )}
         </div>
       </div>
+      <GrowthPanel G={G} update={update} onGoStaff={onGoStaff} />
     </>
   );
 }

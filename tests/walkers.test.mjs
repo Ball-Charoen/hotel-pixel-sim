@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { makeWalker, stepWalker, frameOf, feetY, FRAME } from '../src/scene/walkers.js';
-import { WALK_MIN, WALK_MAX, FLOORS } from '../src/scene/layout.js';
+import { WALK_MIN, WALK_MAX, FLOORS, LAYOUT_T1 } from '../src/scene/layout.js';
 import { mulberry32 } from '../src/sim/core.js';
 
 test('walkers stay on a floor and inside the walls for 10 minutes of animation', () => {
@@ -22,4 +22,19 @@ test('walkers stay on a floor and inside the walls for 10 minutes of animation',
   assert.deepEqual([...seen.fo], [0], 'front office stays in the lobby');
   assert.deepEqual([...seen.hk].sort(), [1, 2], 'housekeeping works the guest floors');
   assert.deepEqual([...seen.frames].sort(), Object.values(FRAME).sort(), 'all 4 sprite frames are used');
+});
+
+test('after growing to 4 guest floors, housekeeping uses all of them and nobody leaves the layout', () => {
+  const rnd = mulberry32(11);
+  const ws = [['c0', 'fo'], ['c3', 'hk'], ['c4', 'hk'], ['c6', 'fb']].map(([id, role], i) => makeWalker(id, i, rnd, role));
+  const seen = { hk: new Set(), fb: new Set(), fo: new Set() };
+  for (let i = 0; i < 600 * 30; i++) ws.forEach(w => {
+    stepWalker(w, 1 / 30, rnd, LAYOUT_T1);
+    assert.ok(w.floor >= 0 && w.floor < LAYOUT_T1.floors.length);
+    assert.equal(feetY(w), LAYOUT_T1.floors[w.floor].bottom);
+    seen[w.role].add(w.floor);
+  });
+  assert.deepEqual([...seen.hk].sort(), [1, 2, 3, 4]);
+  assert.deepEqual([...seen.fb], [0], 'F&B stays in the lobby restaurant');
+  assert.deepEqual([...seen.fo], [0]);
 });

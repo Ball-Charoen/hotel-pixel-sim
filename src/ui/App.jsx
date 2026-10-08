@@ -6,6 +6,7 @@ import { GameScreen } from './screens/GameScreen.jsx';
 import { FinalScreen } from './screens/FinalScreen.jsx';
 import { t, getLang, setLang } from '../i18n/index.js';
 import { LangSwitch } from './components/widgets.jsx';
+import { ConfirmHost, confirmDialog } from './confirm.jsx';
 
 /* The sim core mutates the game object in place, so the session lives in a ref
    and update(fn) runs the change then forces a re-render.
@@ -32,8 +33,8 @@ export function App() {
   const update = (fn, now) => { fn(session.current); rerender(); if (now) saveNow(); else saveSoon(); };
 
   const go = scr => { setScreen(scr); window.scrollTo(0, 0); };
-  const start = opts => {
-    if (resume && !window.confirm(t('save.overwriteConfirm'))) return;
+  const start = async opts => {
+    if (resume && !(await confirmDialog(t('save.overwriteConfirm')))) return;
     session.current = startSession(opts);
     saveNow('game');
     go('game');
@@ -44,8 +45,8 @@ export function App() {
     session.current = d.session;
     go(d.screen === 'final' ? 'final' : 'game');
   };
-  const deleteSave = () => {
-    if (!window.confirm(t('save.deleteConfirm'))) return;
+  const deleteSave = async () => {
+    if (!(await confirmDialog(t('save.deleteConfirm')))) return;
     clearSave();
     setResume(null);
   };
@@ -83,6 +84,7 @@ export function App() {
       <p class="rotate-hint">{t('app.rotate')}</p>
       {screen !== 'game' && <LangSwitch onChange={changeLang} />}
       {body}
+      <ConfirmHost />
     </>
   );
 }

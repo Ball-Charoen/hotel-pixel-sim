@@ -3,6 +3,8 @@
 staff-sprites.png    128x256  ตัวละครพนักงาน 8 คน (แถว) x 4 ท่า (คอลัมน์: ยืน, เดิน 1, เดิน 2, ให้บริการ) ท่าละ 32x32 หันขวา เท้าอยู่แถวล่างสุด
 staff-portraits.png  384x48   ภาพหน้าตรง 8 คน เรียงซ้ายไปขวา ตามลำดับเดียวกับแถวของ staff-sprites.png
 building-t0.png      320x300  ตึกโฮสเทล ภาพตัดขวาง วางห้องตามไกด์ guide-building-320x300-x2.png
+building-t1.png      320x300  โรงแรมประเภท 1 (16 ห้อง 4 ชั้น ป้าย HOTEL) วางห้องตามไกด์ guide-building-t1-t2-320x300-x2.png
+building-t2.png      320x300  โรงแรมประเภท 2 = แบบ t1 + ห้องอาหารในล็อบบี้ฝั่งขวา (กรอบชมพูในไกด์เดียวกัน)
 city-bkk.png ... city-pnb.png  160x96  ภาพเมือง 9 ภาพ (bkk kkn hkt pty pbi rbr rng cnx pnb)
 
 ไกด์และผืนผ้าใบอยู่ที่ assets/art-templates/ (ดู README-TH.txt ในโฟลเดอร์นั้น)

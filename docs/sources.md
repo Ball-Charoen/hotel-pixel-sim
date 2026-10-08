@@ -54,3 +54,9 @@
 - [Colyseus Pricing](https://www.colyseus.io/pricing)
 - [Claude Code: CLAUDE.md / memory](https://code.claude.com/docs/en/memory)
 - [Claude Code: Desktop quickstart](https://code.claude.com/docs/en/desktop-quickstart)
+
+## กฎหมายโรงแรม (ตรวจ 8 ต.ค. 2026, P1 ขั้น 6)
+- [กฎกระทรวงกำหนดประเภทและหลักเกณฑ์การประกอบธุรกิจโรงแรม พ.ศ. 2551, ราชกิจจานุเบกษา เล่ม 125 ตอนที่ 70 ก, 23 พ.ค. 2551 (สำเนาจากสภาสถาปนิก)](https://download.asa.or.th/03media/04law/ha/mr51.pdf)
+- [พระราชบัญญัติโรงแรม พ.ศ. 2547 ฉบับแปลภาษาอังกฤษ สำนักงานคณะกรรมการกฤษฎีกา (เผยแพร่โดยกรมการปกครอง) — ไม่ใช่ตัวบทที่มีผลทางกฎหมาย](https://report.dopa.go.th/laws/document/2/234.pdf)
+- [Acclime: Thailand hotel license — เวลาดำเนินการรวมราว 6 เดือน (แหล่งทุติยภูมิ)](https://thailand.acclime.com/formation/business-licenses/hotel-license/)
+- [STR: fair share / RGI — ใช้เป็นเหตุผลให้ดีมานด์แปรตามจำนวนห้อง](https://str.com/resourcesglossary/revpar-indexrevenue-generating-index-rgi)

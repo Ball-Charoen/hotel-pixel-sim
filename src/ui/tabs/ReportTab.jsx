@@ -1,6 +1,6 @@
 import { Fragment } from 'preact';
 import {
-  CITIES, SEGMENTS, WEEKS, ROOMS, COST, CANCEL_P, ROLES, tmdSeason, seasonLabel,
+  CITIES, SEGMENTS, WEEKS, COST, CANCEL_P, ROLES, tmdSeason, seasonLabel,
 } from '../../sim/core.js';
 import { Quadrant, QuadLegend } from '../components/Quadrant.jsx';
 import { LineChart, Src, Chg } from '../components/widgets.jsx';
@@ -34,7 +34,7 @@ function KpiCard({ name, num, numClass, vs, meaning, calc, breakdown, why, cauti
 
 function KpiCards({ o }) {
   const y = o.hotels.you, c = o.comp, i = o.idx;
-  const avail = ROOMS * 7;
+  const avail = y.rooms * 7;
   const adr = y.sold ? fmt(y.adr) : '–';
   return (
     <div class="kpis">
@@ -86,6 +86,7 @@ function diagnose(G, o) {
   if (nx.length) out.push(t('diag.nextEvent', { names: nx.map(e => N.event(e.id)).join(', ') }));
   if (y.adequacy < 0.8 && y.sold > 0) out.push(t('diag.understaffed'));
   if (y.staffN && y.roles && y.roles.hk === 0) out.push(t('diag.noHK'));
+  if (G.hotels[0].restaurant && y.roles && !y.roles.fb) out.push(t('growth.noFB'));
   if (y.lang < 45 && CITIES[G.city].foreign > 0.3) out.push(tx('diag.language', { lang: bad(Math.round(y.lang)) }));
   if (y.revenue > 0 && y.commission / y.revenue > 0.08) out.push(tx('diag.commission', { p: bad(pct(y.commission / y.revenue)) }));
   if (y.teamSat < 50 && y.staffN) out.push(tx('diag.lowSat', { sat: bad(Math.round(y.teamSat)) }));
@@ -137,6 +138,7 @@ function causeEffect(G, o) {
     nFO: nRole('fo'), lFO: loadChg(y.loadFO), nHK: nRole('hk'), lHK: loadChg(y.loadHK),
     sat: <Chg good={y.teamSat < 50 ? false : null}>{Math.round(y.teamSat)}</Chg>,
   })}{y.quits.length ? t('cause.quits', { names: y.quits.map(N.staff).join(', ') }) : ''}</>);
+  if (y.fnb && y.fnb.revenue > 0) out.push(t('growth.fnb', { g: Math.round(y.fnb.guests), w: Math.round(y.fnb.walkIns), rev: fmt(y.fnb.revenue) }));
   o.news.forEach(n => out.push(t('cause.news', { text: newsText(G, n) })));
   return out;
 }
@@ -202,7 +204,7 @@ function PromptGuide({ prompt }) {
   );
 }
 
-const COST_ROWS =['fixed', 'variable', 'salaries', 'bonus', 'severance', 'marketing', 'commission', 'fake', 'fine', 'crisis', 'interest'];
+const COST_ROWS = ['fixed', 'variable', 'salaries', 'bonus', 'severance', 'marketing', 'commission', 'fake', 'fine', 'crisis', 'interest', 'food', 'invest'];
 
 export function ReportTab({ s }) {
   const { G, last: o, log } = s;
@@ -257,6 +259,7 @@ export function ReportTab({ s }) {
           <div class="tablewrap">
             <table><tbody>
               <tr><td><b>{t('report.revenue')}</b></td><td><b>{fmt(y.revenue)}</b></td></tr>
+              {y.fnb && y.fnb.revenue > 0 && <tr><td><b>{t('report.fnbRevenue')}</b></td><td><b>{fmt(y.fnb.revenue)}</b></td></tr>}
               {COST_ROWS.filter(k => y.costs[k] > 0).map(k => <tr key={k}><td>{t(`cost.${k}`)}</td><td>{fmt(y.costs[k])}</td></tr>)}
               <tr><td><b>{t('report.profit')}</b></td><td class={y.profit >= 0 ? 'up' : 'down'}><b>{fmt(y.profit)}</b></td></tr>
               <tr><td>{t('report.cash')}</td><td>{fmt(y.cash)}</td></tr>
