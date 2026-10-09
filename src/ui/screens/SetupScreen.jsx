@@ -70,7 +70,7 @@ export function SetupScreen({ onStart, resume, onContinue, onDeleteSave }) {
             <legend>{t('setup.city')}</legend>
             <SegButtons items={MAPS[s.map].cities.map(id => [id, N.city(id)])} value={s.city} onPick={pickCity} />
           </fieldset>
-          <CityCard id={s.city} />
+          <CityCard id={s.city} start={s.startMonth} onPick={m => set({ startMonth: m })} />
           <fieldset style="margin-top:12px">
             <legend>{t('setup.hotelName')}</legend>
             <input type="text" maxLength={30} value={hotelName} onInput={e => set({ hotelName: e.currentTarget.value })} />

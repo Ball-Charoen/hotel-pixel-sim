@@ -38,7 +38,10 @@
     "subtitle": "{map} · Illustration: {lm}",
     "mix": "About {foreign}% foreign guests · Main customers: {top}",
     "seasonTitle": "Monthly tourism seasons in {city}",
-    "monthlyAria": "Monthly demand"
+    "monthlyAria": "Monthly demand",
+    "gameSpan": "Game period: {from}–{to}",
+    "indexNote": "Bar height = demand for rooms relative to the yearly average (1.00), a game estimate, not actual visitor counts.",
+    "indexNotePick": "Click a bar to choose the start month · bar height = demand for rooms relative to the yearly average (1.00), a game estimate, not actual visitor counts."
   },
   "top": {
     "week": "Week",
@@ -1027,7 +1030,11 @@
     "errNoPlayers": "No students in the room yet.",
     "errRate": "Too many people joined at once. Wait a moment and try again.",
     "errNet": "Cannot reach the server. Check the internet and try again.",
-    "errOther": "Something went wrong: {msg}"
+    "errOther": "Something went wrong: {msg}",
+    "qrAria": "QR code to join room {code}",
+    "qrBig": "Show QR full screen",
+    "qrScan": "Scan with your phone camera to join",
+    "qrClose": "Tap anywhere or press Esc to close"
   },
   "ana": {
     "title": "Why {hotel} won: Key Success Factors",

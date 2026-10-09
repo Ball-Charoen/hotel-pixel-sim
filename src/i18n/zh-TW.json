@@ -38,7 +38,10 @@
     "subtitle": "{map} · 插圖：{lm}",
     "mix": "外國旅客約 {foreign}% · 主要客群：{top}",
     "seasonTitle": "{city}的每月旅遊季節",
-    "monthlyAria": "每月需求"
+    "monthlyAria": "每月需求",
+    "gameSpan": "遊戲期間：{from}–{to}",
+    "indexNote": "長條高度 = 相對全年平均（1.00）的住宿需求指數，為遊戲估計值，並非實際旅客人數。",
+    "indexNotePick": "點選長條即可選擇開始月份 · 長條高度 = 相對全年平均（1.00）的住宿需求指數，為遊戲估計值，並非實際旅客人數。"
   },
   "top": {
     "week": "週次",
@@ -1027,7 +1030,11 @@
     "errNoPlayers": "房間內還沒有學生。",
     "errRate": "同時加入的人太多，請稍候再試。",
     "errNet": "無法連線到伺服器，請檢查網路後再試。",
-    "errOther": "發生錯誤：{msg}"
+    "errOther": "發生錯誤：{msg}",
+    "qrAria": "加入房間 {code} 的 QR code",
+    "qrBig": "全螢幕顯示 QR",
+    "qrScan": "用手機相機掃描即可加入",
+    "qrClose": "點任意處或按 Esc 關閉"
   },
   "ana": {
     "title": "{hotel} 為什麼獲勝：關鍵成功因素",

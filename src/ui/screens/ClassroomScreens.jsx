@@ -13,8 +13,10 @@ import {
 } from '../../net/classroom.js';
 import { GameScreen } from './GameScreen.jsx';
 import { AnalysisPanel } from '../components/AnalysisPanel.jsx';
+import { QrCode } from '../components/QrCode.jsx';
 import { FinalScreen } from './FinalScreen.jsx';
 import { N, weekLabel } from '../names.js';
+import { MonthBars } from '../components/CityCard.jsx';
 import { fmt, pct, baht } from '../format.js';
 import { confirmDialog } from '../confirm.jsx';
 import { t, tx, getLocale } from '../../i18n/index.js';
@@ -318,6 +320,8 @@ function TeacherHome({ onOpen, onLogout, onBack }) {
           <select value={f.startMonth} onChange={e => set({ startMonth: Number(e.currentTarget.value) })}>
             {t('data.monthFull').map((m, i) => <option key={i} value={i}>{m}</option>)}
           </select></fieldset>
+        <h3 style="margin-top:0">{t('city.seasonTitle', { city: N.city(f.city) })}</h3>
+        <MonthBars city={f.city} start={f.startMonth} onPick={m => set({ startMonth: m })} />
         <fieldset><legend>{t('setup.chaos')}</legend>
           <Seg items={Object.keys(CHAOS).map(k => [k, N.chaos(k)])} value={f.chaos} onPick={k => set({ chaos: k })} /></fieldset>
         <fieldset><label class="row" style="justify-content:flex-start">
@@ -373,7 +377,14 @@ function RoomDashboard({ roomId, onBack }) {
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [csv, setCsv] = useState('');
+  const [bigQr, setBigQr] = useState(false);
   const now = useNow();
+  useEffect(() => {
+    if (!bigQr) return undefined;
+    const onKey = e => { if (e.key === 'Escape') setBigQr(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [bigQr]);
   const load = () => roomDetail(roomId).then(x => { setD(x); setErr(''); }).catch(e => setErr(errText(e)));
   useEffect(() => {
     load();
@@ -409,8 +420,26 @@ function RoomDashboard({ roomId, onBack }) {
           <h1 style="margin:0">{room.title || t('class.room')} · {N.city(room.city)}</h1>
           <button class="btn ghost" type="button" onClick={onBack}>{t('class.back')}</button>
         </div>
-        <p class="roomcode" aria-label={t('class.code')}>{room.code}</p>
-        <p class="small">{t('class.shareLink')} <a href={joinLink(room.code)}>{joinLink(room.code)}</a></p>
+        <div class="roomjoin">
+          <div>
+            <p class="roomcode" aria-label={t('class.code')}>{room.code}</p>
+            <p class="small">{t('class.shareLink')} <a href={joinLink(room.code)}>{joinLink(room.code)}</a></p>
+          </div>
+          {room.status !== 'finished' && (
+            <div class="qrbox">
+              <QrCode text={joinLink(room.code)} size={150} label={t('class.qrAria', { code: room.code })} />
+              <button class="btn ghost" type="button" onClick={() => setBigQr(true)}>{t('class.qrBig')}</button>
+            </div>
+          )}
+        </div>
+        {bigQr && (
+          <div class="overlay qrfull" role="dialog" aria-modal="true" aria-label={t('class.qrAria', { code: room.code })} onClick={() => setBigQr(false)}>
+            <QrCode text={joinLink(room.code)} size={Math.min(innerWidth, innerHeight) * 0.7} label={t('class.qrAria', { code: room.code })} />
+            <p class="roomcode">{room.code}</p>
+            <p>{t('class.qrScan')}</p>
+            <p class="small">{t('class.qrClose')}</p>
+          </div>
+        )}
         <p><b>{t(`class.status_${room.status}`, { w: room.week })}</b>
           {room.status === 'running' && <> · {t('class.submittedCount', { n: nSub, total: players.length })}{left && <> · {t('class.timeLeft', { t: left })}</>}</>}</p>
         {err && <div class="warn">{err}</div>}

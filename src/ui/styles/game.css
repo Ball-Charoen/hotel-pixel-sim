@@ -286,3 +286,15 @@ img.lm{object-fit:cover}
 .analysis details{margin-top:10px}
 .analysis summary{cursor:pointer;font-weight:600}
 .modal.confirm p{white-space:pre-line}
+
+/* Month bars: months the 12-week game covers, and clickable bars to pick the start month */
+.mbars button{display:block;border:1px solid var(--line);padding:0;margin:0;cursor:pointer;font:inherit;min-width:0}
+.mbars .in{outline:3px solid var(--ink);outline-offset:-1px}
+.mbars button[aria-pressed="true"]{outline:3px solid var(--lamp)}
+.mlabels .in{color:var(--ink);font-weight:700}
+.roomjoin{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.qrbox{display:flex;flex-direction:column;align-items:center;gap:8px}
+.qrbox .btn{padding:4px 10px;font-size:.85rem;box-shadow:2px 2px 0 var(--line)}
+.qr{display:block;border:2px solid var(--line);border-radius:4px;background:#fff}
+.overlay.qrfull{flex-direction:column;gap:8px;text-align:center;cursor:pointer;color:#fff;background:rgba(16,26,35,.96);align-items:center;justify-content:center}
+.overlay.qrfull .roomcode{color:#fff;margin:4px 0}
