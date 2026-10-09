@@ -12,6 +12,7 @@ import {
   roomDetail, roomLogs, sessionFromView,
 } from '../../net/classroom.js';
 import { GameScreen } from './GameScreen.jsx';
+import { AnalysisPanel } from '../components/AnalysisPanel.jsx';
 import { FinalScreen } from './FinalScreen.jsx';
 import { N, weekLabel } from '../names.js';
 import { fmt, pct, baht } from '../format.js';
@@ -206,13 +207,21 @@ export function StudentRoom({ playerId, onExit, langSwitch }) {
 /* Dev only (#classdemo on the local dev server): a student's game screen built from a server-style view,
    without any network or accounts. Lets every tab be checked against classroom data. */
 export function ClassDemo({ langSwitch }) {
+  const final = location.hash === '#classdemo-final';     // the whole 12 weeks, then the final screen
   const [s] = useState(() => {
     const room = { seed: 'demo', city: 'pbi', start_month: 10, chaos: 'high', allow_fake: true, bots: 1 };
     const g = startClassGame(room, [1, 2, 3].map(i => ({ hotel_key: 'p' + i, hotel_name: 'Hotel ' + i, owner_name: i === 2 ? 'Somchai' : '' })));
+    // Demo players: different prices, team sizes and marketing so the analysis has something to explain.
+    const plan = () => Object.fromEntries(g.hotels.filter(h => h.isPlayer).map((h, i) => {
+      const fo = h.candidates.filter(c => c.role === 'fo'), hk = h.candidates.filter(c => c.role === 'hk');
+      return [h.id, { price: { wd: 700 + i * 300, we: 900 + i * 380 }, mk: { billboard: i * 300, online: 800 + i * 500 }, bonus: i * 500,
+        inf: 'none', ota: true, fake: false, staff: i ? [fo[0].id, hk[0].id] : [fo[0].id], start: [] }];
+    }));
     let out = null;
-    for (let w = 0; w < 3; w++) out = runClassWeek(g, {});
+    for (let w = 0; w < (final ? 12 : 3); w++) out = runClassWeek(g, plan());
     return sessionFromView(JSON.parse(toSaveJSON(viewFor(g, out, 'p1'))));
   });
+  if (final) return <FinalScreen s={s} onRestart={() => {}} />;
   const [, rerender] = useReducer(x => x + 1, 0);
   const [sent, setSent] = useState(null);
   const now = useNow();
@@ -439,6 +448,9 @@ function RoomDashboard({ roomId, onBack }) {
           <h2>{room.status === 'finished' ? t('class.finalTitle') : t('class.marketTitle', { w: pub.week })}</h2>
           {pub.final ? <FinalTable pub={pub} /> : <MarketTable pub={pub} />}
         </div>
+      )}
+      {pub?.analysis && (
+        <AnalysisPanel a={pub.analysis} nameOf={id => { const f = pub.final.find(x => x.id === id); return f.bot ? N.hotel({ id }) : f.name; }} />
       )}
 
       <div class="panel classform">

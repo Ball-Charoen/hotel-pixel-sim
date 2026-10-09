@@ -15,7 +15,7 @@ import { ClassEntry, JoinScreen, StudentRoom, InstructorScreen, ClassDemo } from
 /* Screens: setup / game / final (single player), join / student / teacher (classroom, P2).
    A link ending in #join=CODE opens the join form; #teacher opens the instructor login. */
 const firstScreen = () => (/#join=/.test(location.hash) ? 'join' : location.hash === '#teacher' ? 'teacher'
-  : import.meta.env.DEV && location.hash === '#classdemo' ? 'classdemo' : 'setup');
+  : import.meta.env.DEV && /^#classdemo/.test(location.hash) ? 'classdemo' : 'setup');
 
 export function App() {
   const [screen, setScreen] = useState(firstScreen);

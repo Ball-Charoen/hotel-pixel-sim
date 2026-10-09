@@ -5,6 +5,11 @@
 import {
   newGame, simulateWeek, finalScores, startProject, maxStaff, WEEKS, INFLUENCER, TIERS,
 } from './core.js';
+import { analyseGame, renameAnalysis } from './analysis.js';
+
+// One analysis per finished game, shared by every student's view and the public table.
+const analysisCache = new WeakMap();
+const analysisOf = g => { if (!analysisCache.has(g)) analysisCache.set(g, analyseGame(g)); return analysisCache.get(g); };
 
 const r10 = x => Math.round(x / 10) * 10;
 const r100 = x => Math.round(x / 100) * 100;
@@ -135,7 +140,10 @@ export function viewFor(g, out, key) {
     week: g.week, refP: g.refP, timeline, news: g.news, hotels, compStaff,
     candidates: deep(me.candidates),
   };
-  if (over) G.final = publicFor(g, null).final.map(f => (f.id === key ? { ...f, id: 'you' } : f));
+  if (over) {
+    G.final = publicFor(g, null).final.map(f => (f.id === key ? { ...f, id: 'you' } : f));
+    G.analysis = renameAnalysis(analysisOf(g), key, 'you');
+  }
   let last = null;
   if (out) {
     const hotelsOut = Object.fromEntries(g.hotels.map(h => [idOf(h), h === me ? out.hotels[h.id] : pick(out.hotels[h.id], PUBLIC_REC)]));
@@ -161,6 +169,7 @@ export function publicFor(g, out) {
       return { id: f.id, name: h.isPlayer ? h.name : '', owner: h.owner || '', bot: !h.isPlayer,
         arch: h.arch, skill: h.skill, score: f.score, fin: f.fin, rep: f.rep, staff: f.staff, profit: f.profit, R: f.R };
     });
+    res.analysis = analysisOf(g);
   }
   return res;
 }

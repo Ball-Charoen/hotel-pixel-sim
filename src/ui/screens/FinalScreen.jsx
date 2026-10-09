@@ -3,6 +3,8 @@ import { N, weekLabel } from '../names.js';
 import { decisionCsv } from '../session.js';
 import { Quadrant, QuadLegend } from '../components/Quadrant.jsx';
 import { LineChart, Src } from '../components/widgets.jsx';
+import { AnalysisPanel } from '../components/AnalysisPanel.jsx';
+import { analyseGame } from '../../sim/analysis.js';
 import { fmt, pct, weekShort } from '../format.js';
 import { t, tx } from '../../i18n/index.js';
 
@@ -45,6 +47,8 @@ export function FinalScreen({ s, onRestart }) {
         </div>
         <p class="note">{t('final.rules')}</p>
       </div>
+      {/* Classroom: analysis computed on the server (G.analysis); single player: from the full local game. */}
+      <AnalysisPanel a={G.analysis || analyseGame(G)} you="you" nameOf={id => N.hotel(G.hotels.find(x => x.id === id))} />
       <div class="two">
         <div class="panel">
           <h2>{t('final.pathTitle')}</h2>
