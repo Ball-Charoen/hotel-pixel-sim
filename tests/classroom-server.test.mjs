@@ -104,3 +104,12 @@ test('what a student does on their screen reaches the server unchanged (hire, fi
   assert.equal(h.price.wd, 1350); assert.equal(h.mk.online, 2500);
   assert.deepEqual(d.start, ['licence']);
 });
+
+test('join links and QR codes never point to a local address (a phone cannot open "localhost")', async () => {
+  const { joinLink, PUBLIC_URL } = await import('../src/net/classroom.js');
+  for (const hostname of ['localhost', '127.0.0.1', '[::1]', '192.168.0.108', '10.1.2.3', '172.20.0.5', 'my-mac.local']) {
+    assert.equal(joinLink('KX7P2M', { hostname, origin: 'http://' + hostname + ':5173', pathname: '/' }), PUBLIC_URL + '#join=KX7P2M', hostname);
+  }
+  assert.equal(joinLink('KX7P2M', { hostname: 'ball-charoen.github.io', origin: 'https://ball-charoen.github.io', pathname: '/hotel-pixel-sim/' }),
+    'https://ball-charoen.github.io/hotel-pixel-sim/#join=KX7P2M');
+});

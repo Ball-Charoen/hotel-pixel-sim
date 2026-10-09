@@ -16,8 +16,12 @@ export function sb() {
 }
 const must = r => { if (r.error) throw r.error; return r.data; };
 
-/* Link for students: opens the game with the room code filled in. */
-export const joinLink = code => `${location.origin}${location.pathname}#join=${code}`;
+/* Link for students: opens the game with the room code filled in. On a local/dev address (localhost, 127.x, LAN)
+   the link points to the public site instead: "localhost" on a student's phone would be the phone itself. */
+export const PUBLIC_URL = 'https://ball-charoen.github.io/hotel-pixel-sim/';
+const LOCAL_HOST = /^(localhost|127\.|\[::1\]|0\.0\.0\.0|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)|\.local$/;
+export const joinLink = (code, loc = location) => (LOCAL_HOST.test(loc.hostname)
+  ? `${PUBLIC_URL}#join=${code}` : `${loc.origin}${loc.pathname}#join=${code}`);
 export const codeFromHash = () => (/#join=([A-Za-z0-9]{6})/.exec(location.hash) || [])[1]?.toUpperCase() || '';
 
 export async function currentUser() {
