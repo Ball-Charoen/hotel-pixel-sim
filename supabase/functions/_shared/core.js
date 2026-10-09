@@ -112,8 +112,11 @@ const MAX_STAFF=4; // T0 limit; see TIERS
    Type 1 = rooms only, Type 2 = rooms + restaurant (Ministerial Regulation B.E. 2551). Game time is compressed. */
 const TIERS=[{rooms:8,maxStaff:4},{rooms:16,maxStaff:6},{rooms:16,maxStaff:8}];
 // Owner approved set A (8 Oct 2026) after simulating 216 games per strategy; see docs/spec-summary.md.
-const GROWTH={licenceCost:25000,licenceWeeks:2,buildCost:60000,buildWeeks:2,restCost:30000,restWeeks:2,
-  fixedPerExtraRoom:600,restFixed:5000,
+// Owner approved B1 (9 Oct 2026): costs -33% (licence 25k->15k, build 60k->40k, restaurant 30k->20k) because in a
+// 12-week game anyone expanding after week 2 lost money. paybackWeeks = weeks of use needed to break even within the
+// game (simulation, 72 games per start week): 16 rooms >= 5 weeks, restaurant open >= 4 weeks [proposal].
+const GROWTH={licenceCost:15000,licenceWeeks:2,buildCost:40000,buildWeeks:2,restCost:20000,restWeeks:2,
+  fixedPerExtraRoom:600,restFixed:5000,paybackWeeks:{licence:5,restaurant:4},
   sizePow:1}; // demand attraction ∝ (rooms/8)^sizePow: "fair share" follows room supply (STR); 8 rooms -> unchanged
 const FNB={spend:{bp:120,fam:450,cpl:380,biz:300},capture:{bp:.25,fam:.6,cpl:.5,biz:.45},walkIn:50,walkInSpend:220,foodCost:.35,cap:150,qBoost:2};
 const ROLES={fo:{q:.6,cap:30},hk:{q:.4,cap:30},fb:{q:0,cap:30}};
@@ -242,6 +245,8 @@ function startProject(h,kind){if(!canStart(h,kind))return false;
   if(kind==='licence'){h.proj.licence=GROWTH.licenceWeeks;h.invest+=GROWTH.licenceCost;}
   else{h.proj.rest=GROWTH.restWeeks;h.invest+=GROWTH.restCost;}return true;}
 const maxStaff=h=>TIERS[h.tier].maxStaff;
+/* Weeks the new rooms (licence) or the restaurant would be in use before the game ends, if started now. */
+const usableWeeks=(g,kind)=>Math.max(0,WEEKS-g.week-(kind==='licence'?GROWTH.licenceWeeks+GROWTH.buildWeeks:GROWTH.restWeeks));
 function simulateWeek(g){
   const w=g.week,c=CITIES[g.city],rng=g.rng;g.hotels.forEach(h=>{if(!h.isPlayer)botDecide(g,h);});
   const E=weekEffects(g,w);const season=seasonMult(g,w);const segDemand={};const K=marketScale(g);
@@ -327,4 +332,4 @@ function finalScores(g){
     const sats=h.history.map(x=>x.teamSat);const staff=sats.length?sats.reduce((a,b)=>a+b,0)/sats.length:0;
     return {id:h.id,name:h.name,fin,rep,staff,score:SCORE_W.fin*fin+SCORE_W.rep*rep+SCORE_W.staff*staff,profit:h.profitCum,cash:h.cash,R:h.R};}).sort((a,b)=>((b.profit>0)-(a.profit>0))||(b.score-a.score));}
 
-export {MARKET_UNIT, marketScale, TIERS, GROWTH, FNB, startProject, canStart, maxStaff, MAX_STAFF, ROLES, HK_COVER, LOAD_HIT, CAND_ROLES, LANG_RANGE, teamQuality, newGame, simulateWeek, finalScores, seasonMult, seasonLabel, weekInfo, tmdSeason, buildTimeline, weekEffects, refPrice, salaryOf, mulberry32, hashSeed, clamp, ROOMS, NIGHTS, WEEKS, SEGMENTS, MAPS, CITIES, NATIONAL, SEEDED, CANCEL_P, SHOCKS, INTERNAL, CHAOS, CHANNELS, INFLUENCER, OTA_BOOST, OTA_COMMISSION, COST, START_CASH, SCORE_W, ARCH, SKILL};
+export {MARKET_UNIT, marketScale, usableWeeks, TIERS, GROWTH, FNB, startProject, canStart, maxStaff, MAX_STAFF, ROLES, HK_COVER, LOAD_HIT, CAND_ROLES, LANG_RANGE, teamQuality, newGame, simulateWeek, finalScores, seasonMult, seasonLabel, weekInfo, tmdSeason, buildTimeline, weekEffects, refPrice, salaryOf, mulberry32, hashSeed, clamp, ROOMS, NIGHTS, WEEKS, SEGMENTS, MAPS, CITIES, NATIONAL, SEEDED, CANCEL_P, SHOCKS, INTERNAL, CHAOS, CHANNELS, INFLUENCER, OTA_BOOST, OTA_COMMISSION, COST, START_CASH, SCORE_W, ARCH, SKILL};

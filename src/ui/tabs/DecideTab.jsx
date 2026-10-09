@@ -1,4 +1,4 @@
-import { CITIES, SEGMENTS, WEEKS, INFLUENCER, OTA_COMMISSION, COST, GROWTH, TIERS, clamp } from '../../sim/core.js';
+import { CITIES, SEGMENTS, WEEKS, INFLUENCER, OTA_COMMISSION, COST, GROWTH, TIERS, clamp, usableWeeks } from '../../sim/core.js';
 import { player, weekCtx, plannedSpend, canGrow, grow } from '../session.js';
 import { RangeCtl, SeasonChip, TmdChip, Src } from '../components/widgets.jsx';
 import { SEG_COLOR } from '../theme.js';
@@ -72,7 +72,15 @@ function GrowthPanel({ G, update, onGoStaff }) {
       <div class="growstatus">{action || <span class={status === t('growth.done') ? 'up' : 'muted'}>{status}</span>}</div>
     </div>
   );
-  const ask = async (msg, kind) => { if (await confirmDialog(msg)) update(() => grow(G, kind)); };
+  // Payback check: how many weeks the investment would be used before the game ends (owner request 9 Oct 2026).
+  const use = kind => usableWeeks(G, kind), late = kind => use(kind) < GROWTH.paybackWeeks[kind];
+  const useLine = kind => t(late(kind) ? 'growth.lateWarn' : 'growth.useInfo', {
+    n: use(kind), min: GROWTH.paybackWeeks[kind], what: t(kind === 'licence' ? 'growth.whatRooms' : 'growth.whatRest'),
+  });
+  const ask = async (msg, kind) => {
+    if (await confirmDialog(msg + '\n\n' + useLine(kind))) update(() => grow(G, kind));
+  };
+  const useNote = kind => <div class={late(kind) ? 'warn' : 'small muted'} style="margin:4px 0 8px">{useLine(kind)}</div>;
   const licenceStatus = h.tier >= 1 ? t('growth.done') : p.licence ? t('growth.waiting', { n: p.licence }) : null;
   const buildStatus = h.rooms >= TIERS[1].rooms ? t('growth.done') : p.build ? t('growth.building', { n: p.build }) : t('growth.auto');
   const restStatus = h.restaurant ? t('growth.done') : p.rest ? t('growth.fitting', { n: p.rest }) : h.tier < 1 ? t('growth.needLicence') : null;
@@ -84,6 +92,7 @@ function GrowthPanel({ G, update, onGoStaff }) {
         !licenceStatus && canGrow(G, 'licence') && (
           <button class="btn" type="button" onClick={() => ask(t('growth.confirmLicence', { cost: fmt(GROWTH.licenceCost), build: fmt(GROWTH.buildCost) }), 'licence')}>{t('growth.apply')}</button>
         ))}
+      {!licenceStatus && canGrow(G, 'licence') && useNote('licence')}
       {step(t('growth.step2', { rooms: TIERS[1].rooms }), t('growth.step2Info', {
         cost: fmt(GROWTH.buildCost), w: GROWTH.buildWeeks, fixed: fmt((TIERS[1].rooms - 8) * GROWTH.fixedPerExtraRoom), staff: TIERS[1].maxStaff,
       }), buildStatus)}
@@ -91,6 +100,7 @@ function GrowthPanel({ G, update, onGoStaff }) {
         !restStatus && canGrow(G, 'restaurant') && (
           <button class="btn" type="button" onClick={() => ask(t('growth.confirmRest', { cost: fmt(GROWTH.restCost), fixed: fmt(GROWTH.restFixed) }), 'restaurant')}>{t('growth.openRest')}</button>
         ))}
+      {!restStatus && canGrow(G, 'restaurant') && useNote('restaurant')}
       {h.restaurant && !h.staff.some(x => x.role === 'fb') && (
         <div class="warn">{t('growth.noFB')} <button class="btn ghost" type="button" style="padding:2px 10px;box-shadow:none" onClick={onGoStaff}>{t('decide.goStaff')}</button></div>
       )}

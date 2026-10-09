@@ -285,3 +285,4 @@ img.lm{object-fit:cover}
 .analysis .keylist li{margin:0 0 10px}
 .analysis details{margin-top:10px}
 .analysis summary{cursor:pointer;font-weight:600}
+.modal.confirm p{white-space:pre-line}

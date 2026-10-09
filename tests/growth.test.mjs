@@ -58,3 +58,17 @@ test('with equal prices, a 16-room hotel sells more room-nights than an 8-room o
   for (let w = 0; w < 6; w++) { s += simulateWeek(small).hotels.you.sold; b += simulateWeek(big).hotels.you.sold; }
   assert.ok(b > s * 1.3, `16 rooms sold ${b} vs 8 rooms ${s}`);
 });
+
+test('growth costs B1 (owner approved 9 Oct 2026) and the payback warning weeks', async () => {
+  const { usableWeeks, newGame } = await import('../src/sim/core.js');
+  assert.deepEqual([GROWTH.licenceCost, GROWTH.buildCost, GROWTH.restCost], [15000, 40000, 20000]);
+  assert.deepEqual(GROWTH.paybackWeeks, { licence: 5, restaurant: 4 });
+  const g = newGame({ seed: 'pay', city: 'bkk', startMonth: 0, chaos: 'low', allowFake: true });
+  const at = (week, kind) => { g.week = week - 1; return usableWeeks(g, kind); };
+  // Simulation (docs/spec-summary.md): licence by week 4 = 5 weeks of 16 rooms (pays back); week 5 = 4 weeks (warning).
+  assert.equal(at(4, 'licence'), 5);
+  assert.equal(at(5, 'licence'), 4);
+  assert.equal(at(7, 'restaurant'), 4);
+  assert.equal(at(8, 'restaurant'), 3);
+  assert.equal(at(12, 'licence'), 0);
+});

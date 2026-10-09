@@ -4,7 +4,7 @@ import { toSaveJSON, fromSaveJSON, relinkGame } from '../sim/save.js';
 
 const KEY = 'hotel-pixel-sim:save';
 // Bump when the save format or game rules change in a way that makes old saves invalid.
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;   // 5: growth costs B1 (9 Oct 2026)
 
 export function writeSave(session, screen) {
   try {

@@ -937,7 +937,11 @@
     "needLicence": "Needs the licence first",
     "noFB": "The restaurant is open but has no F&B staff, so there is no food revenue yet (hire in the Staff tab).",
     "cashNote": "Negative cash costs 1% interest a week. Think first: will the extra rooms sell enough to pay back before the game ends?",
-    "fnb": "Restaurant: {g} meals for staying guests · {w} walk-in diners · revenue {rev} ฿"
+    "fnb": "Restaurant: {g} meals for staying guests · {w} walk-in diners · revenue {rev} ฿",
+    "useInfo": "Started this week, the {what} would be in use for {n} weeks before the game ends (simulation: at least {min} weeks are needed to break even).",
+    "lateWarn": "Careful: started now, the {what} would be in use for only {n} weeks before the game ends, but at least {min} weeks are needed to break even. Likely a loss within the game.",
+    "whatRooms": "extra rooms",
+    "whatRest": "restaurant"
   },
   "common": {
     "ok": "OK",
