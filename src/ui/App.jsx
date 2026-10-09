@@ -76,7 +76,15 @@ export function App() {
     return () => window.removeEventListener('beforeunload', warn);
   }, [screen, saveOk]);
 
-  const home = () => { history.replaceState(null, '', location.pathname); go('setup'); };
+  // Back to the start screen from anywhere. Single player is autosaved, so its resume card shows the game;
+  // students rejoin from "rooms joined from this device"; instructors stay signed in.
+  const home = () => {
+    if (session.current && (screenRef.current === 'game' || screenRef.current === 'final')) saveNow();
+    setResume(readSave());
+    history.replaceState(null, '', location.pathname);
+    go('setup');
+  };
+  const lang = <LangSwitch onChange={changeLang} onHome={screen === 'setup' ? null : home} />;
   let body;
   if (screen === 'setup') {
     body = (
@@ -86,13 +94,13 @@ export function App() {
       </>
     );
   } else if (screen === 'join') body = <JoinScreen onBack={home} onEnter={id => { setClassPlayer(id); go('student'); }} />;
-  else if (screen === 'student') body = <StudentRoom playerId={classPlayer} onExit={() => go('join')} langSwitch={<LangSwitch onChange={changeLang} />} />;
+  else if (screen === 'student') body = <StudentRoom playerId={classPlayer} onExit={() => go('join')} langSwitch={lang} />;
   else if (screen === 'teacher') body = <InstructorScreen onBack={home} />;
-  else if (screen === 'classdemo') body = <ClassDemo langSwitch={<LangSwitch onChange={changeLang} />} />;
+  else if (screen === 'classdemo') body = <ClassDemo langSwitch={lang} />;
   else if (screen === 'final') body = <FinalScreen s={session.current} onRestart={restart} />;
   else {
     body = (
-      <GameScreen s={session.current} update={update} saveOk={saveOk} onFinal={showFinal} langSwitch={<LangSwitch onChange={changeLang} />}
+      <GameScreen s={session.current} update={update} saveOk={saveOk} onFinal={showFinal} langSwitch={lang}
         initialTab={session.current.last ? 'report' : 'market'} />
     );
   }
@@ -100,7 +108,7 @@ export function App() {
   return (
     <>
       <p class="rotate-hint">{t('app.rotate')}</p>
-      {screen !== 'game' && screen !== 'student' && screen !== 'classdemo' && <LangSwitch onChange={changeLang} />}
+      {screen !== 'game' && screen !== 'student' && screen !== 'classdemo' && lang}
       {body}
       <ConfirmHost />
     </>

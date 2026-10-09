@@ -8,7 +8,7 @@ import { toSaveJSON } from '../../sim/save.js';
 import { decisionCsv, plannedSpend, hasFrontOffice } from '../session.js';
 import {
   joinRoom, myPlayers, loadStudent, submitDecision, advanceRoom, startRoom, watchRoom, joinLink, codeFromHash,
-  instructorSignIn, amInstructor, currentUser, signOut, listRooms, createRoom, setTimer, deleteRoom, removePlayer,
+  instructorSignIn, amInstructor, currentUser, signOut, changePassword, listRooms, createRoom, setTimer, deleteRoom, removePlayer,
   roomDetail, roomLogs, sessionFromView,
 } from '../../net/classroom.js';
 import { GameScreen } from './GameScreen.jsx';
@@ -274,7 +274,41 @@ function TeacherLogin({ onDone, onBack }) {
   );
 }
 
+const PW_MIN = 8;   // [proposal] stricter than Supabase's default minimum of 6
+
+function PasswordForm({ onClose }) {
+  const [a, setA] = useState('');
+  const [b, setB] = useState('');
+  const [msg, setMsg] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const save = async e => {
+    e.preventDefault();
+    if (a.length < PW_MIN) return setMsg({ bad: true, text: t('class.pwRule', { n: PW_MIN }) });
+    if (a !== b) return setMsg({ bad: true, text: t('class.pwMismatch') });
+    setBusy(true);
+    try { await changePassword(a); setMsg({ bad: false, text: t('class.pwSaved') }); setA(''); setB(''); }
+    catch (x) { setMsg({ bad: true, text: errText(x) }); }
+    setBusy(false);
+  };
+  return (
+    <form class="note-box" onSubmit={save}>
+      <h3 style="margin-top:0">{t('class.changePw')}</h3>
+      <fieldset><legend>{t('class.newPw')}</legend>
+        <input type="password" autoComplete="new-password" value={a} onInput={e => setA(e.currentTarget.value)} /></fieldset>
+      <fieldset><legend>{t('class.newPw2')}</legend>
+        <input type="password" autoComplete="new-password" value={b} onInput={e => setB(e.currentTarget.value)} /></fieldset>
+      <p class="small muted">{t('class.pwRule', { n: PW_MIN })}</p>
+      {msg && <div class={msg.bad ? 'warn' : 'small up'}>{msg.text}</div>}
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+        <button class="btn" type="submit" disabled={busy || !a || !b}>{busy ? t('class.wait') : t('class.pwSave')}</button>
+        <button class="btn ghost" type="button" onClick={onClose}>{t('class.close')}</button>
+      </div>
+    </form>
+  );
+}
+
 function TeacherHome({ onOpen, onLogout, onBack }) {
+  const [pw, setPw] = useState(false);
   const [rooms, setRooms] = useState(null);
   const [err, setErr] = useState('');
   const [f, setF] = useState({ title: '', map: 'town', city: 'pbi', startMonth: 10, chaos: 'mid', allowFake: true, bots: 1, timer: 0 });
@@ -291,9 +325,10 @@ function TeacherHome({ onOpen, onLogout, onBack }) {
       <div class="panel classform">
         <div class="row" style="justify-content:space-between;display:flex;gap:8px;flex-wrap:wrap">
           <h1 style="margin:0">{t('class.roomsTitle')}</h1>
-          <span><button class="btn ghost" type="button" onClick={onBack}>{t('class.back')}</button>{' '}
+          <span><button class="btn ghost" type="button" onClick={() => setPw(x => !x)}>{t('class.changePw')}</button>{' '}
             <button class="btn ghost" type="button" onClick={onLogout}>{t('class.logout')}</button></span>
         </div>
+        {pw && <PasswordForm onClose={() => setPw(false)} />}
         {err && <div class="warn">{err}</div>}
         {!rooms ? <p>{t('class.loading')}</p> : rooms.length === 0 ? <p class="muted">{t('class.noRooms')}</p> : (
           <div class="tablewrap"><table>

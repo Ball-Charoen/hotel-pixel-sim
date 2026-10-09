@@ -298,3 +298,4 @@ img.lm{object-fit:cover}
 .qr{display:block;border:2px solid var(--line);border-radius:4px;background:#fff}
 .overlay.qrfull{flex-direction:column;gap:8px;text-align:center;cursor:pointer;color:#fff;background:rgba(16,26,35,.96);align-items:center;justify-content:center}
 .overlay.qrfull .roomcode{color:#fff;margin:4px 0}
+.langbar .homebtn{margin-right:auto}

@@ -1034,7 +1034,16 @@
     "qrAria": "QR code to join room {code}",
     "qrBig": "Show QR full screen",
     "qrScan": "Scan with your phone camera to join",
-    "qrClose": "Tap anywhere or press Esc to close"
+    "qrClose": "Tap anywhere or press Esc to close",
+    "home": "Home",
+    "changePw": "Change password",
+    "newPw": "New password",
+    "newPw2": "New password again",
+    "pwRule": "At least {n} characters. Mix letters and numbers, and don't reuse a password from another account.",
+    "pwMismatch": "The two passwords do not match",
+    "pwSaved": "Password changed. Use the new one next time you sign in.",
+    "pwSave": "Save new password",
+    "close": "Close"
   },
   "ana": {
     "title": "Why {hotel} won: Key Success Factors",

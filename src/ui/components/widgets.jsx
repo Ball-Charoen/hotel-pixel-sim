@@ -11,10 +11,12 @@ import { t, LANGS, getLang } from '../../i18n/index.js';
 export const lines = items => items.map((x, i) => <Fragment key={i}>{i > 0 && <br />}{x}</Fragment>);
 
 /* Language buttons, each shown in its own language. */
-export function LangSwitch({ onChange }) {
+/* onHome: shows a Home button (every screen except the start screen). */
+export function LangSwitch({ onChange, onHome = null }) {
   const cur = getLang();
   return (
     <div class="langbar" role="group" aria-label="Language · ภาษา · 語言">
+      {onHome && <button type="button" class="homebtn" onClick={onHome}>⌂ {t('class.home')}</button>}
       {LANGS.map(([k, name]) => (
         <button key={k} type="button" lang={k} aria-pressed={cur === k} onClick={() => onChange(k)}>{name}</button>
       ))}

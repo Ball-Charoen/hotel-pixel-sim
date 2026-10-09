@@ -1034,7 +1034,16 @@
     "qrAria": "加入房間 {code} 的 QR code",
     "qrBig": "全螢幕顯示 QR",
     "qrScan": "用手機相機掃描即可加入",
-    "qrClose": "點任意處或按 Esc 關閉"
+    "qrClose": "點任意處或按 Esc 關閉",
+    "home": "首頁",
+    "changePw": "變更密碼",
+    "newPw": "新密碼",
+    "newPw2": "再次輸入新密碼",
+    "pwRule": "至少 {n} 個字元，建議混合字母與數字，且不要與其他帳號使用相同密碼。",
+    "pwMismatch": "兩次輸入的密碼不一致",
+    "pwSaved": "密碼已變更，下次登入請使用新密碼。",
+    "pwSave": "儲存新密碼",
+    "close": "關閉"
   },
   "ana": {
     "title": "{hotel} 為什麼獲勝：關鍵成功因素",

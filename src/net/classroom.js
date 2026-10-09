@@ -130,6 +130,11 @@ export async function instructorSignIn(email, password) {
   must(await c.auth.signInWithPassword({ email: email.trim(), password }));
   if (!(await amInstructor())) { await c.auth.signOut(); throw new Error('not-instructor'); }
 }
+/* Signed-in instructor sets a new password (e.g. replacing the temporary one the admin gave them). */
+export async function changePassword(password) {
+  const c = await sb();
+  must(await c.auth.updateUser({ password }));
+}
 export async function amInstructor() {
   const c = await sb();
   const u = await currentUser();
