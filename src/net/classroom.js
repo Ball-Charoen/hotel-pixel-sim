@@ -198,17 +198,30 @@ export async function listRooms() {
   const c = await sb();
   return must(await c.from('rooms').select('*, players(count)').order('created_at', { ascending: false }));
 }
+/* Weekly timer: off, or any whole number of minutes from 1 to 20 (the database allows up to 120). */
+export const TIMER_MAX = 20;
+export const timerMinutes = Array.from({ length: TIMER_MAX }, (_, i) => i + 1);
+/* Options for the timer menu: off + every minute 1..20, plus the room's current value when it is something else
+   (e.g. 30 chosen with the older menu) so the menu never shows a wrong value. */
+export const timerOptions = current => [...timerMinutes, ...(current > TIMER_MAX ? [current] : [])];
+/* Value to store: null = no timer, else a whole number of minutes in 1..TIMER_MAX. */
+export function cleanTimer(x) {
+  const n = Number(x);
+  if (!x || n === 0) return null;
+  if (!Number.isInteger(n) || n < 1 || n > TIMER_MAX) throw new Error(`timer must be 0 or a whole number from 1 to ${TIMER_MAX}`);
+  return n;
+}
 export async function createRoom(f) {
   const c = await sb();
   const seed = 'class-' + Math.floor(Math.random() * 9000 + 1000);
   return must(await c.from('rooms').insert({
     title: f.title || '', city: f.city, start_month: f.startMonth, chaos: f.chaos, allow_fake: f.allowFake,
-    bots: f.bots, timer_minutes: f.timer || null, seed,
+    bots: f.bots, timer_minutes: cleanTimer(f.timer), seed,
   }).select().single());
 }
 export async function setTimer(roomId, minutes) {
   const c = await sb();
-  return must(await c.from('rooms').update({ timer_minutes: minutes || null }).eq('id', roomId).select().single());
+  return must(await c.from('rooms').update({ timer_minutes: cleanTimer(minutes) }).eq('id', roomId).select().single());
 }
 export async function deleteRoom(roomId) {
   const c = await sb();

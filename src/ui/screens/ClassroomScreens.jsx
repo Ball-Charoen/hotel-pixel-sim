@@ -9,7 +9,7 @@ import { decisionCsv, plannedSpend, hasFrontOffice } from '../session.js';
 import {
   joinRoom, myPlayers, loadStudent, submitDecision, advanceRoom, startRoom, watchRoom, joinLink, codeFromHash,
   instructorSignIn, instructorSignUp, prepareInstructor, PASSWORD_MIN, currentUser, signOut, changePassword, listRooms, createRoom, setTimer, deleteRoom, removePlayer,
-  roomDetail, roomLogs, sessionFromView,
+  roomDetail, roomLogs, sessionFromView, timerOptions,
 } from '../../net/classroom.js';
 import { GameScreen } from './GameScreen.jsx';
 import { AnalysisPanel } from '../components/AnalysisPanel.jsx';
@@ -49,6 +49,14 @@ function useNow(ms = 1000) {
   useEffect(() => { const id = setInterval(() => setNow(Date.now()), ms); return () => clearInterval(id); }, [ms]);
   return now;
 }
+/* Weekly timer menu: no timer, or every single minute from 1 to 20. */
+export const TimerSelect = ({ value, onChange }) => (
+  <select value={value || 0} onChange={e => onChange(Number(e.currentTarget.value))}>
+    <option value={0}>{t('class.timerOff')}</option>
+    {timerOptions(value).map(n => <option key={n} value={n}>{t('class.minutes', { n })}</option>)}
+  </select>
+);
+
 const Seg = ({ items, value, onPick }) => (
   <div class="seg">{items.map(([k, label]) => <button key={k} type="button" aria-pressed={value === k} onClick={() => onPick(k)}>{label}</button>)}</div>
 );
@@ -453,7 +461,7 @@ function TeacherHome({ onOpen, onLogout, onBack }) {
           <Seg items={[0, 1, 2, 3].map(n => [n, String(n)])} value={f.bots} onPick={n => set({ bots: n })} />
           <p class="small muted">{t('class.botsHint')}</p></fieldset>
         <fieldset><legend>{t('class.timer')}</legend>
-          <Seg items={[[0, t('class.timerOff')], [5, '5'], [10, '10'], [15, '15'], [20, '20']]} value={f.timer} onPick={n => set({ timer: n })} />
+          <TimerSelect value={f.timer} onChange={n => set({ timer: n })} />
           <p class="small muted">{t('class.timerHint')}</p></fieldset>
         <button class="btn" type="button" disabled={busy} onClick={create}>{busy ? t('class.wait') : t('class.create')}</button>
       </div>
@@ -571,11 +579,10 @@ function RoomDashboard({ roomId, onBack }) {
           {room.status === 'running' && <button class="btn" type="button" disabled={busy} onClick={() => act(() => advanceRoom(room.id), nSub < players.length ? t('class.advanceConfirm', { n: players.length - nSub }) : null)}>{busy ? t('class.wait') : t('class.advance', { n: room.week + 1 })}</button>}
           {room.status !== 'finished' && (
             <label class="small" style="display:flex;gap:6px;align-items:center">{t('class.timer')}
-              <select value={room.timer_minutes || 0} onChange={e => { const v = Number(e.currentTarget.value); act(() => setTimer(room.id, v)); }}>
-                {[0, 5, 10, 15, 20, 30].map(n => <option key={n} value={n}>{n ? t('class.minutes', { n }) : t('class.timerOff')}</option>)}
-              </select></label>
+              <TimerSelect value={room.timer_minutes} onChange={v => act(() => setTimer(room.id, v))} /></label>
           )}
         </div>
+        {room.status === 'running' && <p class="small muted">{t('class.timerLater')}</p>}
         <p class="note">{t(room.status === 'lobby' ? 'class.lobbyNote' : 'class.runNote')}</p>
       </div>
 
