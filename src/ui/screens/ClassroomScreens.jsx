@@ -243,23 +243,60 @@ export function ClassDemo({ langSwitch }) {
 
 /* ---------------- instructors ---------------- */
 
+/* True while `active` has lasted longer than `ms`: the server (Supabase Auth) sometimes takes 10-25 s to answer,
+   so a screen that waits on it says so instead of looking frozen. */
+function useSlow(active, ms = 6000) {
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    setSlow(false);
+    if (!active) return undefined;
+    const id = setTimeout(() => setSlow(true), ms);
+    return () => clearTimeout(id);
+  }, [active, ms]);
+  return slow;
+}
+
+const GIVE_UP_MS = 45000;   // after this the instructor is shown the sign-in form even if the check is still running
+
 export function InstructorScreen({ onBack }) {
   const [phase, setPhase] = useState('check');      // check | login | home | room
   const [roomId, setRoomId] = useState(null);
-  // Also approves automatically when the person has just come back from the confirmation email.
-  useEffect(() => { prepareInstructor().then(ok => setPhase(ok ? 'home' : 'login')).catch(() => setPhase('login')); }, []);
+  const [notice, setNotice] = useState('');
+  const slow = useSlow(phase === 'check');
+  // The confirmation email's link returns here with #access_token=... (or #error=... when it is stale).
+  // prepareInstructor approves the account automatically when the person is signed in by that link.
+  useEffect(() => {
+    const stale = /#.*error(_code|_description)?=/.test(location.hash);
+    const giveUp = setTimeout(() => { setNotice(t('class.errSlow')); setPhase(p => (p === 'check' ? 'login' : p)); }, GIVE_UP_MS);
+    prepareInstructor()
+      .then(ok => {
+        if (!ok && stale) setNotice(t('class.errLink'));
+        setPhase(p => (ok ? 'home' : p === 'check' ? 'login' : p));
+      })
+      .catch(() => setPhase(p => (p === 'check' ? 'login' : p)))
+      .finally(() => { if (/#.*(access_token|error)/.test(location.hash)) history.replaceState(null, '', location.pathname); });
+    return () => clearTimeout(giveUp);
+  }, []);
   const logout = async () => { await signOut(); setPhase('login'); };
-  if (phase === 'check') return <div class="panel"><p>{t('class.loading')}</p></div>;
-  if (phase === 'login') return <TeacherLogin onDone={() => setPhase('home')} onBack={onBack} />;
+  if (phase === 'check') {
+    return (
+      <div class="panel classform">
+        <p>{t('class.checking')}</p>
+        {slow && <p class="note">{t('class.checkingSlow')}</p>}
+      </div>
+    );
+  }
+  if (phase === 'login') return <TeacherLogin notice={notice} onDone={() => setPhase('home')} onBack={onBack} />;
   if (phase === 'room') return <RoomDashboard roomId={roomId} onBack={() => setPhase('home')} />;
   return <TeacherHome onOpen={id => { setRoomId(id); setPhase('room'); }} onLogout={logout} onBack={onBack} />;
 }
 
-function TeacherLogin({ onDone, onBack }) {
+function TeacherLogin({ onDone, onBack, notice = '' }) {
   const [mode, setMode] = useState('login');         // login | signup | sent
   const [f, setF] = useState({ name: '', institution: '', email: '', pw: '', pw2: '' });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const slow = useSlow(busy);
   const set = p => setF(x => ({ ...x, ...p }));
   const switchTo = m => { setMode(m); setErr(''); };
   const signIn = async e => {
@@ -283,6 +320,7 @@ function TeacherLogin({ onDone, onBack }) {
       <button class="btn ghost" type="button" onClick={onBack}>{t('class.back')}</button>
     </div>
   );
+  const hint = slow && <p class="note">{t('class.checkingSlow')}</p>;
   if (mode === 'sent') {
     return (
       <div class="panel classform">
@@ -305,6 +343,7 @@ function TeacherLogin({ onDone, onBack }) {
         <fieldset><legend>{t('class.password2')}</legend><input type="password" autoComplete="new-password" value={f.pw2} onInput={e => set({ pw2: e.currentTarget.value })} /></fieldset>
         {err && <div class="warn">{err}</div>}
         {actions(t('class.signupBtn'), !f.name.trim() || !f.email || !f.pw || !f.pw2)}
+        {hint}
         <p class="note">{t('class.signupNote')}</p>
         <p class="small"><button class="linkbtn" type="button" onClick={() => switchTo('login')}>{t('class.haveAccount')}</button></p>
       </form>
@@ -315,8 +354,10 @@ function TeacherLogin({ onDone, onBack }) {
       <h1>{t('class.teacherTitle')}</h1>
       <fieldset><legend>{t('class.email')}</legend><input type="email" autoComplete="username" value={f.email} onInput={e => set({ email: e.currentTarget.value })} /></fieldset>
       <fieldset><legend>{t('class.password')}</legend><input type="password" autoComplete="current-password" value={f.pw} onInput={e => set({ pw: e.currentTarget.value })} /></fieldset>
+      {notice && !err && <div class="warn">{notice}</div>}
       {err && <div class="warn">{err}</div>}
       {actions(t('class.login'), !f.email || !f.pw)}
+      {hint}
       <p class="note">{t('class.teacherNote')}</p>
       <p class="small"><button class="linkbtn" type="button" onClick={() => switchTo('signup')}>{t('class.noAccount')}</button></p>
     </form>

@@ -74,9 +74,10 @@ function PosterHead({ G, onInfo }) {
           <Ticket icon="star" label={t('top.rating')}>{h.R.toFixed(2)}</Ticket>
           <Ticket icon="person" label={t('top.staffSat')}>{h.staff.length ? Math.round(teamSat) : '–'}</Ticket>
         </div>
+        {/* Inside the text column (not the poster corner) so it can never sit on top of the building picture. */}
+        <button type="button" class="infobtn" aria-label={t('top.info')} title={t('top.info')} onClick={onInfo}>i</button>
       </div>
       <Scene G={G} />
-      <button type="button" class="infobtn" aria-label={t('top.info')} title={t('top.info')} onClick={onInfo}>i</button>
     </div>
   );
 }

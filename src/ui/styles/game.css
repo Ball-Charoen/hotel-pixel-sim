@@ -257,7 +257,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 img.lm{object-fit:cover}
 @media (orientation:landscape) and (max-height:560px){
   #tabbody>.scene{display:flex;justify-content:center;margin-bottom:10px}
-  #tabbody>.scene canvas{width:auto;height:min(180px,48vh)}
+  #tabbody>.scene canvas{width:auto;max-width:100%;height:min(250px,66vh)}
 }
 
 /* ---------- P1 step 5: staff positions ---------- */
@@ -400,8 +400,10 @@ input[type=range]::-moz-range-thumb{border-color:var(--sticker)}
 .pie .pie-sub{font-size:11px;fill:var(--muted)}
 
 /* Poster header (desktop/tablet game screen): big hotel name, magenta week banner, yellow tickets, building on the right. */
-.poster{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,230px);gap:12px 24px;align-items:end;margin:0 0 18px}
-.poster-where{margin:0 0 2px;font-weight:600;color:var(--muted)}
+.poster{position:relative;display:grid;grid-template-columns:minmax(0,1fr) clamp(260px,30vw,380px);gap:12px 24px;align-items:center;margin:0 0 18px}
+.poster-main{position:relative}
+.poster-main>.infobtn{position:absolute;top:-10px;right:0;z-index:1;margin:0}
+.poster-where{margin:0 0 2px;padding-right:56px;font-weight:600;color:var(--muted)}
 .poster-where .chip{vertical-align:1px}
 .poster-name{font-size:clamp(1.8rem,4.4vw,3rem);line-height:1.12;margin:0 0 6px;overflow-wrap:anywhere}
 .poster-name::after{content:"";display:inline-block;width:.6em;height:.6em;margin-left:.3em;vertical-align:.1em;background:var(--spark) center/contain no-repeat}
@@ -413,11 +415,10 @@ input[type=range]::-moz-range-thumb{border-color:var(--sticker)}
 .ticket .k{display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:600;color:#4C4776;white-space:nowrap}
 .ticket .v{display:block;font-family:var(--pix);font-size:2.1rem;line-height:1}
 .ticket .v.down{color:#B3261E}
-.poster>.infobtn{position:absolute;top:-10px;right:-10px;z-index:1;margin:0}
 @media (max-width:600px){
   .poster{grid-template-columns:1fr}
-  .poster .scene{order:-1;width:100%;max-width:240px;margin:0 auto}
-  .poster>.infobtn{top:0;right:0}
+  .poster .scene{order:-1;width:100%;max-width:min(100%,340px);margin:0 auto}
+  .poster-main>.infobtn{top:0}
 }
 
 /* Dialogs */

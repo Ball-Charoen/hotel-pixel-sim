@@ -1055,7 +1055,11 @@
     "signupSentNote": "Click the link in the email and your instructor account is approved automatically. Then sign in with your email and password. If you cannot find it, check the spam folder.",
     "errUnconfirmed": "Email not confirmed yet. Click the link in the email we sent, then sign in again.",
     "errEmailRate": "Confirmation emails are limited to 2 per hour. Please wait a while and try again.",
-    "password2": "Repeat the password"
+    "password2": "Repeat the password",
+    "checking": "Checking your instructor account…",
+    "checkingSlow": "The sign-in service is slower than usual. Please wait; you do not need to close this page.",
+    "errSlow": "The sign-in service is very slow. You can sign in with your email and password (if the email is confirmed, the account is approved automatically).",
+    "errLink": "The link in the email has expired or was already used. If the email is confirmed, sign in with your email and password."
   },
   "ana": {
     "title": "Why {hotel} won: Key Success Factors",
