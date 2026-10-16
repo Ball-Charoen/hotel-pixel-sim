@@ -247,6 +247,8 @@
     "more": "more",
     "less": "less",
     "bldNote": "Lit windows in the building above follow the latest occupancy; red = room closed for repair.",
+    "donutSold": "rooms sold",
+    "donutOf": "of {cap} per week",
     "quadTitle": "Your position: volume × price vs competitors",
     "diagTitle": "Analysis",
     "causeTitle": "Cause → effect this week",

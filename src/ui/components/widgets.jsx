@@ -112,7 +112,7 @@ export function LineChart({ series, labels, min = 0, refLine, refLabel, aria, h 
 }
 
 /* Donut chart with each slice's label placed around it, next to its own slice (no separate legend).
-   slices: [{ v, color, name, value }]; centre/centreSub: text in the hole. Slices start at 12 o'clock, clockwise.
+   slices: [{ v, color, name, value }]; centre: big number in the hole; centreSub: one line or a list of lines under it. Slices start at 12 o'clock, clockwise.
    Labels on the same side are pushed apart so small neighbouring slices do not overlap. */
 const PIE = { W: 350, H: 262, r: 78, r0: 48, lh: 16 };
 const twoLines = name => {
@@ -155,8 +155,8 @@ export function DonutChart({ slices, centre, centreSub, aria }) {
       <circle cx={cx} cy={cy} r={r0} fill="none" class="pie-rim" />
       {centre != null && (
         <>
-          <text x={cx} y={cy + (centreSub ? 2 : 9)} text-anchor="middle" class="pie-centre">{centre}</text>
-          {centreSub && <text x={cx} y={cy + 16} text-anchor="middle" class="pie-sub">{centreSub}</text>}
+          <text x={cx} y={cy + (centreSub ? -4 : 9)} text-anchor="middle" class="pie-centre">{centre}</text>
+          {[].concat(centreSub || []).map((ln, k) => <text key={k} x={cx} y={cy + 12 + k * 13} text-anchor="middle" class="pie-sub">{ln}</text>)}
         </>
       )}
       {items.map((x, i) => {

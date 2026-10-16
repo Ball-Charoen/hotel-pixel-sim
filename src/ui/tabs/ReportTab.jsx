@@ -182,7 +182,7 @@ function SegMix({ y }) {
   return (
     <div class="segpie">
       <DonutChart aria={SEGMENTS.map(sg => `${N.seg(sg.id)} ${Math.round(share(sg))}%`).join(', ')}
-        centre={Math.round(SEGMENTS.reduce((a, sg) => a + (y.seg[sg.id] || 0), 0))} centreSub={t('customer.roomNights', { n: '' }).trim()}
+        centre={y.sold} centreSub={[t('report.donutSold'), t('report.donutOf', { cap: y.rooms * 7 })]}
         slices={SEGMENTS.map(sg => ({ v: share(sg), color: SEG_COLOR[sg.id], name: N.seg(sg.id), value: `${Math.round(share(sg))}%` }))} />
     </div>
   );

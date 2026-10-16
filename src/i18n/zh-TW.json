@@ -247,6 +247,8 @@
     "more": "高於",
     "less": "低於",
     "bldNote": "上方建築的窗戶亮燈數依最新住房率而定；紅色 = 維修中的客房。",
+    "donutSold": "已售房間",
+    "donutOf": "共 {cap} 間・每週",
     "quadTitle": "你的位置：銷量 × 價格（與競爭對手比較）",
     "diagTitle": "分析",
     "causeTitle": "本週的因 → 果",
