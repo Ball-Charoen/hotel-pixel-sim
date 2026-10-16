@@ -54,6 +54,16 @@ test('sign-up sends name and institution as account data and the confirmation li
   assert.ok(!c.calls.some(x => x[0] === 'rpc'), 'no approval before the email is confirmed (no session yet)');
 });
 
+test('a sign-up without a usable password is refused before anything is sent (regression: form sent no password)', async () => {
+  const c = fake(); useClientForTests(c);
+  const base = { name: 'อ.สมชาย', email: 'ajarn@uni.ac.th' };
+  await assert.rejects(instructorSignUp({ ...base }), /password too short/);
+  await assert.rejects(instructorSignUp({ ...base, pw: 'secret-pass' }), /password too short/, 'wrong field name');
+  await assert.rejects(instructorSignUp({ ...base, password: 'short' }), /password too short/);
+  await assert.rejects(instructorSignUp({ ...base, name: ' ', password: 'secret-pass' }), /name required/);
+  assert.equal(c.calls.length, 0, 'no network call was made');
+});
+
 test('the confirmation link goes to the public site from localhost and the real address elsewhere', () => {
   assert.equal(confirmLink({ hostname: 'localhost', origin: 'http://localhost:5173', pathname: '/' }), PUBLIC_URL);
   assert.equal(confirmLink({ hostname: '192.168.0.108', origin: 'http://192.168.0.108:5173', pathname: '/' }), PUBLIC_URL);

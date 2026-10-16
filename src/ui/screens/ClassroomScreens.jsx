@@ -8,7 +8,7 @@ import { toSaveJSON } from '../../sim/save.js';
 import { decisionCsv, plannedSpend, hasFrontOffice } from '../session.js';
 import {
   joinRoom, myPlayers, loadStudent, submitDecision, advanceRoom, startRoom, watchRoom, joinLink, codeFromHash,
-  instructorSignIn, instructorSignUp, prepareInstructor, currentUser, signOut, changePassword, listRooms, createRoom, setTimer, deleteRoom, removePlayer,
+  instructorSignIn, instructorSignUp, prepareInstructor, PASSWORD_MIN, currentUser, signOut, changePassword, listRooms, createRoom, setTimer, deleteRoom, removePlayer,
   roomDetail, roomLogs, sessionFromView,
 } from '../../net/classroom.js';
 import { GameScreen } from './GameScreen.jsx';
@@ -21,7 +21,7 @@ import { fmt, pct, baht } from '../format.js';
 import { confirmDialog } from '../confirm.jsx';
 import { t, tx, getLocale } from '../../i18n/index.js';
 
-const PW_MIN = 8;   // [proposal] stricter than Supabase's default minimum of 6
+const PW_MIN = PASSWORD_MIN;
 
 const errText = e => {
   const m = String(e?.message || e || '');
@@ -31,7 +31,7 @@ const errText = e => {
   if (/not-instructor/.test(m)) return t('class.errNotInstructor');
   if (/Email not confirmed|email not confirmed/.test(m)) return t('class.errUnconfirmed');
   if (/over_email_send_rate_limit|email rate limit/i.test(m)) return t('class.errEmailRate');
-  if (/weak|at least \d+ char/i.test(m)) return t('class.pwRule', { n: PW_MIN });
+  if (/weak|at least \d+ char|password too short|valid password/i.test(m)) return t('class.pwRule', { n: PW_MIN });
   if (/Invalid login/i.test(m)) return t('class.errLogin');
   if (/at least 2 hotels/.test(m)) return t('class.errTwoHotels');
   if (/no players/.test(m)) return t('class.errNoPlayers');
@@ -273,7 +273,7 @@ function TeacherLogin({ onDone, onBack }) {
     if (f.pw !== f.pw2) return setErr(t('class.pwMismatch'));
     setBusy(true); setErr('');
     try {
-      const r = await instructorSignUp(f);
+      const r = await instructorSignUp({ name: f.name, institution: f.institution, email: f.email, password: f.pw });
       if (r.approved) onDone(); else { setMode('sent'); setBusy(false); }
     } catch (x) { setErr(errText(x)); setBusy(false); }
   };

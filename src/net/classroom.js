@@ -131,7 +131,12 @@ export const confirmLink = (loc = globalThis.location) => (!loc || LOCAL_HOST.te
 /* Create an instructor account. Supabase emails a confirmation link; once the email is confirmed the account is
    approved automatically (claimInstructor) and recorded in the instructors table. Returns { approved } where
    approved is true only when the project does not require email confirmation and the account is ready now. */
+export const PASSWORD_MIN = 8;   // [proposal] stricter than Supabase's default minimum of 6
 export async function instructorSignUp({ name, institution, email, password }) {
+  // Checked here too, before any network call, so a wrong field name or an empty form can never reach Supabase.
+  if (!String(name || '').trim()) throw new Error('name required');
+  if (!String(email || '').trim()) throw new Error('email required');
+  if (typeof password !== 'string' || password.length < PASSWORD_MIN) throw new Error('password too short');
   const c = await sb();
   const u = await currentUser();
   if (u?.is_anonymous) await c.auth.signOut();          // this browser was a student before
