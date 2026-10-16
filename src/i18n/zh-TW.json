@@ -25,13 +25,10 @@
     "ownerName": "旅館負責人名稱（選填）",
     "ownerHint": "例如你的暱稱",
     "defaultHotelName": "我的青年旅館",
-    "classroom": "課堂設定（教師用）",
     "startMonth": "開始月份",
     "startMonthHint": "12 週 ≈ 3 個月。選擇月份決定遊戲落在這座城市的旺季還是淡季。",
     "chaos": "隨機事件強度",
     "allowFake": "允許使用假評論策略（有被抓的風險）",
-    "seed": "遊戲代碼（seed）",
-    "seedHint": "全班使用同一個代碼，每個人都會遇到相同的電腦對手、活動行事曆和隨機事件。",
     "start": "開始第一週"
   },
   "city": {

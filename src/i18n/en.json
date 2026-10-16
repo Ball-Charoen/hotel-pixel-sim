@@ -25,13 +25,10 @@
     "ownerName": "Owner's name (optional)",
     "ownerHint": "e.g. your nickname",
     "defaultHotelName": "My Hostel",
-    "classroom": "Classroom settings (for instructors)",
     "startMonth": "Start month",
     "startMonthHint": "12 weeks ≈ 3 months. The month decides whether the game falls in this city's high or low season.",
     "chaos": "Random event level",
     "allowFake": "Allow the fake-review strategy (risk of being caught)",
-    "seed": "Game code (seed)",
-    "seedHint": "Use the same code for the whole class: everyone gets the same bots, event calendar and random events.",
     "start": "Start week 1"
   },
   "city": {

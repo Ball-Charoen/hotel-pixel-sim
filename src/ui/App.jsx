@@ -89,8 +89,8 @@ export function App() {
   if (screen === 'setup') {
     body = (
       <>
-        <ClassEntry onJoin={() => go('join')} onTeacher={() => go('teacher')} />
         <SetupScreen onStart={start} resume={resume} onContinue={continueGame} onDeleteSave={deleteSave} />
+        <ClassEntry onJoin={() => go('join')} onTeacher={() => go('teacher')} />
       </>
     );
   } else if (screen === 'join') body = <JoinScreen onBack={home} onEnter={id => { setClassPlayer(id); go('student'); }} />;

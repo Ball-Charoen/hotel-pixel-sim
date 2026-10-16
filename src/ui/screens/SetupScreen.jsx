@@ -36,7 +36,7 @@ function ResumeCard({ resume, onContinue, onDelete }) {
 export function SetupScreen({ onStart, resume, onContinue, onDeleteSave }) {
   const [s, setS] = useState(() => ({
     map: 'town', city: 'pbi', chaos: 'mid', allowFake: true, startMonth: 10,
-    hotelName: null, ownerName: '', seed: 'class-' + Math.floor(Math.random() * 9000 + 1000),
+    hotelName: null, ownerName: '',
   }));
   const set = patch => setS(prev => ({ ...prev, ...patch }));
   // Until the player types a name, show the default name in the current language.
@@ -44,7 +44,8 @@ export function SetupScreen({ onStart, resume, onContinue, onDeleteSave }) {
   const pickCity = id => set({ city: id, map: CITIES[id].map });
 
   const start = () => onStart({
-    seed: s.seed || 'class', city: s.city, startMonth: s.startMonth, chaos: s.chaos, allowFake: s.allowFake,
+    // Single player: a fresh random game every time (classrooms get their seed from the server room).
+    seed: 'solo-' + Math.floor(Math.random() * 1e9).toString(36), city: s.city, startMonth: s.startMonth, chaos: s.chaos, allowFake: s.allowFake,
     hotelName: (hotelName || t('setup.defaultHotelName')).trim(),
     ownerName: s.ownerName.trim(),
   });
@@ -80,7 +81,6 @@ export function SetupScreen({ onStart, resume, onContinue, onDeleteSave }) {
             <input type="text" maxLength={30} value={s.ownerName} placeholder={t('setup.ownerHint')}
               onInput={e => set({ ownerName: e.currentTarget.value })} />
           </fieldset>
-          <h3>{t('setup.classroom')}</h3>
           <fieldset>
             <legend>{t('setup.startMonth')}</legend>
             <select value={s.startMonth} onChange={e => set({ startMonth: Number(e.currentTarget.value) })}>
@@ -97,11 +97,6 @@ export function SetupScreen({ onStart, resume, onContinue, onDeleteSave }) {
               <input type="checkbox" checked={s.allowFake} onChange={e => set({ allowFake: e.currentTarget.checked })} />
               {' '}{t('setup.allowFake')}
             </label>
-          </fieldset>
-          <fieldset>
-            <legend>{t('setup.seed')}</legend>
-            <input type="text" maxLength={24} value={s.seed} onInput={e => set({ seed: e.currentTarget.value })} />
-            <p class="small muted">{t('setup.seedHint')}</p>
           </fieldset>
           <button class="btn" type="button" onClick={start}>{t('setup.start')}</button>
         </div>
