@@ -14,6 +14,8 @@ export function sb() {
   }));
   return clientP;
 }
+/* Tests hand in a fake client (no network, no real accounts). */
+export function useClientForTests(c) { clientP = Promise.resolve(c); }
 const must = r => { if (r.error) throw r.error; return r.data; };
 
 /* Link for students: opens the game with the room code filled in. On a local/dev address (localhost, 127.x, LAN)
@@ -122,13 +124,57 @@ export async function watchRoom(roomId, onChange) {
   return () => c.removeChannel(ch);
 }
 
-/* ---------- instructors (email + password, allowlisted) ---------- */
+/* ---------- instructors (self-registered: email + password, approved automatically) ---------- */
+/* Where the confirmation email sends the instructor back to (the public site, never a student's localhost). */
+export const confirmLink = (loc = globalThis.location) => (!loc || LOCAL_HOST.test(loc.hostname) ? PUBLIC_URL : `${loc.origin}${loc.pathname}`);
+
+/* Create an instructor account. Supabase emails a confirmation link; once the email is confirmed the account is
+   approved automatically (claimInstructor) and recorded in the instructors table. Returns { approved } where
+   approved is true only when the project does not require email confirmation and the account is ready now. */
+export async function instructorSignUp({ name, institution, email, password }) {
+  const c = await sb();
+  const u = await currentUser();
+  if (u?.is_anonymous) await c.auth.signOut();          // this browser was a student before
+  const { data, error } = await c.auth.signUp({
+    email: email.trim(), password,
+    options: { data: { display_name: name.trim(), institution: (institution || '').trim() }, emailRedirectTo: confirmLink() },
+  });
+  if (error) throw error;
+  if (!data.session) return { approved: false };        // waiting for the confirmation email
+  await claimInstructor();
+  return { approved: true };
+}
+
+/* Ask the server to approve the signed-in account as an instructor. It succeeds only for a confirmed email
+   (supabase/migrations/20261016000000_instructor_signup.sql) and records name, institution, email and the date. */
+export async function claimInstructor() {
+  const c = await sb();
+  const u = await currentUser();
+  if (!u || u.is_anonymous) throw new Error('not-instructor');
+  const meta = u.user_metadata || {};
+  must(await c.rpc('register_instructor', {
+    p_name: meta.display_name || String(u.email || '').split('@')[0],
+    p_institution: meta.institution || '',
+  }));
+}
+
 export async function instructorSignIn(email, password) {
   const c = await sb();
   const u = await currentUser();
   if (u?.is_anonymous) await c.auth.signOut();          // this browser was a student before
   must(await c.auth.signInWithPassword({ email: email.trim(), password }));
+  if (!(await amInstructor())) {
+    try { await claimInstructor(); } catch { /* not approvable: fall through to the check below */ }
+  }
   if (!(await amInstructor())) { await c.auth.signOut(); throw new Error('not-instructor'); }
+}
+/* Opening the instructor screen: approve right away when the person just came back from the confirmation email. */
+export async function prepareInstructor() {
+  if (await amInstructor()) return true;
+  const u = await currentUser();
+  if (!u || u.is_anonymous) return false;
+  try { await claimInstructor(); } catch { return false; }
+  return amInstructor();
 }
 /* Signed-in instructor sets a new password (e.g. replacing the temporary one the admin gave them). */
 export async function changePassword(password) {

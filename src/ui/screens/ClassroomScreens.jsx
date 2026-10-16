@@ -8,7 +8,7 @@ import { toSaveJSON } from '../../sim/save.js';
 import { decisionCsv, plannedSpend, hasFrontOffice } from '../session.js';
 import {
   joinRoom, myPlayers, loadStudent, submitDecision, advanceRoom, startRoom, watchRoom, joinLink, codeFromHash,
-  instructorSignIn, amInstructor, currentUser, signOut, changePassword, listRooms, createRoom, setTimer, deleteRoom, removePlayer,
+  instructorSignIn, instructorSignUp, prepareInstructor, currentUser, signOut, changePassword, listRooms, createRoom, setTimer, deleteRoom, removePlayer,
   roomDetail, roomLogs, sessionFromView,
 } from '../../net/classroom.js';
 import { GameScreen } from './GameScreen.jsx';
@@ -21,12 +21,17 @@ import { fmt, pct, baht } from '../format.js';
 import { confirmDialog } from '../confirm.jsx';
 import { t, tx, getLocale } from '../../i18n/index.js';
 
+const PW_MIN = 8;   // [proposal] stricter than Supabase's default minimum of 6
+
 const errText = e => {
   const m = String(e?.message || e || '');
   if (/room not found/.test(m)) return t('class.errNoRoom');
   if (/already started/.test(m)) return t('class.errStarted');
   if (/full/.test(m)) return t('class.errFull');
   if (/not-instructor/.test(m)) return t('class.errNotInstructor');
+  if (/Email not confirmed|email not confirmed/.test(m)) return t('class.errUnconfirmed');
+  if (/over_email_send_rate_limit|email rate limit/i.test(m)) return t('class.errEmailRate');
+  if (/weak|at least \d+ char/i.test(m)) return t('class.pwRule', { n: PW_MIN });
   if (/Invalid login/i.test(m)) return t('class.errLogin');
   if (/at least 2 hotels/.test(m)) return t('class.errTwoHotels');
   if (/no players/.test(m)) return t('class.errNoPlayers');
@@ -241,7 +246,8 @@ export function ClassDemo({ langSwitch }) {
 export function InstructorScreen({ onBack }) {
   const [phase, setPhase] = useState('check');      // check | login | home | room
   const [roomId, setRoomId] = useState(null);
-  useEffect(() => { amInstructor().then(ok => setPhase(ok ? 'home' : 'login')).catch(() => setPhase('login')); }, []);
+  // Also approves automatically when the person has just come back from the confirmation email.
+  useEffect(() => { prepareInstructor().then(ok => setPhase(ok ? 'home' : 'login')).catch(() => setPhase('login')); }, []);
   const logout = async () => { await signOut(); setPhase('login'); };
   if (phase === 'check') return <div class="panel"><p>{t('class.loading')}</p></div>;
   if (phase === 'login') return <TeacherLogin onDone={() => setPhase('home')} onBack={onBack} />;
@@ -250,31 +256,72 @@ export function InstructorScreen({ onBack }) {
 }
 
 function TeacherLogin({ onDone, onBack }) {
-  const [email, setEmail] = useState('');
-  const [pw, setPw] = useState('');
+  const [mode, setMode] = useState('login');         // login | signup | sent
+  const [f, setF] = useState({ name: '', institution: '', email: '', pw: '', pw2: '' });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
-  const go = async e => {
+  const set = p => setF(x => ({ ...x, ...p }));
+  const switchTo = m => { setMode(m); setErr(''); };
+  const signIn = async e => {
     e.preventDefault();
     setBusy(true); setErr('');
-    try { await instructorSignIn(email, pw); onDone(); } catch (x) { setErr(errText(x)); setBusy(false); }
+    try { await instructorSignIn(f.email, f.pw); onDone(); } catch (x) { setErr(errText(x)); setBusy(false); }
   };
-  return (
-    <form class="panel classform" onSubmit={go}>
-      <h1>{t('class.teacherTitle')}</h1>
-      <fieldset><legend>{t('class.email')}</legend><input type="email" autoComplete="username" value={email} onInput={e => setEmail(e.currentTarget.value)} /></fieldset>
-      <fieldset><legend>{t('class.password')}</legend><input type="password" autoComplete="current-password" value={pw} onInput={e => setPw(e.currentTarget.value)} /></fieldset>
-      {err && <div class="warn">{err}</div>}
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn" type="submit" disabled={busy || !email || !pw}>{busy ? t('class.wait') : t('class.login')}</button>
-        <button class="btn ghost" type="button" onClick={onBack}>{t('class.back')}</button>
+  const signUp = async e => {
+    e.preventDefault();
+    if (f.pw.length < PW_MIN) return setErr(t('class.pwRule', { n: PW_MIN }));
+    if (f.pw !== f.pw2) return setErr(t('class.pwMismatch'));
+    setBusy(true); setErr('');
+    try {
+      const r = await instructorSignUp(f);
+      if (r.approved) onDone(); else { setMode('sent'); setBusy(false); }
+    } catch (x) { setErr(errText(x)); setBusy(false); }
+  };
+  const actions = (label, disabled) => (
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn" type="submit" disabled={busy || disabled}>{busy ? t('class.wait') : label}</button>
+      <button class="btn ghost" type="button" onClick={onBack}>{t('class.back')}</button>
+    </div>
+  );
+  if (mode === 'sent') {
+    return (
+      <div class="panel classform">
+        <h1>{t('class.signupSentTitle')}</h1>
+        <p>{t('class.signupSent', { email: f.email.trim() })}</p>
+        <p class="note">{t('class.signupSentNote')}</p>
+        <button class="btn" type="button" onClick={() => switchTo('login')}>{t('class.login')}</button>
       </div>
+    );
+  }
+  if (mode === 'signup') {
+    return (
+      <form class="panel classform" onSubmit={signUp}>
+        <h1>{t('class.signupTitle')}</h1>
+        <fieldset><legend>{t('class.fullName')}</legend><input type="text" maxLength={60} autoComplete="name" value={f.name} onInput={e => set({ name: e.currentTarget.value })} /></fieldset>
+        <fieldset><legend>{t('class.institution')}</legend><input type="text" maxLength={80} autoComplete="organization" value={f.institution} onInput={e => set({ institution: e.currentTarget.value })} /></fieldset>
+        <fieldset><legend>{t('class.email')}</legend><input type="email" autoComplete="username" value={f.email} onInput={e => set({ email: e.currentTarget.value })} /></fieldset>
+        <fieldset><legend>{t('class.password')}</legend><input type="password" autoComplete="new-password" value={f.pw} onInput={e => set({ pw: e.currentTarget.value })} />
+          <p class="small muted">{t('class.pwRule', { n: PW_MIN })}</p></fieldset>
+        <fieldset><legend>{t('class.password2')}</legend><input type="password" autoComplete="new-password" value={f.pw2} onInput={e => set({ pw2: e.currentTarget.value })} /></fieldset>
+        {err && <div class="warn">{err}</div>}
+        {actions(t('class.signupBtn'), !f.name.trim() || !f.email || !f.pw || !f.pw2)}
+        <p class="note">{t('class.signupNote')}</p>
+        <p class="small"><button class="linkbtn" type="button" onClick={() => switchTo('login')}>{t('class.haveAccount')}</button></p>
+      </form>
+    );
+  }
+  return (
+    <form class="panel classform" onSubmit={signIn}>
+      <h1>{t('class.teacherTitle')}</h1>
+      <fieldset><legend>{t('class.email')}</legend><input type="email" autoComplete="username" value={f.email} onInput={e => set({ email: e.currentTarget.value })} /></fieldset>
+      <fieldset><legend>{t('class.password')}</legend><input type="password" autoComplete="current-password" value={f.pw} onInput={e => set({ pw: e.currentTarget.value })} /></fieldset>
+      {err && <div class="warn">{err}</div>}
+      {actions(t('class.login'), !f.email || !f.pw)}
       <p class="note">{t('class.teacherNote')}</p>
+      <p class="small"><button class="linkbtn" type="button" onClick={() => switchTo('signup')}>{t('class.noAccount')}</button></p>
     </form>
   );
 }
-
-const PW_MIN = 8;   // [proposal] stricter than Supabase's default minimum of 6
 
 function PasswordForm({ onClose }) {
   const [a, setA] = useState('');

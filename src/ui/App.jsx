@@ -13,8 +13,9 @@ import { ClassEntry, JoinScreen, StudentRoom, InstructorScreen, ClassDemo } from
    and update(fn) runs the change then forces a re-render.
    Every change is autosaved to this browser (one slot); see saveStore.js. */
 /* Screens: setup / game / final (single player), join / student / teacher (classroom, P2).
-   A link ending in #join=CODE opens the join form; #teacher opens the instructor login. */
-const firstScreen = () => (/#join=/.test(location.hash) ? 'join' : location.hash === '#teacher' ? 'teacher'
+   A link ending in #join=CODE opens the join form; #teacher (or the return link of the instructor's confirmation email) opens the instructor screen. */
+const firstScreen = () => (/#join=/.test(location.hash) ? 'join'
+  : location.hash === '#teacher' || /#(access_token|error)=/.test(location.hash) ? 'teacher'
   : import.meta.env.DEV && /^#classdemo/.test(location.hash) ? 'classdemo' : 'setup');
 
 export function App() {

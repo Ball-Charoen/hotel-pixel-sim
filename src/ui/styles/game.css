@@ -44,7 +44,7 @@ legend{font-weight:600;margin-bottom:6px;padding:0}
 .seg{display:flex;flex-wrap:wrap;gap:6px}
 .seg button{font:inherit;font-size:.9rem;padding:6px 12px;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:0;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
-input[type=text],input[type=number],select{font:inherit;padding:6px 8px;border:2px solid var(--line);border-radius:0;background:var(--surface);color:var(--ink);max-width:100%}
+input[type=text],input[type=email],input[type=password],input[type=number],select{font:inherit;padding:6px 8px;border:2px solid var(--line);border-radius:0;background:var(--surface);color:var(--ink);max-width:100%}
 
 label.row{display:flex;justify-content:space-between;gap:8px;align-items:baseline;margin-top:8px}
 .btn{font:inherit;font-weight:600;padding:10px 18px;border:2px solid var(--line);border-radius:0;background:var(--jade);color:var(--jade-ink);cursor:pointer;box-shadow:3px 3px 0 var(--shadow)}
@@ -281,6 +281,7 @@ img.lm{object-fit:cover}
 /* ---------- P2 classroom ---------- */
 .classform input[type=text],.classform input[type=email],.classform input[type=password]{width:100%;max-width:24rem}
 .classform table td,.classform table th{vertical-align:top}
+.linkbtn{background:none;border:0;padding:0;font:inherit;color:var(--accent);text-decoration:underline;cursor:pointer}
 .roomcode{font-family:'VT323',monospace;font-size:clamp(3rem,10vw,5.5rem);letter-spacing:.25em;line-height:1;margin:12px 0;color:var(--lamp)}
 .note-box{border:2px dashed var(--line);border-radius:0;padding:8px 12px;margin-bottom:14px}
 .note-box .btn{text-align:left}
