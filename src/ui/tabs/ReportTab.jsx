@@ -3,12 +3,13 @@ import {
   CITIES, SEGMENTS, WEEKS, COST, CANCEL_P, ROLES, tmdSeason, seasonLabel,
 } from '../../sim/core.js';
 import { Quadrant, QuadLegend } from '../components/Quadrant.jsx';
-import { LineChart, Src, Chg } from '../components/widgets.jsx';
+import { LineChart, DonutChart, Src, Chg } from '../components/widgets.jsx';
 import { SEG_COLOR } from '../theme.js';
 import { N, weekLabel, newsText, crisisDetail } from '../names.js';
 import { effRich, schedRich, phaseName } from '../eventText.jsx';
 import { fmt, pct, weekShort } from '../format.js';
 import { t, tx, fill } from '../../i18n/index.js';
+import { Badge } from '../components/PixelIcon.jsx';
 
 const Arrow = ({ v, base }) => (base ? (v >= base ? <span class="up">▲</span> : <span class="down">▼</span>) : null);
 const Calc = ({ children }) => <span class="calc">{children}</span>;
@@ -179,10 +180,11 @@ function SegMix({ y }) {
   const tot = SEGMENTS.reduce((a, s) => a + (y.seg[s.id] || 0), 0) || 1;
   const share = s => (y.seg[s.id] || 0) / tot * 100;
   return (
-    <>
-      <div class="segbar">{SEGMENTS.map(s => <span key={s.id} style={{ width: `${share(s)}%`, background: SEG_COLOR[s.id] }} />)}</div>
-      <div class="legend">{SEGMENTS.map(s => <span key={s.id} style={{ '--c': SEG_COLOR[s.id] }}>{N.seg(s.id)} {Math.round(share(s))}%</span>)}</div>
-    </>
+    <div class="segpie">
+      <DonutChart aria={SEGMENTS.map(sg => `${N.seg(sg.id)} ${Math.round(share(sg))}%`).join(', ')}
+        centre={Math.round(SEGMENTS.reduce((a, sg) => a + (y.seg[sg.id] || 0), 0))} centreSub={t('customer.roomNights', { n: '' }).trim()}
+        slices={SEGMENTS.map(sg => ({ v: share(sg), color: SEG_COLOR[sg.id], name: N.seg(sg.id), value: `${Math.round(share(sg))}%` }))} />
+    </div>
   );
 }
 
@@ -209,7 +211,7 @@ const COST_ROWS = ['fixed', 'variable', 'salaries', 'bonus', 'severance', 'marke
 export function ReportTab({ s }) {
   const { G, last: o, log } = s;
   if (!o) {
-    return <div class="panel"><h2>{t('report.emptyTitle')}</h2><p>{t('report.emptyText')}</p></div>;
+    return <div class="panel"><h2><Badge k="chart" />{t('report.emptyTitle')}</h2><p>{t('report.emptyText')}</p></div>;
   }
   const y = o.hotels.you, i = o.idx;
   const labels = log.map(r => weekShort(r.week));
@@ -226,20 +228,20 @@ export function ReportTab({ s }) {
       </div>
       <div class="two">
         <div class="panel">
-          <h2>{t('report.quadTitle')}</h2>
+          <h2><Badge k="chart" />{t('report.quadTitle')}</h2>
           <div class="chart" style="max-width:460px"><Quadrant log={log} /></div>
           <QuadLegend />
         </div>
         <div class="panel">
-          <h2>{t('report.diagTitle')}</h2>
+          <h2><Badge k="search" />{t('report.diagTitle')}</h2>
           <ul class="list">{diagnose(G, o).map((x, k) => <li key={k}>{x}</li>)}</ul>
-          <h2 style="margin-top:14px">{t('report.causeTitle')}</h2>
+          <h2 style="margin-top:14px"><Badge k="search" />{t('report.causeTitle')}</h2>
           <ul class="list">{causeEffect(G, o).map((x, k) => <li key={k}>{x}</li>)}</ul>
         </div>
       </div>
       <div class="two">
         <div class="panel">
-          <h2>{t('report.compTitle')}</h2>
+          <h2><Badge k="trophy" />{t('report.compTitle')}</h2>
           <CompTable G={G} o={o} />
           <h3>{t('report.revparTitle')}</h3>
           <div class="chart">
@@ -255,7 +257,7 @@ export function ReportTab({ s }) {
           </div>
         </div>
         <div class="panel">
-          <h2>{t('report.finTitle')}</h2>
+          <h2><Badge k="cash" />{t('report.finTitle')}</h2>
           <div class="tablewrap">
             <table><tbody>
               <tr><td><b>{t('report.revenue')}</b></td><td><b>{fmt(y.revenue)}</b></td></tr>
@@ -266,7 +268,7 @@ export function ReportTab({ s }) {
             </tbody></table>
           </div>
           <p class="note">{t('report.finNote')}</p>
-          <h2 style="margin-top:14px">{t('report.promptTitle')}</h2>
+          <h2 style="margin-top:14px"><Badge k="bubble" />{t('report.promptTitle')}</h2>
           <PromptGuide key={o.week} prompt={prompts[(o.week - 1) % prompts.length]} />
           <p class="note">{tx('report.debriefNote', { src: <Src k="crookall">Crookall, 2010</Src> })}</p>
         </div>

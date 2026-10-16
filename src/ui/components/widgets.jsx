@@ -5,6 +5,7 @@ import { clamp } from '../../sim/core.js';
 import { N } from '../names.js';
 import { SRC } from '../sources.js';
 import { fmt, baht } from '../format.js';
+import { PixelIcon, TMD_ICON } from './PixelIcon.jsx';
 import { t, LANGS, getLang } from '../../i18n/index.js';
 
 /* Join a list of nodes with <br/> between them. */
@@ -30,7 +31,7 @@ export const Src = ({ k, children }) => <a href={SRC[k]} target="_blank" rel="no
 export const Chg = ({ good, children }) => (good == null ? <>{children}</> : <b class={good ? 'up' : 'down'}>{children}</b>);
 
 export const SeasonChip = ({ lab }) => <span class={`chip ${lab}`}>{N.season(lab)}</span>;
-export const TmdChip = ({ tmd }) => <span class={`chip ${tmd}`}>{N.tmd(tmd)}</span>;
+export const TmdChip = ({ tmd }) => <span class={`chip ${tmd}`}><PixelIcon k={TMD_ICON[tmd]} />{N.tmd(tmd)}</span>;
 
 /* Horizontal bar with an optional black marker (e.g. competitor average or guest expectation). */
 export function HBar({ label, v, mark, max = 100, right }) {
@@ -107,5 +108,72 @@ export function LineChart({ series, labels, min = 0, refLine, refLabel, aria, h 
         ))}
       </svg>
     </>
+  );
+}
+
+/* Donut chart with each slice's label placed around it, next to its own slice (no separate legend).
+   slices: [{ v, color, name, value }]; centre/centreSub: text in the hole. Slices start at 12 o'clock, clockwise.
+   Labels on the same side are pushed apart so small neighbouring slices do not overlap. */
+const PIE = { W: 350, H: 262, r: 78, r0: 48, lh: 16 };
+const twoLines = name => {
+  if (name.length <= 11 || !name.includes(' ')) return [name];
+  const mid = name.length / 2;
+  const cut = [...name.matchAll(/ /g)].map(m => m.index).sort((a, b) => Math.abs(a - mid) - Math.abs(b - mid))[0];
+  return [name.slice(0, cut), name.slice(cut + 1)];
+};
+export function DonutChart({ slices, centre, centreSub, aria }) {
+  const { W, H, r, r0, lh } = PIE;
+  const cx = W / 2, cy = H / 2;
+  const tot = slices.reduce((a, x) => a + x.v, 0) || 1;
+  const P = (rad, a) => `${(cx + rad * Math.cos(a)).toFixed(2)} ${(cy + rad * Math.sin(a)).toFixed(2)}`;
+  let a0 = -Math.PI / 2;
+  const items = slices.filter(x => x.v > 0).map(x => {
+    const frac = x.v / tot, a1 = a0 + frac * 2 * Math.PI, am = (a0 + a1) / 2;
+    const lines = twoLines(x.name);
+    const it = { ...x, frac, a0, a1, am, lines, h: lines.length * lh + 20, right: Math.cos(am) >= 0 };
+    it.y = cy + (r + 16) * Math.sin(am);
+    a0 = a1;
+    return it;
+  });
+  // Push labels on one side apart (top to bottom), then back inside the picture.
+  for (const side of [true, false]) {
+    const g = items.filter(x => x.right === side).sort((a, b) => a.y - b.y);
+    g.forEach((x, k) => { if (k) x.y = Math.max(x.y, g[k - 1].y + (g[k - 1].h + x.h) / 2 + 2); });
+    const over = g.length ? g[g.length - 1].y + g[g.length - 1].h / 2 - (H - 4) : 0;
+    if (over > 0) g.forEach(x => { x.y -= over; });
+  }
+  return (
+    <svg class="pie" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={aria}>
+      {items.map((x, i) => {
+        const big = x.frac > 0.5 ? 1 : 0;
+        const d = x.frac >= 0.9999
+          ? `M${cx - r} ${cy} A${r} ${r} 0 1 1 ${cx + r} ${cy} A${r} ${r} 0 1 1 ${cx - r} ${cy} Z M${cx - r0} ${cy} A${r0} ${r0} 0 1 0 ${cx + r0} ${cy} A${r0} ${r0} 0 1 0 ${cx - r0} ${cy} Z`
+          : `M${P(r, x.a0)} A${r} ${r} 0 ${big} 1 ${P(r, x.a1)} L${P(r0, x.a1)} A${r0} ${r0} 0 ${big} 0 ${P(r0, x.a0)} Z`;
+        return <path key={i} d={d} fill={x.color} fill-rule="evenodd" />;
+      })}
+      <circle cx={cx} cy={cy} r={r} fill="none" class="pie-rim" />
+      <circle cx={cx} cy={cy} r={r0} fill="none" class="pie-rim" />
+      {centre != null && (
+        <>
+          <text x={cx} y={cy + (centreSub ? 2 : 9)} text-anchor="middle" class="pie-centre">{centre}</text>
+          {centreSub && <text x={cx} y={cy + 16} text-anchor="middle" class="pie-sub">{centreSub}</text>}
+        </>
+      )}
+      {items.map((x, i) => {
+        const ex = cx + (r + 2) * Math.cos(x.am), ey = cy + (r + 2) * Math.sin(x.am);
+        const ax = cx + (r + 16) * Math.cos(x.am) * (Math.abs(Math.cos(x.am)) < 0.2 ? 1.6 : 1) + (x.right ? 4 : -4);
+        const tx = x.right ? ax + 4 : ax - 4, top = x.y - x.h / 2;
+        return (
+          <g key={i}>
+            <polyline points={`${ex.toFixed(1)},${ey.toFixed(1)} ${ax.toFixed(1)},${x.y.toFixed(1)}`} class="pie-lead" />
+            <rect x={ax - 3} y={x.y - 3} width="6" height="6" fill={x.color} class="pie-dot" />
+            {x.lines.map((ln, k) => (
+              <text key={k} x={tx} y={top + 12 + k * lh} text-anchor={x.right ? 'start' : 'end'} class="pie-name">{ln}</text>
+            ))}
+            <text x={tx} y={top + 12 + x.lines.length * lh + 8} text-anchor={x.right ? 'start' : 'end'} class="pie-val">{x.value}</text>
+          </g>
+        );
+      })}
+    </svg>
   );
 }

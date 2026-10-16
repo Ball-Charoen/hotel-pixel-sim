@@ -7,6 +7,7 @@ import { schedText } from '../eventText.jsx';
 import { fmt } from '../format.js';
 import { t, tx } from '../../i18n/index.js';
 import { confirmDialog } from '../confirm.jsx';
+import { Badge } from '../components/PixelIcon.jsx';
 
 function WeekBox({ G }) {
   const x = weekCtx(G, G.week);
@@ -114,13 +115,13 @@ export function DecideTab({ s, update, onGoStaff }) {
   const { G } = s;
   const h = player(G);
   if (G.week >= WEEKS) {
-    return <div class="panel"><h2>{t('decide.overTitle')}</h2><p>{t('decide.overText')}</p></div>;
+    return <div class="panel"><h2><Badge k="sliders" />{t('decide.overTitle')}</h2><p>{t('decide.overText')}</p></div>;
   }
   const set = fn => v => update(() => fn(v));
   return (
     <>
       <div class="panel">
-        <h2>{t('decide.title', { n: G.week + 1 })}</h2>
+        <h2><Badge k="sliders" />{t('decide.title', { n: G.week + 1 })}</h2>
         <WeekBox G={G} />
         <h3>{t('decide.knowCustomers', { city: N.city(G.city) })}</h3>
         <SegmentTable G={G} />

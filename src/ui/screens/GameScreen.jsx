@@ -10,10 +10,12 @@ import { CustomerTab } from '../tabs/CustomerTab.jsx';
 import { ReportTab } from '../tabs/ReportTab.jsx';
 import { EventsLibrary } from './EventsLibrary.jsx';
 import { Scene } from '../../scene/Scene.jsx';
+import { PixelIcon } from '../components/PixelIcon.jsx';
 import { fmt, baht } from '../format.js';
 import { t, tx } from '../../i18n/index.js';
 
 const TABS = ['market', 'decide', 'staff', 'customer', 'report'];
+const TAB_ICON = { market: 'calendar', decide: 'sliders', staff: 'person', customer: 'star', report: 'chart' };
 // Same query as the phone layout in styles/game.css.
 const PHONE = '(orientation: landscape) and (max-height: 560px)';
 
@@ -28,10 +30,15 @@ function useMedia(query) {
   return match;
 }
 
-function TopBar({ G, onInfo }) {
+function hud(G) {
   const h = player(G);
-  const x = weekCtx(G, G.week);
   const teamSat = h.staff.length ? h.staff.reduce((a, s) => a + s.sat, 0) / h.staff.length : 0;
+  return { h, x: weekCtx(G, G.week), teamSat };
+}
+
+/* Phone landscape: compact stats in the left sidebar. */
+function TopBar({ G, onInfo }) {
+  const { h, x, teamSat } = hud(G);
   return (
     <div class="topbar">
       <div class="stat"><span class="k" title={t('top.week')}>{t('top.week')}</span><span class="v">{Math.min(G.week + 1, WEEKS)}/{WEEKS}</span></div>
@@ -42,6 +49,33 @@ function TopBar({ G, onInfo }) {
       <div class="stat"><span class="k" title={t('top.cash')}>{t('top.cash')}</span><span class={`v${h.cash < 0 ? ' down' : ''}`}>{fmt(h.cash)}</span></div>
       <div class="stat"><span class="k" title={t('top.rating')}>{t('top.rating')}</span><span class="v">{h.R.toFixed(2)}</span></div>
       <div class="stat"><span class="k" title={t('top.staffSat')}>{t('top.staffSat')}</span><span class="v">{h.staff.length ? Math.round(teamSat) : '–'}</span></div>
+      <button type="button" class="infobtn" aria-label={t('top.info')} title={t('top.info')} onClick={onInfo}>i</button>
+    </div>
+  );
+}
+
+/* Desktop and tablet: a poster-style header. Hotel name big, a magenta week banner,
+   yellow tickets for cash / rating / staff satisfaction, and the building on the right. */
+function PosterHead({ G, onInfo }) {
+  const { h, x, teamSat } = hud(G);
+  const Ticket = ({ icon, label, children, cls = '' }) => (
+    <div class="ticket"><span class="k" title={label}><PixelIcon k={icon} />{label}</span><span class={`v${cls}`}>{children}</span></div>
+  );
+  return (
+    <div class="poster">
+      <div class="poster-main">
+        <p class="poster-where">
+          <span>{N.city(G.city)} · {weekLabel(x.wi)}</span> <TmdChip tmd={x.tmd} /><SeasonChip lab={x.lab} />
+        </p>
+        <h1 class="poster-name">{N.hotel(h)}</h1>
+        <div class="weekbanner">{t('top.week')} <b>{Math.min(G.week + 1, WEEKS)}/{WEEKS}</b></div>
+        <div class="tickets">
+          <Ticket icon="cash" label={t('top.cash')} cls={h.cash < 0 ? ' down' : ''}>{fmt(h.cash)}</Ticket>
+          <Ticket icon="star" label={t('top.rating')}>{h.R.toFixed(2)}</Ticket>
+          <Ticket icon="person" label={t('top.staffSat')}>{h.staff.length ? Math.round(teamSat) : '–'}</Ticket>
+        </div>
+      </div>
+      <Scene G={G} />
       <button type="button" class="infobtn" aria-label={t('top.info')} title={t('top.info')} onClick={onInfo}>i</button>
     </div>
   );
@@ -88,7 +122,7 @@ function InfoModal({ onClose, children }) {
   );
 }
 
-/* Desktop: everything stacked (as in the prototype). Phone landscape: CSS turns .game into a
+/* Desktop: poster header, tabs, content stacked. Phone landscape: CSS turns .game into a
    left sidebar (language, stats, tabs, end button) and a scrolling content panel (#tabbody). */
 /* classBar: classroom mode replaces the end-of-week bar (submit decisions, timer); see ClassroomScreens.jsx. */
 export function GameScreen({ s, update, saveOk, onFinal, langSwitch, initialTab = 'market', classBar = null }) {
@@ -112,10 +146,12 @@ export function GameScreen({ s, update, saveOk, onFinal, langSwitch, initialTab 
       {langSwitch}
       {phone
         ? <TopBar G={s.G} onInfo={() => setInfo(true)} />
-        : <div class="hero"><Scene G={s.G} /><TopBar G={s.G} onInfo={() => setInfo(true)} /></div>}
+        : <PosterHead G={s.G} onInfo={() => setInfo(true)} />}
       <div class="tabs" role="tablist">
         {TABS.map(k => (
-          <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}>{t(`tabs.${k}`)}</button>
+          <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}>
+            <PixelIcon k={TAB_ICON[k]} />{t(`tabs.${k}`)}
+          </button>
         ))}
       </div>
       <div id="tabbody" ref={body}>

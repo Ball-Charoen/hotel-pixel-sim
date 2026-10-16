@@ -3,6 +3,7 @@ import { HBar, LineChart, Src } from '../components/widgets.jsx';
 import { fmt, weekShort } from '../format.js';
 import { t, tx } from '../../i18n/index.js';
 import { N, crisisDetail } from '../names.js';
+import { Badge } from '../components/PixelIcon.jsx';
 
 /* Up to 5 sample reviews, each picked from the real cause in this week's result (seeded by week). */
 function reviewsFor(G, r, week) {
@@ -48,7 +49,7 @@ function reviewsFor(G, r, week) {
 export function CustomerTab({ s }) {
   const { G, last: o, log } = s;
   if (!o) {
-    return <div class="panel"><h2>{t('customer.emptyTitle')}</h2><p>{t('customer.emptyText')}</p></div>;
+    return <div class="panel"><h2><Badge k="heart" />{t('customer.emptyTitle')}</h2><p>{t('customer.emptyText')}</p></div>;
   }
   const y = o.hotels.you;
   const d = y.dist;
@@ -58,29 +59,29 @@ export function CustomerTab({ s }) {
   return (
     <div class="grid4">
       <div class="panel">
-        <h2>{t('customer.awTitle')}</h2>
+        <h2><Badge k="news" />{t('customer.awTitle')}</h2>
         <p class="small">{t('customer.awIntro')}</p>
         {SEGMENTS.map(sg => (
           <HBar key={sg.id} label={N.seg(sg.id)} v={y.aw[sg.id] * 100} mark={o.comp.aw[sg.id] * 100} right={Math.round(y.aw[sg.id] * 100) + '%'} />
         ))}
       </div>
       <div class="panel">
-        <h2>{t('customer.gapTitle')}</h2>
+        <h2><Badge k="star" />{t('customer.gapTitle')}</h2>
         <p class="small">{tx('customer.gapIntro', { src: <Src k="servqual">SERVQUAL</Src> })}</p>
         {SEGMENTS.map(sg => {
           const q = y.segQ[sg.id];
           return (
             <HBar key={sg.id} label={<>{N.seg(sg.id)}<br /><span class="small muted">{t('customer.roomNights', { n: Math.round(q.n) })}</span></>}
-              v={q.q} mark={q.e} right={`${q.rating.toFixed(1)}★`} />
+              v={q.q} mark={q.e} right={<>{q.rating.toFixed(1)}<span class="stars">★</span></>} />
           );
         })}
       </div>
       <div class="panel">
-        <h2>{t('customer.satTitle')}</h2>
+        <h2><Badge k="heart" />{t('customer.satTitle')}</h2>
         <p>{tx('customer.satLine', {
           newRev: <b>{y.newRev}</b>, rating: <b>{y.rating ? y.rating.toFixed(2) : '–'}</b>, R: <b>{y.R.toFixed(2)}</b>, N: fmt(y.N),
         })}</p>
-        {[5, 4, 3, 2, 1].map(k => <HBar key={k} label={'★'.repeat(k)} v={d[k - 1]} max={Math.max(1, ...d)} right={d[k - 1]} />)}
+        {[5, 4, 3, 2, 1].map(k => <HBar key={k} label={<span class="stars">{'★'.repeat(k)}</span>} v={d[k - 1]} max={Math.max(1, ...d)} right={d[k - 1]} />)}
         <div class="segbar" style="margin-top:10px">
           <span style={{ width: `${pos * 100}%`, background: 'var(--jade)' }} />
           <span style={{ width: `${neu * 100}%`, background: 'var(--sh)' }} />
@@ -99,7 +100,7 @@ export function CustomerTab({ s }) {
         </div>
       </div>
       <div class="panel">
-        <h2>{t('customer.ewomTitle')}</h2>
+        <h2><Badge k="bubble" />{t('customer.ewomTitle')}</h2>
         <p class="small">{tx('customer.ewomIntro', { src: <Src k="litvin">Litvin et al., 2008</Src> })}</p>
         {rvs.length
           ? rvs.map((r, i) => (

@@ -6,6 +6,7 @@ import { SeasonChip, TmdChip, lines } from '../components/widgets.jsx';
 import { schedText, phaseName } from '../eventText.jsx';
 import { weekShort } from '../format.js';
 import { t } from '../../i18n/index.js';
+import { Badge, PixelIcon, TMD_ICON } from '../components/PixelIcon.jsx';
 
 function SeasonBand({ G }) {
   const wk = [], tour = [], tmd = [], ev = [];
@@ -15,7 +16,7 @@ function SeasonBand({ G }) {
     const sch = G.timeline[w].scheduled;
     wk.push(<div key={w} class={`cell ev${cur}`}><b>{weekShort(w + 1)}</b><br />{weekLabel(x.wi)}</div>);
     tour.push(<div key={w} class={`cell ${x.lab}${cur}`}>{N.season(x.lab)}</div>);
-    tmd.push(<div key={w} class={`cell ${x.tmd}${cur}`}>{N.tmd(x.tmd)}</div>);
+    tmd.push(<div key={w} class={`cell ${x.tmd}${cur}`}><PixelIcon k={TMD_ICON[x.tmd]} />{N.tmd(x.tmd)}</div>);
     ev.push(<div key={w} class={`cell ev${cur}`}>{sch.length ? lines(sch.map(e => '★ ' + N.event(e.id))) : '–'}</div>);
   }
   return (
@@ -90,15 +91,15 @@ export function MarketTab({ s }) {
       <div class="two">
         <div class="panel"><CityCard id={G.city} /></div>
         <div class="panel">
-          <h2>{t('market.news')}</h2>
+          <h2><Badge k="news" />{t('market.news')}</h2>
           {news.length
             ? <ul class="list">{news.map((n, i) => <li key={i}>{t('market.newsItem', { week: weekShort(n.week), text: newsText(G, n) })}</li>)}</ul>
             : <p class="muted small">{t('market.noNews')}</p>}
         </div>
       </div>
-      <div class="panel"><h2>{t('market.seasonsTitle')}</h2><SeasonBand G={G} /></div>
+      <div class="panel"><h2><Badge k="sun" />{t('market.seasonsTitle')}</h2><SeasonBand G={G} /></div>
       <div class="panel">
-        <h2>{t('market.calTitle')}</h2>
+        <h2><Badge k="calendar" />{t('market.calTitle')}</h2>
         <p class="small">{t('market.calIntro', { p: Math.round(CANCEL_P * 100) })}</p>
         <CalendarTable G={G} reveal={s.reveal} />
       </div>

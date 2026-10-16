@@ -6,6 +6,7 @@ import { HBar, RangeCtl, LineChart, Src } from '../components/widgets.jsx';
 import { STATS } from '../theme.js';
 import { fmt, pct, weekShort } from '../format.js';
 import { t, tx } from '../../i18n/index.js';
+import { Badge } from '../components/PixelIcon.jsx';
 
 const POSITIONS = ['fo', 'hk', 'fb'];
 /* Skills each position actually uses in the quality formula (core.js teamQuality); shown in bold. */
@@ -67,7 +68,7 @@ export function StaffTab({ s, update }) {
   return (
     <div class="two">
       <div class="panel">
-        <h2>{t('staff.qualityTitle')}</h2>
+        <h2><Badge k="star" />{t('staff.qualityTitle')}</h2>
         <p class="small">{tx('staff.qualityIntro', { src: <Src k="servqual">SERVQUAL</Src> })}</p>
         {STATS.map(k => (
           <HBar key={k} label={<>{t(`stat.${k}`)}<br /><span class="small muted">{t(`servqual.${k}`)}</span></>} v={team[k]} mark={comp[k]} />
@@ -100,7 +101,7 @@ export function StaffTab({ s, update }) {
         )}
       </div>
       <div class="panel">
-        <h2>{t('staff.team', { n: h.staff.length, max })}</h2>
+        <h2><Badge k="person" />{t('staff.team', { n: h.staff.length, max })}</h2>
         <p class="small">{t('staff.teamRoles', { fo: count('fo'), hk: count('hk') })}{count('fb') ? ` · ${t('role.fb')} ${count('fb')}` : ''}</p>
         {count('fo') > 0 && count('hk') === 0 && <div class="warn">{t('staff.noHK')}</div>}
         <div class="staff">
